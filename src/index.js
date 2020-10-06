@@ -20,7 +20,8 @@ async function main() {
 		return
 	}
 
-	const baseRaw = baseFile && await fs.readFile(baseFile, "utf-8").catch(err => null)
+	const baseRaw =
+		baseFile && (await fs.readFile(baseFile, "utf-8").catch(err => null))
 	if (baseFile && !baseRaw) {
 		console.log(`No coverage report found at '${baseFile}', ignoring...`)
 	}
@@ -34,15 +35,24 @@ async function main() {
 	}
 
 	const lcov = await parse(raw)
-	const baselcov = baseRaw && await parse(baseRaw)
+	const baselcov = baseRaw && (await parse(baseRaw))
 	const body = diff(lcov, baselcov, options)
+
+	const gh = new GitHub(token)
+
+	const comments = await gh.issues.listComments({
+		issue_number: context.payload.pull_request.number,
+	})
+	console.log(JSON.stringify(comments, null, 4))
 
 	await new GitHub(token).issues.createComment({
 		repo: context.repo.repo,
 		owner: context.repo.owner,
 		issue_number: context.payload.pull_request.number,
-		body: diff(lcov, baselcov, options),
+		body,
 	})
+
+	new GitHub(token).issues.updateComment({ comment_id })
 }
 
 main().catch(function(err) {
