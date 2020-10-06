@@ -6,6 +6,10 @@ import { parse } from "./lcov"
 import { diff } from "./comment"
 
 async function main() {
+	if (!context.payload.pull_request) {
+		console.log("Only reporting coverage in pull requests, exiting...")
+	}
+
 	const token = core.getInput("github-token")
 	const lcovFile = core.getInput("lcov-file") || "./coverage/lcov.info"
 	const baseFile = core.getInput("lcov-base")
