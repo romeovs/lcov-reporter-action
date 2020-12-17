@@ -21,6 +21,7 @@ export function commentForMonorepo(
         console.log("lcovBaseArrayForMonorepo", lcovBaseArrayForMonorepo);
         console.log("lcovArrayForMonorepo", lcovArrayForMonorepo);
         console.log("baseLcov", baseLcov);
+        console.log("lcovObj.lcov", lcovObj.lcov);
 
         const pbefore = baseLcov ? percentage(baseLcov) : 0;
         const pafter = baseLcov ? percentage(lcovObj.lcov) : 0;
