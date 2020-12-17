@@ -18,6 +18,8 @@ export function commentForMonorepo(
             el => el.packageName === lcovObj.packageName,
         );
 
+        console.log("lcovBaseArrayForMonorepo", lcovBaseArrayForMonorepo);
+        console.log("lcovArrayForMonorepo", lcovArrayForMonorepo);
         console.log("baseLcov", baseLcov);
 
         const pbefore = baseLcov ? percentage(baseLcov) : 0;
