@@ -5929,7 +5929,7 @@ function commentForMonorepo(
         console.log("baseLcov", baseLcov);
         console.log("lcovObj.lcov", lcovObj.lcov);
 
-        const pbefore = baseLcov ? percentage(baseLcov) : 0;
+        const pbefore = baseLcov ? percentage(baseLcov.lcov) : 0;
         const pafter = baseLcov ? percentage(lcovObj.lcov) : 0;
         const pdiff = pafter - pbefore;
         const plus = pdiff > 0 ? "+" : "";
