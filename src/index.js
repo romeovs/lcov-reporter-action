@@ -1,7 +1,7 @@
 import fs, { promises } from "fs";
+import path from "path";
 import core from "@actions/core";
 import github from "@actions/github";
-import path from "path";
 import { parse } from "./lcov";
 import { diff, diffForMonorepo } from "./comment";
 import { upsertComment } from "./github";
@@ -17,14 +17,13 @@ const getLcovFiles = (dir, filelist = []) => {
         filelist = fs.statSync(path.join(dir, file)).isDirectory()
             ? getLcovFiles(path.join(dir, file), filelist)
             : filelist
-                  .filter(file => {
-                      return file.path.includes("lcov.info");
-                  })
+                  .filter(f => f.path.includes("lcov.info"))
                   .concat({
                       name: dir.split("/")[1],
                       path: path.join(dir, file),
                   });
     });
+
     return filelist;
 };
 
@@ -39,18 +38,17 @@ const getLcovBaseFiles = (dir, filelist = []) => {
         filelist = fs.statSync(path.join(dir, file)).isDirectory()
             ? getLcovBaseFiles(path.join(dir, file), filelist)
             : filelist
-                  .filter(file => {
-                      return file.path.includes("lcov-base.info");
-                  })
+                  .filter(f => f.path.includes("lcov-base.info"))
                   .concat({
                       name: dir.split("/")[1],
                       path: path.join(dir, file),
                   });
     });
+
     return filelist;
 };
 
-async function main() {
+const main = async () => {
     const { context = {} } = github || {};
 
     const token = core.getInput("github-token");
@@ -61,21 +59,26 @@ async function main() {
 
     const raw =
         !monorepoBasePath &&
-        (await promises.readFile(lcovFile, "utf-8").catch(err => null));
+        (await promises
+            .readFile(lcovFile, "utf-8")
+            .catch(err => console.error(err)));
     if (!monorepoBasePath && !raw) {
         console.log(`No coverage report found at '${lcovFile}', exiting...`);
+
         return;
     }
 
     const baseRaw =
         baseFile &&
-        (await promises.readFile(baseFile, "utf-8").catch(err => null));
+        (await promises
+            .readFile(baseFile, "utf-8")
+            .catch(err => console.error(err)));
     if (!monorepoBasePath && baseFile && !baseRaw) {
         console.log(`No coverage report found at '${baseFile}', ignoring...`);
     }
 
-    let lcovArray = monorepoBasePath ? getLcovFiles(monorepoBasePath) : [];
-    let lcovBaseArray = monorepoBasePath
+    const lcovArray = monorepoBasePath ? getLcovFiles(monorepoBasePath) : [];
+    const lcovBaseArray = monorepoBasePath
         ? getLcovBaseFiles(monorepoBasePath)
         : [];
 
@@ -83,8 +86,8 @@ async function main() {
     const lcovBaseArrayForMonorepo = [];
     for (const file of lcovArray) {
         if (file.path.includes(".info")) {
-            const raw = await promises.readFile(file.path, "utf8");
-            const data = await parse(raw);
+            const rLcove = await promises.readFile(file.path, "utf8");
+            const data = await parse(rLcove);
             lcovArrayForMonorepo.push({
                 packageName: file.name,
                 lcov: data,
@@ -94,8 +97,8 @@ async function main() {
 
     for (const file of lcovBaseArray) {
         if (file.path.includes(".info")) {
-            const raw = await promises.readFile(file.path, "utf8");
-            const data = await parse(raw);
+            const rLcovBase = await promises.readFile(file.path, "utf8");
+            const data = await parse(rLcovBase);
             lcovBaseArrayForMonorepo.push({
                 packageName: file.name,
                 lcov: data,
@@ -128,9 +131,9 @@ async function main() {
                   options,
               ),
     });
-}
+};
 
-main().catch(function(err) {
+main().catch(err => {
     console.log(err);
     core.setFailed(err.message);
 });

@@ -1,7 +1,7 @@
 import { tabulate } from "./tabulate";
-import { th, tr, td, table, tbody, a, b, span, fragment } from "./html";
+import { th, tr, td, table, tbody, a, b } from "./html";
 
-test("tabulate should generate a correct table", function() {
+test("tabulate should generate a correct table", () => {
     const data = [
         {
             file: "/files/project/index.js",

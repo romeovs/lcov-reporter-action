@@ -1,22 +1,21 @@
 import process from "process";
 import { promises as fs } from "fs";
 import path from "path";
-
 import { parse } from "./lcov";
 import { diff } from "./comment";
 
-async function main() {
+const main = async () => {
     const file = process.argv[2];
     const beforeFile = process.argv[3];
-    const prefix = path.dirname(path.dirname(path.resolve(file))) + "/";
+    const prefix = `${path.dirname(path.dirname(path.resolve(file)))}/`;
 
     const content = await fs.readFile(file, "utf-8");
     const lcov = await parse(content);
 
     let before;
     if (beforeFile) {
-        const content = await fs.readFile(beforeFile, "utf-8");
-        before = await parse(content);
+        const contentBefore = await fs.readFile(beforeFile, "utf-8");
+        before = await parse(contentBefore);
     }
 
     const options = {
@@ -28,9 +27,10 @@ async function main() {
     };
 
     console.log(diff(lcov, before, options));
-}
+};
 
-main().catch(function(err) {
+main().catch(err => {
     console.log(err);
-    process.exit(1);
+    process.exitCode = 1;
+    throw new Error(err);
 });
