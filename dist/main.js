@@ -24488,7 +24488,6 @@ const fragment = function(...children) {
 
 // Tabulate the lcov data in a HTML table.
 function tabulate(lcov, options) {
-
 	const columns = [
 		th("File"),
 		th("Stmts"),
@@ -24497,7 +24496,7 @@ function tabulate(lcov, options) {
 		th("Lines"),
 	];
 
-	if (!options.hideUncoveredLines){
+	if (!options.hideUncoveredLines) {
 		columns.push(th("Uncovered Lines"));
 	}
 	const head = tr(...columns);
@@ -24535,16 +24534,19 @@ function toFolder(path) {
 function getStatement(file) {
 	const { branches, functions, lines } = file;
 
-	return [branches, functions, lines].reduce(function(acc, curr) {
-		if (!curr) {
-			return acc
-		}
+	return [branches, functions, lines].reduce(
+		function(acc, curr) {
+			if (!curr) {
+				return acc
+			}
 
-		return {
-			hit: acc.hit + curr.hit,
-			found: acc.found + curr.found,
-		}
-	}, { hit: 0, found: 0 })
+			return {
+				hit: acc.hit + curr.hit,
+				found: acc.found + curr.found,
+			}
+		},
+		{ hit: 0, found: 0 },
+	)
 }
 
 function toRow(file, indent, options) {
@@ -24555,7 +24557,7 @@ function toRow(file, indent, options) {
 		td(percentage$1(file.functions)),
 		td(percentage$1(file.lines)),
 	];
-	if (!options.hideUncoveredLines){
+	if (!options.hideUncoveredLines) {
 		columns.push(td(uncovered(file, options)));
 	}
 
@@ -24595,13 +24597,18 @@ function uncovered(file, options) {
 
 	const all = ranges([...branches, ...lines]);
 
-
 	return all
 		.map(function(range) {
-			const fragment = range.start === range.end ? `L${range.start}` : `L${range.start}-L${range.end}`;
+			const fragment =
+				range.start === range.end
+					? `L${range.start}`
+					: `L${range.start}-L${range.end}`;
 			const relative = file.file.replace(options.prefix, "");
 			const href = `https://github.com/${options.repository}/blob/${options.commit}/${relative}#${fragment}`;
-			const text = range.start === range.end ? range.start : `${range.start}&ndash;${range.end}`;
+			const text =
+				range.start === range.end
+					? range.start
+					: `${range.start}&ndash;${range.end}`;
 
 			return a({ href }, text)
 		})
@@ -24635,7 +24642,7 @@ function ranges(linenos) {
 	return res
 }
 
-function comment (lcov, options) {
+function comment(lcov, options) {
 	return fragment(
 		options.base
 			? `Coverage after merging ${b(options.head)} into ${b(options.base)}`
@@ -24655,25 +24662,27 @@ function diff(lcov, before, options) {
 	const pafter = percentage(lcov);
 	const pdiff = pafter - pbefore;
 	const plus = pdiff > 0 ? "+" : "";
-	const arrow =
-		pdiff === 0
-			? ""
-			: pdiff < 0
-				? "▾"
-				: "▴";
+	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴";
 
 	return fragment(
 		options.base
 			? `Coverage after merging ${b(options.head)} into ${b(options.base)}`
 			: `Coverage for this commit`,
-		table(tbody(tr(
-			th(pafter.toFixed(2), "%"),
-			th(arrow, " ", plus, pdiff.toFixed(2), "%"),
-		))),
+		table(
+			tbody(
+				tr(
+					th(pafter.toFixed(2), "%"),
+					th(arrow, " ", plus, pdiff.toFixed(2), "%"),
+				),
+			),
+		),
 		"\n\n",
 		details(summary("Coverage Report"), tabulate(lcov, options)),
 	)
 }
+
+const MAX_COMMENT_SIZE = 65536;
+const COVERAGE_HEADER = ":loop: **Code coverage**\n\n";
 
 async function main$1() {
 	const token = core$1.getInput("github-token");
@@ -24681,14 +24690,14 @@ async function main$1() {
 	const baseFile = core$1.getInput("lcov-base");
 	const hideUncoveredLines = !!core$1.getInput("hide-uncovered-lines");
 
-
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
 	if (!raw) {
 		console.log(`No coverage report found at '${lcovFile}', exiting...`);
 		return
 	}
 
-	const baseRaw = baseFile && await fs.promises.readFile(baseFile, "utf-8").catch(err => null);
+	const baseRaw =
+		baseFile && (await fs.promises.readFile(baseFile, "utf-8").catch(err => null));
 	if (baseFile && !baseRaw) {
 		console.log(`No coverage report found at '${baseFile}', ignoring...`);
 	}
@@ -24709,24 +24718,52 @@ async function main$1() {
 	}
 
 	const lcov = await parse$2(raw);
-	const baselcov = baseRaw && await parse$2(baseRaw);
-	const body = diff(lcov, baselcov, options);
+	const baselcov = baseRaw && (await parse$2(baseRaw));
+	const coverageHeader = `${github_1.workflow}: ${COVERAGE_HEADER}`;
+	let diffHtml = coverageHeader + diff(lcov, baselcov, options);
+
+	const body =
+		diffHtml.length > MAX_COMMENT_SIZE
+			? COVERAGE_HEADER + `See action details for coverage`
+			: diffHtml;
+
+	const ghClient = new github_2(token);
 
 	if (github_1.eventName === "pull_request") {
-		await new github_2(token).issues.createComment({
+		await deletePreviousComments(ghClient, coverageHeader);
+		await ghClient.issues.createComment({
 			repo: github_1.repo.repo,
 			owner: github_1.repo.owner,
 			issue_number: github_1.payload.pull_request.number,
-			body: diff(lcov, baselcov, options),
+			body: body,
 		});
 	} else if (github_1.eventName === "push") {
-		await new github_2(token).repos.createCommitComment({
+		await ghClient.repos.createCommitComment({
 			repo: github_1.repo.repo,
 			owner: github_1.repo.owner,
 			commit_sha: options.commit,
-			body: diff(lcov, baselcov, options),
+			body: body,
 		});
 	}
+}
+
+async function deletePreviousComments(ghClient, whatToLookFor) {
+	const { data } = await ghClient.issues.listComments({
+		...github_1.repo,
+		per_page: 100,
+		issue_number: github_1.payload.pull_request.number,
+	});
+	return Promise.all(
+		data
+			.filter(
+				c =>
+					c.user.login === "github-actions[bot]" &&
+					c.body.startsWith(whatToLookFor),
+			)
+			.map(c =>
+				ghClient.issues.deleteComment({ ...github_1.repo, comment_id: c.id }),
+			),
+	)
 }
 
 main$1().catch(function(err) {

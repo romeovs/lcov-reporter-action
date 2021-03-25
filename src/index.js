@@ -5,6 +5,9 @@ import { GitHub, context } from "@actions/github"
 import { parse } from "./lcov"
 import { diff } from "./comment"
 
+const MAX_COMMENT_SIZE = 65536
+const COVERAGE_HEADER = ":loop: **Code coverage**\n\n"
+
 async function main() {
 	const token = core.getInput("github-token")
 	const lcovFile = core.getInput("lcov-file") || "./coverage/lcov.info"
@@ -40,23 +43,51 @@ async function main() {
 
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && (await parse(baseRaw))
-	const body = diff(lcov, baselcov, options)
+	const coverageHeader = `${context.workflow}: ${COVERAGE_HEADER}`
+	let diffHtml = coverageHeader + diff(lcov, baselcov, options)
+
+	const body =
+		diffHtml.length > MAX_COMMENT_SIZE
+			? COVERAGE_HEADER + `See action details for coverage`
+			: diffHtml
+
+	const ghClient = new GitHub(token)
 
 	if (context.eventName === "pull_request") {
-		await new GitHub(token).issues.createComment({
+		await deletePreviousComments(ghClient, coverageHeader)
+		await ghClient.issues.createComment({
 			repo: context.repo.repo,
 			owner: context.repo.owner,
 			issue_number: context.payload.pull_request.number,
-			body: diff(lcov, baselcov, options),
+			body: body,
 		})
 	} else if (context.eventName === "push") {
-		await new GitHub(token).repos.createCommitComment({
+		await ghClient.repos.createCommitComment({
 			repo: context.repo.repo,
 			owner: context.repo.owner,
 			commit_sha: options.commit,
-			body: diff(lcov, baselcov, options),
+			body: body,
 		})
 	}
+}
+
+async function deletePreviousComments(ghClient, whatToLookFor) {
+	const { data } = await ghClient.issues.listComments({
+		...context.repo,
+		per_page: 100,
+		issue_number: context.payload.pull_request.number,
+	})
+	return Promise.all(
+		data
+			.filter(
+				c =>
+					c.user.login === "github-actions[bot]" &&
+					c.body.startsWith(whatToLookFor),
+			)
+			.map(c =>
+				ghClient.issues.deleteComment({ ...context.repo, comment_id: c.id }),
+			),
+	)
 }
 
 main().catch(function(err) {
