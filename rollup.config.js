@@ -17,9 +17,14 @@ export default {
 		}),
 		resolve({
 			preferBuiltins: true,
-			mainFields: [ "main" ],
+			mainFields: ["main"],
 		}),
 		commonjs(),
+		commonjs({
+			namedExports: {
+				"node_modules/lodash/lodash.js": ["isEqual", "differenceWith"],
+			},
+		}),
 		json(),
 	],
 }

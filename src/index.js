@@ -6,7 +6,7 @@ import { parse } from "./lcov"
 import { diff } from "./comment"
 
 const MAX_COMMENT_SIZE = 65536
-const COVERAGE_HEADER = ":loop: **Code coverage**\n\n"
+const COVERAGE_HEADER = ":loop: "
 
 async function main() {
 	const token = core.getInput("github-token")

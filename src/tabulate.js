@@ -1,7 +1,59 @@
-import { th, tr, td, table, tbody, a, b, span, fragment } from "./html"
+import { th, tr, td, table, tbody, a, b, del, fragment } from "./html"
+import { isEqual, differenceWith } from "lodash"
+
+function combinedReport(lcov, before) {
+	const removeDetails = report =>
+		report.map(file => ({
+			...file,
+			lines: {
+				...file.lines,
+				details: undefined,
+			},
+			functions: {
+				...file.functions,
+				details: undefined,
+			},
+			branches: {
+				...file.branches,
+				details: undefined,
+			},
+		}))
+	lcov = removeDetails(lcov)
+	let base
+	if (before) {
+		before = removeDetails(before)
+		const toObject = report =>
+			report.reduce(
+				(acc, key) => ({
+					...acc,
+					[key.file]: {
+						...key,
+					},
+				}),
+				{},
+			)
+		base = toObject(before)
+	}
+
+	const combined = differenceWith(lcov, before || {}, isEqual).map(file => ({
+		file: file.file,
+		before: !!base
+			? {
+					...base[file.file],
+			  }
+			: undefined,
+		after: {
+			...file,
+		},
+	}))
+	return combined
+}
 
 // Tabulate the lcov data in a HTML table.
-export function tabulate(lcov, options) {
+export function tabulate(lcov, before, options) {
+	const combined = combinedReport(lcov, before)
+	if (combined.length === 0) return ``
+
 	const columns = [
 		th("File"),
 		th("Stmts"),
@@ -16,7 +68,7 @@ export function tabulate(lcov, options) {
 	const head = tr(...columns)
 
 	const folders = {}
-	for (const file of lcov) {
+	for (const file of combined) {
 		const parts = file.file.replace(options.prefix, "").split("/")
 		const folder = parts.slice(0, -1).join("/")
 		folders[folder] = folders[folder] || []
@@ -29,7 +81,9 @@ export function tabulate(lcov, options) {
 			(acc, key) => [
 				...acc,
 				toFolder(key, options),
-				...folders[key].map(file => toRow(file, key !== "", options)),
+				...folders[key].map(file =>
+					toRow(file, key !== "", { ...options, noDiff: !before }),
+				),
 			],
 			[],
 		)
@@ -66,10 +120,28 @@ function getStatement(file) {
 function toRow(file, indent, options) {
 	const columns = [
 		td(filename(file, indent, options)),
-		td(percentage(getStatement(file), options)),
-		td(percentage(file.branches, options)),
-		td(percentage(file.functions, options)),
-		td(percentage(file.lines, options)),
+		td(
+			percentage(
+				getStatement(file.after),
+				file.before && getStatement(file.before),
+				options,
+			),
+		),
+		td(
+			percentage(
+				file.after.branches,
+				file.before && file.before.branches,
+				options,
+			),
+		),
+		td(
+			percentage(
+				file.after.functions,
+				file.before && file.before.functions,
+				options,
+			),
+		),
+		td(percentage(file.after.lines, file.before && file.before.lines, options)),
 	]
 	if (!options.hideUncoveredLines) {
 		columns.push(td(uncovered(file, options)))
@@ -87,17 +159,39 @@ function filename(file, indent, options) {
 	return fragment(space, a({ href }, last))
 }
 
-function percentage(item) {
-	if (!item) {
-		return "N/A"
+// function percentage(item) {
+// 	if (!item) {
+// 		return "N/A"
+// 	}
+
+// 	const value = item.found === 0 ? 100 : (item.hit / item.found) * 100
+// 	const rounded = value.toFixed(2).replace(/\.0*$/, "")
+
+// 	const tag = value === 100 ? fragment : b
+
+// 	return tag(`${rounded}%`)
+// }
+
+function percentage(item, beforeItem, options) {
+	const noDiff = options.noDiff
+	const round = val => val.toFixed(2).replace(/\.0*$/, "")
+
+	const value = !item
+		? "N/A"
+		: item.found === 0
+		? `100%`
+		: `${round((item.hit / item.found) * 100)}%`
+	const beforeValue = !beforeItem
+		? "N/A"
+		: beforeItem.found === 0
+		? `100%`
+		: `${round((beforeItem.hit / beforeItem.found) * 100)}%`
+
+	if (noDiff) {
+		return b(value)
 	}
 
-	const value = item.found === 0 ? 100 : (item.hit / item.found) * 100
-	const rounded = value.toFixed(2).replace(/\.0*$/, "")
-
-	const tag = value === 100 ? fragment : b
-
-	return tag(`${rounded}%`)
+	return fragment(del(beforeValue), " ", b(value))
 }
 
 function uncovered(file, options) {
@@ -113,18 +207,21 @@ function uncovered(file, options) {
 
 	return all
 		.map(function(range) {
-			const fragment =
-				range.start === range.end
-					? `L${range.start}`
-					: `L${range.start}-L${range.end}`
-			const relative = file.file.replace(options.prefix, "")
-			const href = `https://github.com/${options.repository}/blob/${options.commit}/${relative}#${fragment}`
 			const text =
 				range.start === range.end
 					? range.start
 					: `${range.start}&ndash;${range.end}`
+			// Adding the link to each file line range makes the html too big for a github comment;
+			// So we return just the text instead
+			return text
+			// const fragment =
+			// 	range.start === range.end
+			// 		? `L${range.start}`
+			// 		: `L${range.start}-L${range.end}`
+			// const relative = file.file.replace(options.prefix, "")
+			// const href = `https://github.com/${options.repository}/blob/${options.commit}/${relative}#${fragment}`
 
-			return a({ href }, text)
+			// return a({ href }, text)
 		})
 		.join(", ")
 }

@@ -16,12 +16,15 @@
 		"build": "rollup -c",
 		"test": "jest --passWithNoTests --coverage",
 		"local": "babel-node src/cli",
-		"format": "prettier --write src/*.js src/**/*.js"
+		"format": "prettier --write src/*.js src/**/*.js",
+		"test-local": "babel-node src/cli ./coverage/coverage.lcov ./coverage/base-coverage.lcov > index.html && open index.html",
+		"test-local-s": "babel-node src/cli ./coverage/coverage.lcov > index.html && open index.html"
 	},
 	"dependencies": {
 		"@actions/core": "^1.2.0",
 		"@actions/github": "^1.1.0",
-		"lcov-parse": "^1.0.0"
+		"lcov-parse": "^1.0.0",
+		"lodash": "^4.17.21"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.8.6",

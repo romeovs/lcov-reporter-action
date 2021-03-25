@@ -23,6 +23,7 @@ export const table = tag("table")
 export const tbody = tag("tbody")
 export const a = tag("a")
 export const span = tag("span")
+export const del = tag("del")
 
 export const fragment = function(...children) {
 	return children.join("")
