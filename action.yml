@@ -14,6 +14,9 @@ inputs:
   lcov-base:
     description: The location of the lcov file for the base branch
     required: false
+  hide-uncovered-lines:
+    description: Set to true to hide the uncovered lines column
+    required: false
 runs:
   using: node12
   main: dist/main.js

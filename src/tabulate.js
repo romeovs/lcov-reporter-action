@@ -2,14 +2,18 @@ import { th, tr, td, table, tbody, a, b, span, fragment } from "./html"
 
 // Tabulate the lcov data in a HTML table.
 export function tabulate(lcov, options) {
-	const head = tr(
+	const columns = [
 		th("File"),
 		th("Stmts"),
 		th("Branches"),
 		th("Funcs"),
 		th("Lines"),
-		th("Uncovered Lines"),
-	)
+	]
+
+	if (!options.hideUncoveredLines) {
+		columns.push(th("Uncovered Lines"))
+	}
+	const head = tr(...columns)
 
 	const folders = {}
 	for (const file of lcov) {
@@ -44,27 +48,34 @@ function toFolder(path) {
 function getStatement(file) {
 	const { branches, functions, lines } = file
 
-	return [branches, functions, lines].reduce(function(acc, curr) {
-		if (!curr) {
-			return acc
-		}
+	return [branches, functions, lines].reduce(
+		function(acc, curr) {
+			if (!curr) {
+				return acc
+			}
 
-		return {
-			hit: acc.hit + curr.hit,
-			found: acc.found + curr.found,
-		}
-	}, { hit: 0, found: 0 })
+			return {
+				hit: acc.hit + curr.hit,
+				found: acc.found + curr.found,
+			}
+		},
+		{ hit: 0, found: 0 },
+	)
 }
 
 function toRow(file, indent, options) {
-	return tr(
+	const columns = [
 		td(filename(file, indent, options)),
 		td(percentage(getStatement(file), options)),
 		td(percentage(file.branches, options)),
 		td(percentage(file.functions, options)),
 		td(percentage(file.lines, options)),
-		td(uncovered(file, options)),
-	)
+	]
+	if (!options.hideUncoveredLines) {
+		columns.push(td(uncovered(file, options)))
+	}
+
+	return tr(...columns)
 }
 
 function filename(file, indent, options) {
@@ -100,13 +111,18 @@ function uncovered(file, options) {
 
 	const all = ranges([...branches, ...lines])
 
-
 	return all
 		.map(function(range) {
-			const fragment = range.start === range.end ? `L${range.start}` : `L${range.start}-L${range.end}`
+			const fragment =
+				range.start === range.end
+					? `L${range.start}`
+					: `L${range.start}-L${range.end}`
 			const relative = file.file.replace(options.prefix, "")
 			const href = `https://github.com/${options.repository}/blob/${options.commit}/${relative}#${fragment}`
-			const text = range.start === range.end ? range.start : `${range.start}&ndash;${range.end}`
+			const text =
+				range.start === range.end
+					? range.start
+					: `${range.start}&ndash;${range.end}`
 
 			return a({ href }, text)
 		})

@@ -9,6 +9,7 @@ async function main() {
 	const token = core.getInput("github-token")
 	const lcovFile = core.getInput("lcov-file") || "./coverage/lcov.info"
 	const baseFile = core.getInput("lcov-base")
+	const hideUncoveredLines = !!core.getInput("hide-uncovered-lines")
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
@@ -16,7 +17,8 @@ async function main() {
 		return
 	}
 
-	const baseRaw = baseFile && await fs.readFile(baseFile, "utf-8").catch(err => null)
+	const baseRaw =
+		baseFile && (await fs.readFile(baseFile, "utf-8").catch(err => null))
 	if (baseFile && !baseRaw) {
 		console.log(`No coverage report found at '${baseFile}', ignoring...`)
 	}
@@ -24,6 +26,7 @@ async function main() {
 	const options = {
 		repository: context.payload.repository.full_name,
 		prefix: `${process.env.GITHUB_WORKSPACE}/`,
+		hideUncoveredLines: hideUncoveredLines,
 	}
 
 	if (context.eventName === "pull_request") {
@@ -36,7 +39,7 @@ async function main() {
 	}
 
 	const lcov = await parse(raw)
-	const baselcov = baseRaw && await parse(baseRaw)
+	const baselcov = baseRaw && (await parse(baseRaw))
 	const body = diff(lcov, baselcov, options)
 
 	if (context.eventName === "pull_request") {
