@@ -49,8 +49,8 @@ function toFolder(path) {
 }
 
 export function diffField(item, { emptyOnZero, showColorEmoji }) {
-	const after = item?.after ?? 0
-	const before = item?.before ?? 0
+	const after = (item && item.after) || 0
+	const before = (item && item.before) || 0
 	const pdiff = after - before
 
 	if (emptyOnZero && pdiff === 0) {
@@ -68,8 +68,8 @@ function formatFloat(val) {
 }
 
 export function percField(item, { withDiff, showOldValueForFiles }) {
-	const after = item?.after
-	const before = item?.before
+	const after = item && item.after
+	const before = item && item.before
 	const na = value => (value !== undefined ? formatFloat(value) : "N/A")
 	if (!showOldValueForFiles || !withDiff || after == before) {
 		return b(na(after))
