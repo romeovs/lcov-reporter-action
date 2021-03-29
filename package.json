@@ -16,9 +16,7 @@
 		"build": "rollup -c",
 		"test": "jest --passWithNoTests --coverage",
 		"local": "babel-node src/cli",
-		"format": "prettier --write src/*.js src/**/*.js",
-		"test-local": "babel-node src/cli ./coverage/coverage.lcov ./coverage/base-coverage.lcov > index.html && open index.html",
-		"test-local-s": "babel-node src/cli ./coverage/coverage.lcov > index.html && open index.html"
+		"format": "prettier --write src/*.js src/**/*.js"
 	},
 	"dependencies": {
 		"@actions/core": "^1.2.0",
@@ -56,6 +54,9 @@
 		"testMatch": [
 			"<rootDir>/src/*_test.js",
 			"<rootDir>/src/**/*_test.js"
+		],
+		"collectCoverageFrom": [
+			"<rootDir>/src/**/*.js"
 		]
 	},
 	"prettier": {

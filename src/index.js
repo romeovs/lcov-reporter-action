@@ -12,7 +12,10 @@ async function main() {
 	const token = core.getInput("github-token")
 	const lcovFile = core.getInput("lcov-file") || "./coverage/lcov.info"
 	const baseFile = core.getInput("lcov-base")
-	const hideUncoveredLines = !!core.getInput("hide-uncovered-lines")
+	const showUncoveredLines = !!core.getInput("show-uncovered-lines")
+	const showColorEmoji = !!core.getInput("show-color-emoji")
+	const showOldValueForFiles = !!core.getInput("show-old-value-for-files")
+	const showIncreasePerFiles = !!core.getInput("show-increase-per-files")
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
@@ -29,7 +32,10 @@ async function main() {
 	const options = {
 		repository: context.payload.repository.full_name,
 		prefix: `${process.env.GITHUB_WORKSPACE}/`,
-		hideUncoveredLines: hideUncoveredLines,
+		showUncoveredLines,
+		showColorEmoji,
+		showOldValueForFiles,
+		showIncreasePerFiles,
 	}
 
 	if (context.eventName === "pull_request") {
@@ -43,7 +49,7 @@ async function main() {
 
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && (await parse(baseRaw))
-	const coverageHeader = `${context.workflow}: ${COVERAGE_HEADER}`
+	const coverageHeader = `${COVERAGE_HEADER}`
 	let diffHtml = coverageHeader + diff(lcov, baselcov, options)
 
 	const body =

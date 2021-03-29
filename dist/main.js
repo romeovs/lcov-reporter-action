@@ -24445,18 +24445,6 @@ function parse$2(data) {
 	})
 }
 
-// Get the total coverage percentage from the lcov data.
-function percentage(lcov) {
-	let hit = 0;
-	let found = 0;
-	for (const entry of lcov) {
-		hit += entry.lines.hit;
-		found += entry.lines.found;
-	}
-
-	return (hit / found) * 100
-}
-
 function tag(name) {
 	return function(...children) {
 		const props =
@@ -24486,6 +24474,126 @@ const del = tag("del");
 const fragment = function(...children) {
 	return children.join("")
 };
+
+// Tabulate the lcov data in a HTML table.
+function tabulate(report, options) {
+	if (report.files.length === 0) return ``
+	const combined = report.files;
+
+	const columns = [
+		th("File"),
+		th("% Stmts"),
+		th("% Branches"),
+		th("% Funcs"),
+		th("% Lines"),
+	];
+
+	if (options.showUncoveredLines) {
+		columns.push(th("Uncovered Lines"));
+	}
+	const head = tr(...columns);
+
+	const folders = {};
+	for (const file of combined) {
+		const parts = file.file.replace(options.prefix, "").split("/");
+		const folder = parts.slice(0, -1).join("/");
+		folders[folder] = folders[folder] || [];
+		folders[folder].push(file);
+	}
+
+	const rows = Object.keys(folders)
+		.sort()
+		.reduce(
+			(acc, key) => [
+				...acc,
+				toFolder(key),
+				...folders[key].map(file => toRow(file, key !== "", options)),
+			],
+			[],
+		);
+
+	return table(tbody(head, ...rows))
+}
+
+function toFolder(path) {
+	if (path === "") {
+		return ""
+	}
+
+	return tr(td({ colspan: 6 }, b(path)))
+}
+
+function diffField(item, { emptyOnZero, showColorEmoji }) {
+	const after = item?.after ?? 0;
+	const before = item?.before ?? 0;
+	const pdiff = after - before;
+
+	if (emptyOnZero && pdiff === 0) {
+		return ""
+	}
+
+	const plus = pdiff > 0 ? "+" : "";
+	const arrow = !showColorEmoji || pdiff === 0 ? "" : pdiff < 0 ? " 🔴" : " 🟢";
+
+	return fragment(`(${plus + formatFloat(pdiff)})`, arrow)
+}
+
+function formatFloat(val) {
+	return val.toFixed(2).replace(/\.0*$/, "")
+}
+
+function percField(item, { withDiff, showOldValueForFiles }) {
+	const after = item?.after;
+	const before = item?.before;
+	const na = value => (value !== undefined ? formatFloat(value) : "N/A");
+	if (!showOldValueForFiles || !withDiff || after == before) {
+		return b(na(after))
+	}
+	return fragment(del(na(before)), " ", b(na(after)))
+}
+
+function addField(item, options) {
+	const elements = [percField(item, options)];
+
+	if (options.withDiff && options.showIncreasePerFiles) {
+		elements.push(diffField(item, { ...options, emptyOnZero: true }));
+	}
+
+	return fragment(...elements)
+}
+
+function toRow(file, indent, options) {
+	const columns = [
+		td(filename(file, indent, options)),
+		td(addField(file.stmts, options)),
+		td(addField(file.branches, options)),
+		td(addField(file.functions, options)),
+		td(addField(file.lines, options)),
+	];
+	if (options.showUncoveredLines) {
+		columns.push(
+			td(
+				file.details.uncoveredLines
+					.map(([start, end]) =>
+						start === end || end === undefined
+							? start
+							: `${start}&ndash;${end}`,
+					)
+					.join(", "),
+			),
+		);
+	}
+	return tr(...columns)
+}
+
+function filename(file, indent, options) {
+	const relative = file.file.replace(options.prefix, "");
+	const href = `https://github.com/${options.repository}/blob/${options.commit}/${relative}`;
+	const parts = relative.split("/");
+	const last = parts[parts.length - 1];
+	const space = indent ? "&nbsp; &nbsp;" : "";
+	return fragment(space, a({ href }, last))
+}
 
 var lodash = createCommonjsModule(function (module, exports) {
 (function() {
@@ -41679,102 +41787,135 @@ var lodash = createCommonjsModule(function (module, exports) {
 var lodash_1 = lodash.isEqual;
 var lodash_2 = lodash.differenceWith;
 
+function computeTotal(report) {
+	const overall = {
+		stmts: { hit: 0, found: 0 },
+		branches: { hit: 0, found: 0 },
+		functions: { hit: 0, found: 0 },
+		lines: { hit: 0, found: 0 },
+	};
+	const add = (from, to) => {
+		if (!from) return
+		to.hit += from.hit;
+		to.found += from.found;
+	};
+	for (const file of report) {
+		const { stmts, branches, functions, lines } = file.details;
+		add(stmts, overall.stmts);
+		add(branches, overall.branches);
+		add(functions, overall.functions);
+		add(lines, overall.lines);
+	}
+
+	for (const k in overall) {
+		overall[k] = percentage(overall[k]);
+	}
+	return overall
+}
+
 function combinedReport(lcov, before) {
-	const removeDetails = report =>
-		report.map(file => ({
-			...file,
-			lines: {
-				...file.lines,
-				details: undefined,
-			},
-			functions: {
-				...file.functions,
-				details: undefined,
-			},
-			branches: {
-				...file.branches,
-				details: undefined,
-			},
-		}));
-	lcov = removeDetails(lcov);
-	let base;
-	if (before) {
-		before = removeDetails(before);
-		const toObject = report =>
-			report.reduce(
-				(acc, key) => ({
-					...acc,
-					[key.file]: {
-						...key,
-					},
-				}),
-				{},
-			);
-		base = toObject(before);
-	}
+	const currentSummary = generateReport(lcov);
+	const currentTotal = computeTotal(currentSummary);
 
-	const combined = lodash_2(lcov, before || {}, lodash_1).map(file => ({
-		file: file.file,
-		before: !!base
-			? {
-					...base[file.file],
-			  }
-			: undefined,
-		after: {
-			...file,
+	const beforeSummary = before && generateReport(before);
+	const beforeTotal = beforeSummary && computeTotal(beforeSummary);
+
+	const currentMap = toObject(currentSummary);
+	const beforeMap = beforeSummary && toObject(beforeSummary);
+
+	const toDiffObj = (current, previous, prop) => {
+		const before = previous && previous[prop];
+		const stats = {
+			after: current[prop],
+		};
+		if (before) {
+			stats.before = before;
+		}
+
+		return stats
+	};
+
+	const diff = lodash_2(
+		removeDetails(currentSummary),
+		(beforeSummary && removeDetails(beforeSummary)) || [],
+		lodash_1,
+	).map(file => {
+		const before = beforeMap && beforeMap[file.file];
+		return {
+			file: file.file,
+			stmts: toDiffObj(file, before, "stmts"),
+			branches: toDiffObj(file, before, "branches"),
+			functions: toDiffObj(file, before, "functions"),
+			lines: toDiffObj(file, before, "lines"),
+			details: currentMap[file.file].details,
+		}
+	});
+
+	return {
+		total: {
+			stmts: toDiffObj(currentTotal, beforeTotal, "stmts"),
+			branches: toDiffObj(currentTotal, beforeTotal, "branches"),
+			functions: toDiffObj(currentTotal, beforeTotal, "functions"),
+			lines: toDiffObj(currentTotal, beforeTotal, "lines"),
 		},
-	}));
-	return combined
+		files: diff,
+	}
 }
 
-// Tabulate the lcov data in a HTML table.
-function tabulate(lcov, before, options) {
-	const combined = combinedReport(lcov, before);
-	if (combined.length === 0) return ``
-
-	const columns = [
-		th("File"),
-		th("Stmts"),
-		th("Branches"),
-		th("Funcs"),
-		th("Lines"),
-	];
-
-	if (!options.hideUncoveredLines) {
-		columns.push(th("Uncovered Lines"));
-	}
-	const head = tr(...columns);
-
-	const folders = {};
-	for (const file of combined) {
-		const parts = file.file.replace(options.prefix, "").split("/");
-		const folder = parts.slice(0, -1).join("/");
-		folders[folder] = folders[folder] || [];
-		folders[folder].push(file);
-	}
-
-	const rows = Object.keys(folders)
-		.sort()
-		.reduce(
-			(acc, key) => [
-				...acc,
-				toFolder(key),
-				...folders[key].map(file =>
-					toRow(file, key !== "", { ...options, noDiff: !before }),
-				),
-			],
-			[],
-		);
-
-	return table(tbody(head, ...rows))
+function round(val) {
+	return parseFloat(val.toFixed(2))
 }
 
-function toFolder(path) {
-	if (path === "") {
-		return ""
-	}
+function percentage(item) {
+	return item
+		? item.found === 0
+			? 100
+			: round((item.hit / item.found) * 100)
+		: undefined
+}
+function generateReport(lcov) {
+	const files = lcov.map(report => {
+		const stmts = getStatement(report);
+		const toDetails = item =>
+			item && {
+				hit: item.hit,
+				found: item.found,
+			};
+		return {
+			file: report.file,
+			stmts: percentage(stmts),
+			branches: percentage(report.branches),
+			functions: percentage(report.functions),
+			lines: percentage(report.lines),
+			details: {
+				stmts: toDetails(stmts),
+				branches: toDetails(report.branches),
+				functions: toDetails(report.functions),
+				lines: toDetails(report.lines),
+				uncoveredLines: uncovered(report),
+			},
+		}
+	});
 
-	return tr(td({ colspan: 6 }, b(path)))
+	return files
+}
+function toObject(report) {
+	return report.reduce(
+		(acc, key) => ({
+			...acc,
+			[key.file]: {
+				...key,
+			},
+		}),
+		{},
+	)
+}
+
+function removeDetails(report) {
+	return report.map(file => ({
+		...file,
+		details: undefined,
+	}))
 }
 
 function getStatement(file) {
@@ -41795,83 +41936,6 @@ function getStatement(file) {
 	)
 }
 
-function toRow(file, indent, options) {
-	const columns = [
-		td(filename(file, indent, options)),
-		td(
-			percentage$1(
-				getStatement(file.after),
-				file.before && getStatement(file.before),
-				options,
-			),
-		),
-		td(
-			percentage$1(
-				file.after.branches,
-				file.before && file.before.branches,
-				options,
-			),
-		),
-		td(
-			percentage$1(
-				file.after.functions,
-				file.before && file.before.functions,
-				options,
-			),
-		),
-		td(percentage$1(file.after.lines, file.before && file.before.lines, options)),
-	];
-	if (!options.hideUncoveredLines) {
-		columns.push(td(uncovered(file)));
-	}
-
-	return tr(...columns)
-}
-
-function filename(file, indent, options) {
-	const relative = file.file.replace(options.prefix, "");
-	const href = `https://github.com/${options.repository}/blob/${options.commit}/${relative}`;
-	const parts = relative.split("/");
-	const last = parts[parts.length - 1];
-	const space = indent ? "&nbsp; &nbsp;" : "";
-	return fragment(space, a({ href }, last))
-}
-
-// function percentage(item) {
-// 	if (!item) {
-// 		return "N/A"
-// 	}
-
-// 	const value = item.found === 0 ? 100 : (item.hit / item.found) * 100
-// 	const rounded = value.toFixed(2).replace(/\.0*$/, "")
-
-// 	const tag = value === 100 ? fragment : b
-
-// 	return tag(`${rounded}%`)
-// }
-
-function percentage$1(item, beforeItem, options) {
-	const noDiff = options.noDiff;
-	const round = val => val.toFixed(2).replace(/\.0*$/, "");
-
-	const value = !item
-		? "N/A"
-		: item.found === 0
-		? `100%`
-		: `${round((item.hit / item.found) * 100)}%`;
-	const beforeValue = !beforeItem
-		? "N/A"
-		: beforeItem.found === 0
-		? `100%`
-		: `${round((beforeItem.hit / beforeItem.found) * 100)}%`;
-
-	if (noDiff) {
-		return b(value)
-	}
-
-	return fragment(del(beforeValue), " ", b(value))
-}
-
 function uncovered(file, options) {
 	const branches = (file.branches ? file.branches.details : [])
 		.filter(branch => branch.taken === 0)
@@ -41881,93 +41945,73 @@ function uncovered(file, options) {
 		.filter(line => line.hit === 0)
 		.map(line => line.line);
 
-	const all = ranges([...branches, ...lines]);
-
-	return all
-		.map(function(range) {
-			const text =
-				range.start === range.end
-					? range.start
-					: `${range.start}&ndash;${range.end}`;
-			// Adding the link to each file line range makes the html too big for a github comment;
-			// So we return just the text instead
-			return text
-			// const fragment =
-			// 	range.start === range.end
-			// 		? `L${range.start}`
-			// 		: `L${range.start}-L${range.end}`
-			// const relative = file.file.replace(options.prefix, "")
-			// const href = `https://github.com/${options.repository}/blob/${options.commit}/${relative}#${fragment}`
-
-			// return a({ href }, text)
-		})
-		.join(", ")
+	return ranges([...branches, ...lines])
 }
 
 function ranges(linenos) {
 	const res = [];
 
+	const asArr = range =>
+		range.start === range.end ? [range.start] : [range.start, range.end];
+
 	let last = null;
+	linenos
+		.sort((a, b) => a - b)
+		.forEach(function(lineno) {
+			if (last === null) {
+				last = { start: lineno, end: lineno };
+				return
+			}
 
-	linenos.sort().forEach(function(lineno) {
-		if (last === null) {
+			if (last.end === lineno) {
+				return
+			}
+
+			if (last.end + 1 === lineno) {
+				last.end = lineno;
+				return
+			}
+
+			res.push(asArr(last));
 			last = { start: lineno, end: lineno };
-			return
-		}
-
-		if (last.end + 1 === lineno) {
-			last.end = lineno;
-			return
-		}
-
-		res.push(last);
-		last = { start: lineno, end: lineno };
-	});
+		});
 
 	if (last) {
-		res.push(last);
+		res.push(asArr(last));
 	}
 
 	return res
 }
 
-function comment(lcov, options) {
-	return fragment(
-		options.base
-			? `Coverage after merging ${b(options.head)} into ${b(options.base)}`
-			: `Coverage for this commit`,
-		table(tbody(tr(th(percentage(lcov).toFixed(2), "%")))),
-		"\n\n",
-		details(summary("Coverage Report"), tabulate(lcov, undefined, options)),
-	)
-}
-
 function diff(lcov, before, options) {
-	if (!before) {
-		return comment(lcov, options)
-	}
+	options.withDiff = !!before;
+	const report = combinedReport(lcov, before);
 
-	const pbefore = percentage(before);
-	const pafter = percentage(lcov);
-	const pdiff = pafter - pbefore;
-	const plus = pdiff > 0 ? "+" : "";
-	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴";
-
-	return fragment(
+	const data = [
 		options.base
 			? `Coverage after merging ${b(options.head)} into ${b(options.base)}`
 			: `Coverage for this commit`,
 		table(
 			tbody(
 				tr(
-					th(pafter.toFixed(2), "%"),
-					th(arrow, " ", plus, pdiff.toFixed(2), "%"),
+					th(percField(report.total.lines, options)),
+					before && th(diffField(report.total.lines, options)),
 				),
 			),
 		),
+	];
+
+	if (report.files.length === 0) {
+		data.push(`No difference in coverage of files`);
+		return fragment(...data)
+	}
+
+	data.push(
 		"\n\n",
-		details(summary("Coverage Report"), tabulate(lcov, before, options)),
-	)
+		details(summary("Coverage Report"), tabulate(report, options)),
+	);
+
+	return fragment(...data)
 }
 
 const MAX_COMMENT_SIZE = 65536;
@@ -41977,7 +42021,10 @@ async function main$1() {
 	const token = core$1.getInput("github-token");
 	const lcovFile = core$1.getInput("lcov-file") || "./coverage/lcov.info";
 	const baseFile = core$1.getInput("lcov-base");
-	const hideUncoveredLines = !!core$1.getInput("hide-uncovered-lines");
+	const showUncoveredLines = !!core$1.getInput("show-uncovered-lines");
+	const showColorEmoji = !!core$1.getInput("show-color-emoji");
+	const showOldValueForFiles = !!core$1.getInput("show-old-value-for-files");
+	const showIncreasePerFiles = !!core$1.getInput("show-increase-per-files");
 
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
 	if (!raw) {
@@ -41994,7 +42041,10 @@ async function main$1() {
 	const options = {
 		repository: github_1.payload.repository.full_name,
 		prefix: `${process.env.GITHUB_WORKSPACE}/`,
-		hideUncoveredLines: hideUncoveredLines,
+		showUncoveredLines,
+		showColorEmoji,
+		showOldValueForFiles,
+		showIncreasePerFiles,
 	};
 
 	if (github_1.eventName === "pull_request") {
@@ -42008,7 +42058,7 @@ async function main$1() {
 
 	const lcov = await parse$2(raw);
 	const baselcov = baseRaw && (await parse$2(baseRaw));
-	const coverageHeader = `${github_1.workflow}: ${COVERAGE_HEADER}`;
+	const coverageHeader = `${COVERAGE_HEADER}`;
 	let diffHtml = coverageHeader + diff(lcov, baselcov, options);
 
 	const body =

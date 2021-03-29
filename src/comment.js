@@ -1,43 +1,34 @@
 import { details, summary, b, fragment, table, tbody, tr, th } from "./html"
-
-import { percentage } from "./lcov"
-import { tabulate } from "./tabulate"
-
-export function comment(lcov, options) {
-	return fragment(
-		options.base
-			? `Coverage after merging ${b(options.head)} into ${b(options.base)}`
-			: `Coverage for this commit`,
-		table(tbody(tr(th(percentage(lcov).toFixed(2), "%")))),
-		"\n\n",
-		details(summary("Coverage Report"), tabulate(lcov, undefined, options)),
-	)
-}
+import { tabulate, percField, diffField } from "./tabulate"
+import { combinedReport } from "./report"
 
 export function diff(lcov, before, options) {
-	if (!before) {
-		return comment(lcov, options)
-	}
+	options.withDiff = !!before
+	const report = combinedReport(lcov, before)
 
-	const pbefore = percentage(before)
-	const pafter = percentage(lcov)
-	const pdiff = pafter - pbefore
-	const plus = pdiff > 0 ? "+" : ""
-	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴"
-
-	return fragment(
+	const data = [
 		options.base
 			? `Coverage after merging ${b(options.head)} into ${b(options.base)}`
 			: `Coverage for this commit`,
 		table(
 			tbody(
 				tr(
-					th(pafter.toFixed(2), "%"),
-					th(arrow, " ", plus, pdiff.toFixed(2), "%"),
+					th(percField(report.total.lines, options)),
+					before && th(diffField(report.total.lines, options)),
 				),
 			),
 		),
+	]
+
+	if (report.files.length === 0) {
+		data.push(`No difference in coverage of files`)
+		return fragment(...data)
+	}
+
+	data.push(
 		"\n\n",
-		details(summary("Coverage Report"), tabulate(lcov, before, options)),
+		details(summary("Coverage Report"), tabulate(report, options)),
 	)
+
+	return fragment(...data)
 }

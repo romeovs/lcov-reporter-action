@@ -25,8 +25,11 @@ async function main() {
 		prefix,
 		head: "feat/test",
 		base: "master",
+		showUncoveredLines: false,
+		showColorEmoji: true,
+		showOldValueForFiles: false,
+		showIncreasePerFiles: true,
 	}
-
 	console.log(diff(lcov, before, options))
 }
 
