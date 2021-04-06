@@ -45,19 +45,19 @@ branch. When this is set a diff of the coverage percentages is shown.
 ##### `show-uncovered-lines` (**Optional**)
 When set to `true` will show the **uncovered lines** column. **Defaults** to `false`;
 ##### `show-color-emoji` (**Optional**)
-When set to true will show a colored emoji if the coverage decreased 🔴  or increased 🟢, like "<b>98.61</b>(+2.61) 🟢 ". **Defaults** to `true`;
+When set to true will show a colored emoji if the coverage decreased 🔴  or increased 🟢, like "<b>98.61</b>(+2.61) 🟢 ". **Defaults** to `false`;
 
 ##### `show-old-value-for-files` (**Optional**)
-When set to true will show the old coverage result value, like: "<del>94,65</del> <b>98.61</b>". **Defaults** to `false`;
+When set to true will show the old coverage result value, like: "<del>94,65</del> <b>98.61</b>". **Defaults** to `true`;
 
 ##### `show-increase-per-files` (**Optional**)
-When set to true will show the increase/decrease difference of the coverage, like: "<b>98.61</b>(+2.61)". **Defaults** to `true`;
+When set to true will show the increase/decrease difference of the coverage, like: "<b>98.61</b>(+2.61)". **Defaults** to `false`;
 
 
 ## Example usage
 
 ```yml
-uses: eberlitz/lcov-reporter-action@v0.2.27
+uses: eberlitz/lcov-reporter-action@v0.2.29
 with:
   github-token: ${{ secrets.GITHUB_TOKEN }}
   lcov-file: ./coverage/lcov.info

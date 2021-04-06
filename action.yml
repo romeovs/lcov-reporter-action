@@ -20,14 +20,13 @@ inputs:
   show-color-emoji:
     description: Set to true to show a colored emoji if the coverage decreased or increased
     required: false
-    default: 'true'
   show-old-value-for-files:
     description: Set to true to show the old coverage result value
     required: false
+    default: 'true'
   show-increase-per-files:
     description: Set to true to show the increase/decrease difference of the coverage;
     required: false
-    default: 'true'
 
 runs:
   using: node12
