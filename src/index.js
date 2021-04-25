@@ -9,7 +9,13 @@ async function main() {
 	const token = core.getInput("github-token")
 	const lcovFile = core.getInput("lcov-file") || "./coverage/lcov.info"
 	const baseFile = core.getInput("lcov-base")
-
+	const commit = core.getInput("commit")
+	const head = core.getInput("head")
+	const base = core.getInput("base")
+	const repo = core.getInput("repo")
+	const owner = core.getInput("owner")
+	const pr_number = core.getInput("pr_number")
+	
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
 		console.log(`No coverage report found at '${lcovFile}', exiting...`)
@@ -24,36 +30,21 @@ async function main() {
 	const options = {
 		repository: context.payload.repository.full_name,
 		prefix: `${process.env.GITHUB_WORKSPACE}/`,
-	}
-
-	if (context.eventName === "pull_request") {
-		options.commit = context.payload.pull_request.head.sha
-		options.head = context.payload.pull_request.head.ref
-		options.base = context.payload.pull_request.base.ref
-	} else if (context.eventName === "push") {
-		options.commit = context.payload.after
-		options.head = context.ref
+		commit: commit,
+		head: head,
+		base: base
 	}
 
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && await parse(baseRaw)
 	const body = diff(lcov, baselcov, options)
 
-	if (context.eventName === "pull_request") {
-		await new GitHub(token).issues.createComment({
-			repo: context.repo.repo,
-			owner: context.repo.owner,
-			issue_number: context.payload.pull_request.number,
-			body: diff(lcov, baselcov, options),
-		})
-	} else if (context.eventName === "push") {
-		await new GitHub(token).repos.createCommitComment({
-			repo: context.repo.repo,
-			owner: context.repo.owner,
-			commit_sha: options.commit,
-			body: diff(lcov, baselcov, options),
-		})
-	}
+	await new GitHub(token).issues.createComment({
+		repo: repo,
+		owner: owner,
+		issue_number: pr_number
+		body: diff(lcov, baselcov, options),
+	})
 }
 
 main().catch(function(err) {
