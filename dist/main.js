@@ -1,21 +1,32 @@
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
 var fs = require('fs');
-var fs__default = _interopDefault(fs);
-var os = _interopDefault(require('os'));
-var path = _interopDefault(require('path'));
-var http = _interopDefault(require('http'));
-var https = _interopDefault(require('https'));
+var os = require('os');
+var path = require('path');
+var http = require('http');
+var https = require('https');
 require('net');
-var tls = _interopDefault(require('tls'));
-var events = _interopDefault(require('events'));
+var tls = require('tls');
+var events = require('events');
 require('assert');
-var util = _interopDefault(require('util'));
-var Stream = _interopDefault(require('stream'));
-var Url = _interopDefault(require('url'));
-var zlib = _interopDefault(require('zlib'));
+var util = require('util');
+var Stream = require('stream');
+var Url = require('url');
+var zlib = require('zlib');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var fs__default = /*#__PURE__*/_interopDefaultLegacy(fs);
+var os__default = /*#__PURE__*/_interopDefaultLegacy(os);
+var path__default = /*#__PURE__*/_interopDefaultLegacy(path);
+var http__default = /*#__PURE__*/_interopDefaultLegacy(http);
+var https__default = /*#__PURE__*/_interopDefaultLegacy(https);
+var tls__default = /*#__PURE__*/_interopDefaultLegacy(tls);
+var events__default = /*#__PURE__*/_interopDefaultLegacy(events);
+var util__default = /*#__PURE__*/_interopDefaultLegacy(util);
+var Stream__default = /*#__PURE__*/_interopDefaultLegacy(Stream);
+var Url__default = /*#__PURE__*/_interopDefaultLegacy(Url);
+var zlib__default = /*#__PURE__*/_interopDefaultLegacy(zlib);
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -31,7 +42,7 @@ function getCjsExportFromNamespace (n) {
 	return n && n['default'] || n;
 }
 
-var utils = createCommonjsModule(function (module, exports) {
+var utils$2 = createCommonjsModule(function (module, exports) {
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -49,11 +60,11 @@ function toCommandValue(input) {
     return JSON.stringify(input);
 }
 exports.toCommandValue = toCommandValue;
-
+//# sourceMappingURL=utils.js.map
 });
 
-unwrapExports(utils);
-var utils_1 = utils.toCommandValue;
+unwrapExports(utils$2);
+utils$2.toCommandValue;
 
 var command = createCommonjsModule(function (module, exports) {
 var __importStar = (commonjsGlobal && commonjsGlobal.__importStar) || function (mod) {
@@ -64,7 +75,7 @@ var __importStar = (commonjsGlobal && commonjsGlobal.__importStar) || function (
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const os$1 = __importStar(os);
+const os = __importStar(os__default['default']);
 
 /**
  * Commands
@@ -78,7 +89,7 @@ const os$1 = __importStar(os);
  */
 function issueCommand(command, properties, message) {
     const cmd = new Command(command, properties, message);
-    process.stdout.write(cmd.toString() + os$1.EOL);
+    process.stdout.write(cmd.toString() + os.EOL);
 }
 exports.issueCommand = issueCommand;
 function issue(name, message = '') {
@@ -120,25 +131,25 @@ class Command {
     }
 }
 function escapeData(s) {
-    return utils.toCommandValue(s)
+    return utils$2.toCommandValue(s)
         .replace(/%/g, '%25')
         .replace(/\r/g, '%0D')
         .replace(/\n/g, '%0A');
 }
 function escapeProperty(s) {
-    return utils.toCommandValue(s)
+    return utils$2.toCommandValue(s)
         .replace(/%/g, '%25')
         .replace(/\r/g, '%0D')
         .replace(/\n/g, '%0A')
         .replace(/:/g, '%3A')
         .replace(/,/g, '%2C');
 }
-
+//# sourceMappingURL=command.js.map
 });
 
 unwrapExports(command);
-var command_1 = command.issueCommand;
-var command_2 = command.issue;
+command.issueCommand;
+command.issue;
 
 var fileCommand = createCommonjsModule(function (module, exports) {
 // For internal use, subject to change.
@@ -152,8 +163,8 @@ var __importStar = (commonjsGlobal && commonjsGlobal.__importStar) || function (
 Object.defineProperty(exports, "__esModule", { value: true });
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const fs = __importStar(fs__default);
-const os$1 = __importStar(os);
+const fs = __importStar(fs__default['default']);
+const os = __importStar(os__default['default']);
 
 function issueCommand(command, message) {
     const filePath = process.env[`GITHUB_${command}`];
@@ -163,16 +174,16 @@ function issueCommand(command, message) {
     if (!fs.existsSync(filePath)) {
         throw new Error(`Missing file at path: ${filePath}`);
     }
-    fs.appendFileSync(filePath, `${utils.toCommandValue(message)}${os$1.EOL}`, {
+    fs.appendFileSync(filePath, `${utils$2.toCommandValue(message)}${os.EOL}`, {
         encoding: 'utf8'
     });
 }
 exports.issueCommand = issueCommand;
-
+//# sourceMappingURL=file-command.js.map
 });
 
 unwrapExports(fileCommand);
-var fileCommand_1 = fileCommand.issueCommand;
+fileCommand.issueCommand;
 
 var core = createCommonjsModule(function (module, exports) {
 var __awaiter = (commonjsGlobal && commonjsGlobal.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -195,8 +206,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 
 
 
-const os$1 = __importStar(os);
-const path$1 = __importStar(path);
+const os = __importStar(os__default['default']);
+const path = __importStar(path__default['default']);
 /**
  * The code to exit an action
  */
@@ -221,12 +232,12 @@ var ExitCode;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function exportVariable(name, val) {
-    const convertedVal = utils.toCommandValue(val);
+    const convertedVal = utils$2.toCommandValue(val);
     process.env[name] = convertedVal;
     const filePath = process.env['GITHUB_ENV'] || '';
     if (filePath) {
         const delimiter = '_GitHubActionsFileCommandDelimeter_';
-        const commandValue = `${name}<<${delimiter}${os$1.EOL}${convertedVal}${os$1.EOL}${delimiter}`;
+        const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`;
         fileCommand.issueCommand('ENV', commandValue);
     }
     else {
@@ -254,7 +265,7 @@ function addPath(inputPath) {
     else {
         command.issueCommand('add-path', {}, inputPath);
     }
-    process.env['PATH'] = `${inputPath}${path$1.delimiter}${process.env['PATH']}`;
+    process.env['PATH'] = `${inputPath}${path.delimiter}${process.env['PATH']}`;
 }
 exports.addPath = addPath;
 /**
@@ -280,7 +291,7 @@ exports.getInput = getInput;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function setOutput(name, value) {
-    process.stdout.write(os$1.EOL);
+    process.stdout.write(os.EOL);
     command.issueCommand('set-output', { name }, value);
 }
 exports.setOutput = setOutput;
@@ -345,7 +356,7 @@ exports.warning = warning;
  * @param message info message
  */
 function info(message) {
-    process.stdout.write(message + os$1.EOL);
+    process.stdout.write(message + os.EOL);
 }
 exports.info = info;
 /**
@@ -412,28 +423,28 @@ function getState(name) {
     return process.env[`STATE_${name}`] || '';
 }
 exports.getState = getState;
-
+//# sourceMappingURL=core.js.map
 });
 
 var core$1 = unwrapExports(core);
-var core_1 = core.ExitCode;
-var core_2 = core.exportVariable;
-var core_3 = core.setSecret;
-var core_4 = core.addPath;
-var core_5 = core.getInput;
-var core_6 = core.setOutput;
-var core_7 = core.setCommandEcho;
-var core_8 = core.setFailed;
-var core_9 = core.isDebug;
-var core_10 = core.debug;
-var core_11 = core.error;
-var core_12 = core.warning;
-var core_13 = core.info;
-var core_14 = core.startGroup;
-var core_15 = core.endGroup;
-var core_16 = core.group;
-var core_17 = core.saveState;
-var core_18 = core.getState;
+core.ExitCode;
+core.exportVariable;
+core.setSecret;
+core.addPath;
+core.getInput;
+core.setOutput;
+core.setCommandEcho;
+core.setFailed;
+core.isDebug;
+core.debug;
+core.error;
+core.warning;
+core.info;
+core.startGroup;
+core.endGroup;
+core.group;
+core.saveState;
+core.getState;
 
 var context = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -447,12 +458,12 @@ class Context {
     constructor() {
         this.payload = {};
         if (process.env.GITHUB_EVENT_PATH) {
-            if (fs__default.existsSync(process.env.GITHUB_EVENT_PATH)) {
-                this.payload = JSON.parse(fs__default.readFileSync(process.env.GITHUB_EVENT_PATH, { encoding: 'utf8' }));
+            if (fs__default['default'].existsSync(process.env.GITHUB_EVENT_PATH)) {
+                this.payload = JSON.parse(fs__default['default'].readFileSync(process.env.GITHUB_EVENT_PATH, { encoding: 'utf8' }));
             }
             else {
                 const path = process.env.GITHUB_EVENT_PATH;
-                process.stdout.write(`GITHUB_EVENT_PATH ${path} does not exist${os.EOL}`);
+                process.stdout.write(`GITHUB_EVENT_PATH ${path} does not exist${os__default['default'].EOL}`);
             }
         }
         this.eventName = process.env.GITHUB_EVENT_NAME;
@@ -484,11 +495,11 @@ class Context {
     }
 }
 exports.Context = Context;
-
+//# sourceMappingURL=context.js.map
 });
 
 unwrapExports(context);
-var context_1 = context.Context;
+context.Context;
 
 var proxy = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -550,8 +561,8 @@ exports.checkBypass = checkBypass;
 });
 
 unwrapExports(proxy);
-var proxy_1 = proxy.getProxyUrl;
-var proxy_2 = proxy.checkBypass;
+proxy.getProxyUrl;
+proxy.checkBypass;
 
 var httpOverHttp_1 = httpOverHttp;
 var httpsOverHttp_1 = httpsOverHttp;
@@ -561,13 +572,13 @@ var httpsOverHttps_1 = httpsOverHttps;
 
 function httpOverHttp(options) {
   var agent = new TunnelingAgent(options);
-  agent.request = http.request;
+  agent.request = http__default['default'].request;
   return agent;
 }
 
 function httpsOverHttp(options) {
   var agent = new TunnelingAgent(options);
-  agent.request = http.request;
+  agent.request = http__default['default'].request;
   agent.createSocket = createSecureSocket;
   agent.defaultPort = 443;
   return agent;
@@ -575,13 +586,13 @@ function httpsOverHttp(options) {
 
 function httpOverHttps(options) {
   var agent = new TunnelingAgent(options);
-  agent.request = https.request;
+  agent.request = https__default['default'].request;
   return agent;
 }
 
 function httpsOverHttps(options) {
   var agent = new TunnelingAgent(options);
-  agent.request = https.request;
+  agent.request = https__default['default'].request;
   agent.createSocket = createSecureSocket;
   agent.defaultPort = 443;
   return agent;
@@ -592,7 +603,7 @@ function TunnelingAgent(options) {
   var self = this;
   self.options = options || {};
   self.proxyOptions = self.options.proxy || {};
-  self.maxSockets = self.options.maxSockets || http.Agent.defaultMaxSockets;
+  self.maxSockets = self.options.maxSockets || http__default['default'].Agent.defaultMaxSockets;
   self.requests = [];
   self.sockets = [];
 
@@ -612,7 +623,7 @@ function TunnelingAgent(options) {
     self.removeSocket(socket);
   });
 }
-util.inherits(TunnelingAgent, events.EventEmitter);
+util__default['default'].inherits(TunnelingAgent, events__default['default'].EventEmitter);
 
 TunnelingAgent.prototype.addRequest = function addRequest(req, host, port, localAddress) {
   var self = this;
@@ -756,7 +767,7 @@ function createSecureSocket(options, cb) {
     });
 
     // 0 is dummy port for v0.6
-    var secureSocket = tls.connect(0, tlsOptions);
+    var secureSocket = tls__default['default'].connect(0, tlsOptions);
     self.sockets[self.sockets.indexOf(socket)] = secureSocket;
     cb(secureSocket);
   });
@@ -807,7 +818,7 @@ if (process.env.NODE_DEBUG && /\btunnel\b/.test(process.env.NODE_DEBUG)) {
 }
 var debug_1 = debug; // for test
 
-var tunnel = {
+var tunnel$1 = {
 	httpOverHttp: httpOverHttp_1,
 	httpsOverHttp: httpsOverHttp_1,
 	httpOverHttps: httpOverHttps_1,
@@ -815,14 +826,14 @@ var tunnel = {
 	debug: debug_1
 };
 
-var tunnel$1 = tunnel;
+var tunnel = tunnel$1;
 
 var httpClient = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
 
 
 
-let tunnel;
+let tunnel$1;
 var HttpCodes;
 (function (HttpCodes) {
     HttpCodes[HttpCodes["OK"] = 200] = "OK";
@@ -1180,7 +1191,7 @@ class HttpClient {
         const info = {};
         info.parsedUrl = requestUrl;
         const usingSsl = info.parsedUrl.protocol === 'https:';
-        info.httpModule = usingSsl ? https : http;
+        info.httpModule = usingSsl ? https__default['default'] : http__default['default'];
         const defaultPort = usingSsl ? 443 : 80;
         info.options = {};
         info.options.host = info.parsedUrl.hostname;
@@ -1235,12 +1246,12 @@ class HttpClient {
         const usingSsl = parsedUrl.protocol === 'https:';
         let maxSockets = 100;
         if (!!this.requestOptions) {
-            maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets;
+            maxSockets = this.requestOptions.maxSockets || http__default['default'].globalAgent.maxSockets;
         }
         if (useProxy) {
             // If using proxy, need tunnel
-            if (!tunnel) {
-                tunnel = tunnel$1;
+            if (!tunnel$1) {
+                tunnel$1 = tunnel;
             }
             const agentOptions = {
                 maxSockets: maxSockets,
@@ -1256,10 +1267,10 @@ class HttpClient {
             let tunnelAgent;
             const overHttps = proxyUrl.protocol === 'https:';
             if (usingSsl) {
-                tunnelAgent = overHttps ? tunnel.httpsOverHttps : tunnel.httpsOverHttp;
+                tunnelAgent = overHttps ? tunnel$1.httpsOverHttps : tunnel$1.httpsOverHttp;
             }
             else {
-                tunnelAgent = overHttps ? tunnel.httpOverHttps : tunnel.httpOverHttp;
+                tunnelAgent = overHttps ? tunnel$1.httpOverHttps : tunnel$1.httpOverHttp;
             }
             agent = tunnelAgent(agentOptions);
             this._proxyAgent = agent;
@@ -1267,12 +1278,12 @@ class HttpClient {
         // if reusing agent across request and tunneling agent isn't assigned create a new agent
         if (this._keepAlive && !agent) {
             const options = { keepAlive: this._keepAlive, maxSockets: maxSockets };
-            agent = usingSsl ? new https.Agent(options) : new http.Agent(options);
+            agent = usingSsl ? new https__default['default'].Agent(options) : new http__default['default'].Agent(options);
             this._agent = agent;
         }
         // if not using private agent and tunnel agent isn't setup then use global agent
         if (!agent) {
-            agent = usingSsl ? https.globalAgent : http.globalAgent;
+            agent = usingSsl ? https__default['default'].globalAgent : http__default['default'].globalAgent;
         }
         if (usingSsl && this._ignoreSslError) {
             // we don't want to set NODE_TLS_REJECT_UNAUTHORIZED=0 since that will affect request for entire process
@@ -1357,14 +1368,14 @@ exports.HttpClient = HttpClient;
 });
 
 unwrapExports(httpClient);
-var httpClient_1 = httpClient.HttpCodes;
-var httpClient_2 = httpClient.Headers;
-var httpClient_3 = httpClient.MediaTypes;
-var httpClient_4 = httpClient.getProxyUrl;
-var httpClient_5 = httpClient.HttpClientError;
-var httpClient_6 = httpClient.HttpClientResponse;
-var httpClient_7 = httpClient.isHttps;
-var httpClient_8 = httpClient.HttpClient;
+httpClient.HttpCodes;
+httpClient.Headers;
+httpClient.MediaTypes;
+httpClient.getProxyUrl;
+httpClient.HttpClientError;
+httpClient.HttpClientResponse;
+httpClient.isHttps;
+httpClient.HttpClient;
 
 var utils$1 = createCommonjsModule(function (module, exports) {
 var __createBinding = (commonjsGlobal && commonjsGlobal.__createBinding) || (Object.create ? (function(o, m, k, k2) {
@@ -1408,15 +1419,15 @@ function getApiBaseUrl() {
     return process.env['GITHUB_API_URL'] || 'https://api.github.com';
 }
 exports.getApiBaseUrl = getApiBaseUrl;
-
+//# sourceMappingURL=utils.js.map
 });
 
 unwrapExports(utils$1);
-var utils_1$1 = utils$1.getApiBaseUrl;
-var utils_2 = utils$1.getProxyAgent;
-var utils_3 = utils$1.getAuthString;
+utils$1.getApiBaseUrl;
+utils$1.getProxyAgent;
+utils$1.getAuthString;
 
-var distNode = createCommonjsModule(function (module, exports) {
+var distNode$9 = createCommonjsModule(function (module, exports) {
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
@@ -1433,11 +1444,11 @@ function getUserAgent() {
 }
 
 exports.getUserAgent = getUserAgent;
-
+//# sourceMappingURL=index.js.map
 });
 
-unwrapExports(distNode);
-var distNode_1 = distNode.getUserAgent;
+unwrapExports(distNode$9);
+distNode$9.getUserAgent;
 
 var register_1 = register;
 
@@ -1602,7 +1613,7 @@ function isObject(o) {
   return Object.prototype.toString.call(o) === '[object Object]';
 }
 
-function isPlainObject(o) {
+function isPlainObject$1(o) {
   var ctor,prot;
 
   if (isObject(o) === false) return false;
@@ -1624,14 +1635,14 @@ function isPlainObject(o) {
   return true;
 }
 
-var isPlainObject$1 = /*#__PURE__*/Object.freeze({
+var isPlainObject$2 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	isPlainObject: isPlainObject
+	isPlainObject: isPlainObject$1
 });
 
-var isPlainObject$2 = getCjsExportFromNamespace(isPlainObject$1);
+var isPlainObject = getCjsExportFromNamespace(isPlainObject$2);
 
-var distNode$1 = createCommonjsModule(function (module, exports) {
+var distNode$8 = createCommonjsModule(function (module, exports) {
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
@@ -1652,7 +1663,7 @@ function lowercaseKeys(object) {
 function mergeDeep(defaults, options) {
   const result = Object.assign({}, defaults);
   Object.keys(options).forEach(key => {
-    if (isPlainObject$2.isPlainObject(options[key])) {
+    if (isPlainObject.isPlainObject(options[key])) {
       if (!(key in defaults)) Object.assign(result, {
         [key]: options[key]
       });else result[key] = mergeDeep(defaults[key], options[key]);
@@ -2001,7 +2012,7 @@ function withDefaults(oldDefaults, newDefaults) {
 
 const VERSION = "6.0.11";
 
-const userAgent = `octokit-endpoint.js/${VERSION} ${distNode.getUserAgent()}`; // DEFAULTS has all properties set that EndpointOptions has, except url.
+const userAgent = `octokit-endpoint.js/${VERSION} ${distNode$9.getUserAgent()}`; // DEFAULTS has all properties set that EndpointOptions has, except url.
 // So we use RequestParameters and add method as additional required property.
 
 const DEFAULTS = {
@@ -2020,16 +2031,16 @@ const DEFAULTS = {
 const endpoint = withDefaults(null, DEFAULTS);
 
 exports.endpoint = endpoint;
-
+//# sourceMappingURL=index.js.map
 });
 
-unwrapExports(distNode$1);
-var distNode_1$1 = distNode$1.endpoint;
+unwrapExports(distNode$8);
+distNode$8.endpoint;
 
 // Based on https://github.com/tmpvar/jsdom/blob/aa85b2abf07766ff7bf5c1f6daafb3726f2f2db5/lib/jsdom/living/blob.js
 
 // fix for "Readable" isn't a named export issue
-const Readable = Stream.Readable;
+const Readable = Stream__default['default'].Readable;
 
 const BUFFER = Symbol('buffer');
 const TYPE = Symbol('type');
@@ -2181,7 +2192,7 @@ try {
 const INTERNALS = Symbol('Body internals');
 
 // fix an issue where "PassThrough" isn't a named export for node <10
-const PassThrough = Stream.PassThrough;
+const PassThrough = Stream__default['default'].PassThrough;
 
 /**
  * Body mixin
@@ -2214,7 +2225,7 @@ function Body(body) {
 	} else if (ArrayBuffer.isView(body)) {
 		// body is ArrayBufferView
 		body = Buffer.from(body.buffer, body.byteOffset, body.byteLength);
-	} else if (body instanceof Stream) ; else {
+	} else if (body instanceof Stream__default['default']) ; else {
 		// none of the above
 		// coerce to string then buffer
 		body = Buffer.from(String(body));
@@ -2227,7 +2238,7 @@ function Body(body) {
 	this.size = size;
 	this.timeout = timeout;
 
-	if (body instanceof Stream) {
+	if (body instanceof Stream__default['default']) {
 		body.on('error', function (err) {
 			const error = err.name === 'AbortError' ? err : new FetchError(`Invalid response body while trying to fetch ${_this.url}: ${err.message}`, 'system', err);
 			_this[INTERNALS].error = error;
@@ -2383,7 +2394,7 @@ function consumeBody() {
 	}
 
 	// istanbul ignore if: should never happen
-	if (!(body instanceof Stream)) {
+	if (!(body instanceof Stream__default['default'])) {
 		return Body.Promise.resolve(Buffer.alloc(0));
 	}
 
@@ -2556,7 +2567,7 @@ function clone(instance) {
 
 	// check that body is a stream and not form-data object
 	// note: we can't clone the form-data object without having it as a dependency
-	if (body instanceof Stream && typeof body.getBoundary !== 'function') {
+	if (body instanceof Stream__default['default'] && typeof body.getBoundary !== 'function') {
 		// tee instance body
 		p1 = new PassThrough();
 		p2 = new PassThrough();
@@ -2604,7 +2615,7 @@ function extractContentType(body) {
 	} else if (typeof body.getBoundary === 'function') {
 		// detect form data input from form-data module
 		return `multipart/form-data;boundary=${body.getBoundary()}`;
-	} else if (body instanceof Stream) {
+	} else if (body instanceof Stream__default['default']) {
 		// body is stream
 		// can't really do much about this
 		return null;
@@ -3058,7 +3069,7 @@ function createHeadersLenient(obj) {
 const INTERNALS$1 = Symbol('Response internals');
 
 // fix an issue where "STATUS_CODES" aren't a named export for node <10
-const STATUS_CODES = http.STATUS_CODES;
+const STATUS_CODES = http__default['default'].STATUS_CODES;
 
 /**
  * Response class
@@ -3159,10 +3170,10 @@ Object.defineProperty(Response.prototype, Symbol.toStringTag, {
 const INTERNALS$2 = Symbol('Request internals');
 
 // fix an issue where "format", "parse" aren't a named export for node <10
-const parse_url = Url.parse;
-const format_url = Url.format;
+const parse_url = Url__default['default'].parse;
+const format_url = Url__default['default'].format;
 
-const streamDestructionSupported = 'destroy' in Stream.Readable.prototype;
+const streamDestructionSupported = 'destroy' in Stream__default['default'].Readable.prototype;
 
 /**
  * Check if a value is an instance of Request.
@@ -3325,7 +3336,7 @@ function getNodeRequestOptions(request) {
 		throw new TypeError('Only HTTP(S) protocols are supported');
 	}
 
-	if (request.signal && request.body instanceof Stream.Readable && !streamDestructionSupported) {
+	if (request.signal && request.body instanceof Stream__default['default'].Readable && !streamDestructionSupported) {
 		throw new Error('Cancellation of streamed requests with AbortSignal is not supported in node < 8');
 	}
 
@@ -3400,8 +3411,8 @@ AbortError.prototype.constructor = AbortError;
 AbortError.prototype.name = 'AbortError';
 
 // fix an issue where "PassThrough", "resolve" aren't a named export for node <10
-const PassThrough$1 = Stream.PassThrough;
-const resolve_url = Url.resolve;
+const PassThrough$1 = Stream__default['default'].PassThrough;
+const resolve_url = Url__default['default'].resolve;
 
 /**
  * Fetch function
@@ -3425,7 +3436,7 @@ function fetch(url, opts) {
 		const request = new Request(url, opts);
 		const options = getNodeRequestOptions(request);
 
-		const send = (options.protocol === 'https:' ? https : http).request;
+		const send = (options.protocol === 'https:' ? https__default['default'] : http__default['default']).request;
 		const signal = request.signal;
 
 		let response = null;
@@ -3433,7 +3444,7 @@ function fetch(url, opts) {
 		const abort = function abort() {
 			let error = new AbortError('The user aborted a request.');
 			reject(error);
-			if (request.body && request.body instanceof Stream.Readable) {
+			if (request.body && request.body instanceof Stream__default['default'].Readable) {
 				request.body.destroy(error);
 			}
 			if (!response || !response.body) return;
@@ -3597,13 +3608,13 @@ function fetch(url, opts) {
 			// by common browsers.
 			// Always using Z_SYNC_FLUSH is what cURL does.
 			const zlibOptions = {
-				flush: zlib.Z_SYNC_FLUSH,
-				finishFlush: zlib.Z_SYNC_FLUSH
+				flush: zlib__default['default'].Z_SYNC_FLUSH,
+				finishFlush: zlib__default['default'].Z_SYNC_FLUSH
 			};
 
 			// for gzip
 			if (codings == 'gzip' || codings == 'x-gzip') {
-				body = body.pipe(zlib.createGunzip(zlibOptions));
+				body = body.pipe(zlib__default['default'].createGunzip(zlibOptions));
 				response = new Response(body, response_options);
 				resolve(response);
 				return;
@@ -3617,9 +3628,9 @@ function fetch(url, opts) {
 				raw.once('data', function (chunk) {
 					// see http://stackoverflow.com/questions/37519828
 					if ((chunk[0] & 0x0F) === 0x08) {
-						body = body.pipe(zlib.createInflate());
+						body = body.pipe(zlib__default['default'].createInflate());
 					} else {
-						body = body.pipe(zlib.createInflateRaw());
+						body = body.pipe(zlib__default['default'].createInflateRaw());
 					}
 					response = new Response(body, response_options);
 					resolve(response);
@@ -3628,8 +3639,8 @@ function fetch(url, opts) {
 			}
 
 			// for br
-			if (codings == 'br' && typeof zlib.createBrotliDecompress === 'function') {
-				body = body.pipe(zlib.createBrotliDecompress());
+			if (codings == 'br' && typeof zlib__default['default'].createBrotliDecompress === 'function') {
+				body = body.pipe(zlib__default['default'].createBrotliDecompress());
 				response = new Response(body, response_options);
 				resolve(response);
 				return;
@@ -3656,7 +3667,7 @@ fetch.isRedirect = function (code) {
 // expose Promise
 fetch.Promise = global.Promise;
 
-var lib = /*#__PURE__*/Object.freeze({
+var lib$1 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	'default': fetch,
 	Headers: Headers,
@@ -3665,7 +3676,7 @@ var lib = /*#__PURE__*/Object.freeze({
 	FetchError: FetchError
 });
 
-var distNode$2 = createCommonjsModule(function (module, exports) {
+var distNode$7 = createCommonjsModule(function (module, exports) {
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
@@ -3687,8 +3698,8 @@ class Deprecation extends Error {
 exports.Deprecation = Deprecation;
 });
 
-unwrapExports(distNode$2);
-var distNode_1$2 = distNode$2.Deprecation;
+unwrapExports(distNode$7);
+distNode$7.Deprecation;
 
 // Returns a wrapper function that returns a wrapped callback
 // The wrapper function should do some stuff, and return a
@@ -3767,7 +3778,7 @@ function onceStrict (fn) {
 }
 once_1.strict = strict;
 
-var distNode$3 = createCommonjsModule(function (module, exports) {
+var distNode$6 = createCommonjsModule(function (module, exports) {
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
@@ -3795,7 +3806,7 @@ class RequestError extends Error {
     this.status = statusCode;
     Object.defineProperty(this, "code", {
       get() {
-        logOnce(new distNode$2.Deprecation("[@octokit/request-error] `error.code` is deprecated, use `error.status`."));
+        logOnce(new distNode$7.Deprecation("[@octokit/request-error] `error.code` is deprecated, use `error.status`."));
         return statusCode;
       }
 
@@ -3821,15 +3832,15 @@ class RequestError extends Error {
 }
 
 exports.RequestError = RequestError;
-
+//# sourceMappingURL=index.js.map
 });
 
-unwrapExports(distNode$3);
-var distNode_1$3 = distNode$3.RequestError;
+unwrapExports(distNode$6);
+distNode$6.RequestError;
 
-var require$$0 = getCjsExportFromNamespace(lib);
+var require$$0 = getCjsExportFromNamespace(lib$1);
 
-var distNode$4 = createCommonjsModule(function (module, exports) {
+var distNode$5 = createCommonjsModule(function (module, exports) {
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
@@ -3848,7 +3859,7 @@ function getBufferResponse(response) {
 }
 
 function fetchWrapper(requestOptions) {
-  if (isPlainObject$2.isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body)) {
+  if (isPlainObject.isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body)) {
     requestOptions.body = JSON.stringify(requestOptions.body);
   }
 
@@ -3881,14 +3892,14 @@ function fetchWrapper(requestOptions) {
         return;
       }
 
-      throw new distNode$3.RequestError(response.statusText, status, {
+      throw new distNode$6.RequestError(response.statusText, status, {
         headers,
         request: requestOptions
       });
     }
 
     if (status === 304) {
-      throw new distNode$3.RequestError("Not modified", status, {
+      throw new distNode$6.RequestError("Not modified", status, {
         headers,
         request: requestOptions
       });
@@ -3896,7 +3907,7 @@ function fetchWrapper(requestOptions) {
 
     if (status >= 400) {
       return response.text().then(message => {
-        const error = new distNode$3.RequestError(message, status, {
+        const error = new distNode$6.RequestError(message, status, {
           headers,
           request: requestOptions
         });
@@ -3933,11 +3944,11 @@ function fetchWrapper(requestOptions) {
       data
     };
   }).catch(error => {
-    if (error instanceof distNode$3.RequestError) {
+    if (error instanceof distNode$6.RequestError) {
       throw error;
     }
 
-    throw new distNode$3.RequestError(error.message, 500, {
+    throw new distNode$6.RequestError(error.message, 500, {
       headers,
       request: requestOptions
     });
@@ -3971,20 +3982,20 @@ function withDefaults(oldEndpoint, newDefaults) {
   });
 }
 
-const request = withDefaults(distNode$1.endpoint, {
+const request = withDefaults(distNode$8.endpoint, {
   headers: {
-    "user-agent": `octokit-request.js/${VERSION} ${distNode.getUserAgent()}`
+    "user-agent": `octokit-request.js/${VERSION} ${distNode$9.getUserAgent()}`
   }
 });
 
 exports.request = request;
-
+//# sourceMappingURL=index.js.map
 });
 
-unwrapExports(distNode$4);
-var distNode_1$4 = distNode$4.request;
+unwrapExports(distNode$5);
+distNode$5.request;
 
-var distNode$5 = createCommonjsModule(function (module, exports) {
+var distNode$4 = createCommonjsModule(function (module, exports) {
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
@@ -4079,13 +4090,13 @@ function withDefaults(request$1, newDefaults) {
 
   return Object.assign(newApi, {
     defaults: withDefaults.bind(null, newRequest),
-    endpoint: distNode$4.request.endpoint
+    endpoint: distNode$5.request.endpoint
   });
 }
 
-const graphql$1 = withDefaults(distNode$4.request, {
+const graphql$1 = withDefaults(distNode$5.request, {
   headers: {
-    "user-agent": `octokit-graphql.js/${VERSION} ${distNode.getUserAgent()}`
+    "user-agent": `octokit-graphql.js/${VERSION} ${distNode$9.getUserAgent()}`
   },
   method: "POST",
   url: "/graphql"
@@ -4099,14 +4110,14 @@ function withCustomRequest(customRequest) {
 
 exports.graphql = graphql$1;
 exports.withCustomRequest = withCustomRequest;
-
+//# sourceMappingURL=index.js.map
 });
 
-unwrapExports(distNode$5);
-var distNode_1$5 = distNode$5.graphql;
-var distNode_2 = distNode$5.withCustomRequest;
+unwrapExports(distNode$4);
+distNode$4.graphql;
+distNode$4.withCustomRequest;
 
-var distNode$6 = createCommonjsModule(function (module, exports) {
+var distNode$3 = createCommonjsModule(function (module, exports) {
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
@@ -4154,13 +4165,13 @@ const createTokenAuth = function createTokenAuth(token) {
 };
 
 exports.createTokenAuth = createTokenAuth;
-
+//# sourceMappingURL=index.js.map
 });
 
-unwrapExports(distNode$6);
-var distNode_1$6 = distNode$6.createTokenAuth;
+unwrapExports(distNode$3);
+distNode$3.createTokenAuth;
 
-var distNode$7 = createCommonjsModule(function (module, exports) {
+var distNode$2 = createCommonjsModule(function (module, exports) {
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
@@ -4212,7 +4223,7 @@ class Octokit {
   constructor(options = {}) {
     const hook = new beforeAfterHook.Collection();
     const requestDefaults = {
-      baseUrl: distNode$4.request.endpoint.DEFAULTS.baseUrl,
+      baseUrl: distNode$5.request.endpoint.DEFAULTS.baseUrl,
       headers: {},
       request: Object.assign({}, options.request, {
         // @ts-ignore internal usage only, no need to type
@@ -4224,7 +4235,7 @@ class Octokit {
       }
     }; // prepend default user agent with `options.userAgent` if set
 
-    requestDefaults.headers["user-agent"] = [options.userAgent, `octokit-core.js/${VERSION} ${distNode.getUserAgent()}`].filter(Boolean).join(" ");
+    requestDefaults.headers["user-agent"] = [options.userAgent, `octokit-core.js/${VERSION} ${distNode$9.getUserAgent()}`].filter(Boolean).join(" ");
 
     if (options.baseUrl) {
       requestDefaults.baseUrl = options.baseUrl;
@@ -4238,8 +4249,8 @@ class Octokit {
       requestDefaults.headers["time-zone"] = options.timeZone;
     }
 
-    this.request = distNode$4.request.defaults(requestDefaults);
-    this.graphql = distNode$5.withCustomRequest(this.request).defaults(requestDefaults);
+    this.request = distNode$5.request.defaults(requestDefaults);
+    this.graphql = distNode$4.withCustomRequest(this.request).defaults(requestDefaults);
     this.log = Object.assign({
       debug: () => {},
       info: () => {},
@@ -4260,7 +4271,7 @@ class Octokit {
         });
       } else {
         // (2)
-        const auth = distNode$6.createTokenAuth(options.auth); // @ts-ignore  ¯\_(ツ)_/¯
+        const auth = distNode$3.createTokenAuth(options.auth); // @ts-ignore  ¯\_(ツ)_/¯
 
         hook.wrap("request", auth.hook);
         this.auth = auth;
@@ -4334,13 +4345,13 @@ Octokit.VERSION = VERSION;
 Octokit.plugins = [];
 
 exports.Octokit = Octokit;
-
+//# sourceMappingURL=index.js.map
 });
 
-unwrapExports(distNode$7);
-var distNode_1$7 = distNode$7.Octokit;
+unwrapExports(distNode$2);
+distNode$2.Octokit;
 
-var distNode$8 = createCommonjsModule(function (module, exports) {
+var distNode$1 = createCommonjsModule(function (module, exports) {
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
@@ -5568,13 +5579,13 @@ function restEndpointMethods(octokit) {
 restEndpointMethods.VERSION = VERSION;
 
 exports.restEndpointMethods = restEndpointMethods;
-
+//# sourceMappingURL=index.js.map
 });
 
-unwrapExports(distNode$8);
-var distNode_1$8 = distNode$8.restEndpointMethods;
+unwrapExports(distNode$1);
+distNode$1.restEndpointMethods;
 
-var distNode$9 = createCommonjsModule(function (module, exports) {
+var distNode = createCommonjsModule(function (module, exports) {
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
@@ -5717,16 +5728,16 @@ exports.composePaginateRest = composePaginateRest;
 exports.isPaginatingEndpoint = isPaginatingEndpoint;
 exports.paginateRest = paginateRest;
 exports.paginatingEndpoints = paginatingEndpoints;
-
+//# sourceMappingURL=index.js.map
 });
 
-unwrapExports(distNode$9);
-var distNode_1$9 = distNode$9.composePaginateRest;
-var distNode_2$1 = distNode$9.isPaginatingEndpoint;
-var distNode_3 = distNode$9.paginateRest;
-var distNode_4 = distNode$9.paginatingEndpoints;
+unwrapExports(distNode);
+distNode.composePaginateRest;
+distNode.isPaginatingEndpoint;
+distNode.paginateRest;
+distNode.paginatingEndpoints;
 
-var utils$2 = createCommonjsModule(function (module, exports) {
+var utils = createCommonjsModule(function (module, exports) {
 var __createBinding = (commonjsGlobal && commonjsGlobal.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
@@ -5762,7 +5773,7 @@ const defaults = {
         agent: Utils.getProxyAgent(baseUrl)
     }
 };
-exports.GitHub = distNode$7.Octokit.plugin(distNode$8.restEndpointMethods, distNode$9.paginateRest).defaults(defaults);
+exports.GitHub = distNode$2.Octokit.plugin(distNode$1.restEndpointMethods, distNode.paginateRest).defaults(defaults);
 /**
  * Convience function to correctly format Octokit Options to pass into the constructor.
  *
@@ -5779,13 +5790,13 @@ function getOctokitOptions(token, options) {
     return opts;
 }
 exports.getOctokitOptions = getOctokitOptions;
-
+//# sourceMappingURL=utils.js.map
 });
 
-unwrapExports(utils$2);
-var utils_1$2 = utils$2.getOctokitOptions;
-var utils_2$1 = utils$2.GitHub;
-var utils_3$1 = utils$2.context;
+unwrapExports(utils);
+utils.getOctokitOptions;
+utils.GitHub;
+utils.context;
 
 var github = createCommonjsModule(function (module, exports) {
 var __createBinding = (commonjsGlobal && commonjsGlobal.__createBinding) || (Object.create ? (function(o, m, k, k2) {
@@ -5819,10 +5830,10 @@ exports.context = new Context.Context();
  * @param     options  other options to set
  */
 function getOctokit(token, options) {
-    return new utils$2.GitHub(utils$2.getOctokitOptions(token, options));
+    return new utils.GitHub(utils.getOctokitOptions(token, options));
 }
 exports.getOctokit = getOctokit;
-
+//# sourceMappingURL=github.js.map
 });
 
 unwrapExports(github);
@@ -5838,7 +5849,7 @@ http://yuilibrary.com/license/
 
 
 /* istanbul ignore next */
-var exists = fs__default.exists || path.exists;
+var exists = fs__default['default'].exists || path__default['default'].exists;
 
 var walkFile = function(str, cb) {
     var data = [], item;
@@ -5939,12 +5950,12 @@ var walkFile = function(str, cb) {
     }
 };
 
-var parse = function(file, cb) {
+var parse$1 = function(file, cb) {
     exists(file, function(x) {
         if (!x) {
             return walkFile(file, cb);
         }
-        fs__default.readFile(file, 'utf8', function(err, str) {
+        fs__default['default'].readFile(file, 'utf8', function(err, str) {
             walkFile(str, cb);
         });
     });
@@ -5952,14 +5963,14 @@ var parse = function(file, cb) {
 };
 
 
-var lib$1 = parse;
+var lib = parse$1;
 var source = walkFile;
-lib$1.source = source;
+lib.source = source;
 
 // Parse lcov string into lcov data
-function parse$1(data) {
+function parse(data) {
 	return new Promise(function (resolve, reject) {
-		lib$1(data, function (err, res) {
+		lib(data, function (err, res) {
 			if (err) {
 				reject(err);
 				return
@@ -5970,7 +5981,7 @@ function parse$1(data) {
 }
 
 // Get the total coverage percentage from the lcov data.
-function percentage(lcov) {
+function percentage$1(lcov) {
 	let hit = 0;
 	let found = 0;
 	for (const entry of lcov) {
@@ -6072,10 +6083,10 @@ function getStatement(file) {
 function toRow(file, indent, options) {
 	return tr(
 		td(filename(file, indent, options)),
-		td(percentage$1(getStatement(file))),
-		td(percentage$1(file.branches)),
-		td(percentage$1(file.functions)),
-		td(percentage$1(file.lines)),
+		td(percentage(getStatement(file))),
+		td(percentage(file.branches)),
+		td(percentage(file.functions)),
+		td(percentage(file.lines)),
 		td(uncovered(file, options)),
 	)
 }
@@ -6089,7 +6100,7 @@ function filename(file, indent, options) {
 	return fragment(space, a({ href }, last))
 }
 
-function percentage$1(item) {
+function percentage(item) {
 	if (!item) {
 		return "N/A"
 	}
@@ -6163,7 +6174,7 @@ function comment(lcov, options) {
 		options.base
 			? `Coverage after merging ${b(options.head)} into ${b(options.base)}`
 			: `Coverage for this commit`,
-		table(tbody(tr(th(percentage(lcov).toFixed(2), "%")))),
+		table(tbody(tr(th(percentage$1(lcov).toFixed(2), "%")))),
 		"\n\n",
 		details(summary("Coverage Report"), tabulate(lcov, options)),
 	)
@@ -6174,8 +6185,8 @@ function diff(lcov, before, options) {
 		return comment(lcov, options)
 	}
 
-	const pbefore = percentage(before);
-	const pafter = percentage(lcov);
+	const pbefore = percentage$1(before);
+	const pafter = percentage$1(lcov);
 	const pdiff = pafter - pbefore;
 	const plus = pdiff > 0 ? "+" : "";
 	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴";
@@ -6231,9 +6242,9 @@ async function main() {
 		base: pull_request.base.ref,
 	};
 
-	const lcov = await parse$1(raw);
-	const baselcov = baseRaw && (await parse$1(baseRaw));
-	const body = diff(lcov, baselcov, options);
+	const lcov = await parse(raw);
+	const baselcov = baseRaw && (await parse(baseRaw));
+	diff(lcov, baselcov, options);
 
 	await new octokit.issues.createComment({
 		repo: github_2.repo.repo,
