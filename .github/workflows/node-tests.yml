@@ -36,5 +36,5 @@ jobs:
           PATTERNS: |
             +(dist|src)/**/*.js
       - name: Fail if files changed
-        run: return 1
+        run: exit 1
         if: env.GIT_DIFF
