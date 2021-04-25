@@ -17,16 +17,7 @@ Github token used for posting the comment. To use the key provided by the GitHub
 action runner, use `${{ secrets.GITHUB_TOKEN }}`.
 
 ##### `pr_number` (**Required**)
-Number of the Pull Request
-
-##### `commit` (**Required**)
-SHA of the head commit. If reading from the GitHub PR API, this is accessible via `pull_request.head.sha`.
-
-##### `head` (**Required**)
-Ref of the head of the Pull Request. If reading from the GitHub PR API, this is accessible via `pull_request.head.ref`.
-
-##### `base` (**Required**)
-Ref of the base of the Pull Request. If reading from the GitHub PR API, this is accessible via `pull_request.base.ref`.
+Number of the Pull Request.
 
 ##### `lcov-file` (**Optional**)
 The location of the lcov file to read the coverage report from. Defaults to
