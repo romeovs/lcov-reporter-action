@@ -27,6 +27,18 @@ The location of the lcov file to read the coverage report from. Defaults to
 The location of the lcov file resulting from running the tests in the base
 branch. When this is set a diff of the coverage percentages is shown.
 
+## Example usage
+
+*Note: You need to somehow read the `pr_number` into the environment.*
+
+```yml
+uses: Nef10/lcov-reporter-action@v0.3.2
+with:
+  github-token: ${{ secrets.GITHUB_TOKEN }}
+  lcov-file: lcov.info
+  pr_number: ${{ env.pr_number }}
+```
+
 ## Acknowledgements
 
 The code is based on [romeovs/lcov-reporter-action](https://github.com/romeovs/jest-reporter-action), which itself was based on [ziishaned/jest-reporter-action](https://github.com/ziishaned/jest-reporter-action).
