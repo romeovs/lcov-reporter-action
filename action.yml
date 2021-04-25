@@ -1,6 +1,6 @@
 name: Code Coverage Report
-description: Comments a pull request with the code coverage
-author: Romeo Van Snick
+description: Comments on a pull request with a lcov code coverage report
+author: Steffen Koette
 branding:
   icon: check-square
   color: green
@@ -8,16 +8,16 @@ inputs:
   github-token:
     description: Github token
     required: true
+  pr_number:
+    descirption: Number of the Pull Request
+    required: true
   lcov-file:
     description: The location of the lcov.info file
     required: false
   lcov-base:
     description: The location of the lcov file for the base branch
     required: false
-  pr_number:
-    descirption: Number of the Pull Request
-    required: true
 
 runs:
-  using: node12
+  using: node14
   main: dist/main.js
