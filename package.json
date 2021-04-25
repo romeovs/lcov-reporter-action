@@ -1,6 +1,6 @@
 {
 	"name": "lcov-reporter-action",
-	"version": "0.3.2",
+	"version": "0.3.0",
 	"description": "Comments on a pull request with a lcov code coverage report",
 	"license": "MIT",
 	"author": "Steffen Koette",

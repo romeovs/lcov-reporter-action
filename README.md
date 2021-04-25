@@ -32,7 +32,7 @@ branch. When this is set a diff of the coverage percentages is shown.
 *Note: You need to somehow read the `pr_number` into the environment.*
 
 ```yml
-uses: Nef10/lcov-reporter-action@v0.3.2
+uses: Nef10/lcov-reporter-action@v0.3.0
 with:
   github-token: ${{ secrets.GITHUB_TOKEN }}
   lcov-file: lcov.info
