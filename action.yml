@@ -14,6 +14,19 @@ inputs:
   lcov-base:
     description: The location of the lcov file for the base branch
     required: false
+  commit:
+    descirption: SHA for head commit
+    required: true
+  head:
+    descirption: Ref of the head of the Pull Request
+    required: true
+  base:
+    descirption: Ref of the base of the Pull Request
+    required: true
+  pr_number:
+    descirption: Number of the Pull Request
+    required: true
+
 runs:
   using: node12
   main: dist/main.js
