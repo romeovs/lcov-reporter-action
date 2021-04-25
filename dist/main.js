@@ -4184,52 +4184,32 @@ exports.endpoint = endpoint;
 unwrapExports(distNode$1);
 var distNode_1$1 = distNode$1.endpoint;
 
-/*!
- * isobject <https://github.com/jonschlinkert/isobject>
- *
- * Copyright (c) 2014-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
+var distNode$2 = createCommonjsModule(function (module, exports) {
 
-function isObject$1(val) {
-  return val != null && typeof val === 'object' && Array.isArray(val) === false;
-}
+Object.defineProperty(exports, '__esModule', { value: true });
 
-/*!
- * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
- *
- * Copyright (c) 2014-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-function isObjectObject$1(o) {
-  return isObject$1(o) === true
-    && Object.prototype.toString.call(o) === '[object Object]';
-}
+var osName = _interopDefault(osName_1);
 
-function isPlainObject$1(o) {
-  var ctor,prot;
+function getUserAgent() {
+  try {
+    return `Node.js/${process.version.substr(1)} (${osName()}; ${process.arch})`;
+  } catch (error) {
+    if (/wmic os get Caption/.test(error.message)) {
+      return "Windows <version undetectable>";
+    }
 
-  if (isObjectObject$1(o) === false) return false;
-
-  // If has modified constructor
-  ctor = o.constructor;
-  if (typeof ctor !== 'function') return false;
-
-  // If has modified prototype
-  prot = ctor.prototype;
-  if (isObjectObject$1(prot) === false) return false;
-
-  // If constructor does not have an Object-specific method
-  if (prot.hasOwnProperty('isPrototypeOf') === false) {
-    return false;
+    throw error;
   }
-
-  // Most likely a plain Object
-  return true;
 }
 
-var index_cjs$1 = isPlainObject$1;
+exports.getUserAgent = getUserAgent;
+
+});
+
+unwrapExports(distNode$2);
+var distNode_1$2 = distNode$2.getUserAgent;
 
 // Based on https://github.com/tmpvar/jsdom/blob/aa85b2abf07766ff7bf5c1f6daafb3726f2f2db5/lib/jsdom/living/blob.js
 
@@ -5863,7 +5843,7 @@ var lib = /*#__PURE__*/Object.freeze({
 	FetchError: FetchError
 });
 
-var distNode$2 = createCommonjsModule(function (module, exports) {
+var distNode$3 = createCommonjsModule(function (module, exports) {
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
@@ -5885,10 +5865,10 @@ class Deprecation extends Error {
 exports.Deprecation = Deprecation;
 });
 
-unwrapExports(distNode$2);
-var distNode_1$2 = distNode$2.Deprecation;
+unwrapExports(distNode$3);
+var distNode_1$3 = distNode$3.Deprecation;
 
-var distNode$3 = createCommonjsModule(function (module, exports) {
+var distNode$4 = createCommonjsModule(function (module, exports) {
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
@@ -5916,7 +5896,7 @@ class RequestError extends Error {
     this.status = statusCode;
     Object.defineProperty(this, "code", {
       get() {
-        logOnce(new distNode$2.Deprecation("[@octokit/request-error] `error.code` is deprecated, use `error.status`."));
+        logOnce(new distNode$3.Deprecation("[@octokit/request-error] `error.code` is deprecated, use `error.status`."));
         return statusCode;
       }
 
@@ -5945,12 +5925,12 @@ exports.RequestError = RequestError;
 
 });
 
-unwrapExports(distNode$3);
-var distNode_1$3 = distNode$3.RequestError;
+unwrapExports(distNode$4);
+var distNode_1$4 = distNode$4.RequestError;
 
 var require$$1 = getCjsExportFromNamespace(lib);
 
-var distNode$4 = createCommonjsModule(function (module, exports) {
+var distNode$5 = createCommonjsModule(function (module, exports) {
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
@@ -5958,7 +5938,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 
 
-var isPlainObject = _interopDefault(index_cjs$1);
+var isPlainObject = _interopDefault(index_cjs);
 var nodeFetch = _interopDefault(require$$1);
 
 
@@ -6000,14 +5980,14 @@ function fetchWrapper(requestOptions) {
         return;
       }
 
-      throw new distNode$3.RequestError(response.statusText, status, {
+      throw new distNode$4.RequestError(response.statusText, status, {
         headers,
         request: requestOptions
       });
     }
 
     if (status === 304) {
-      throw new distNode$3.RequestError("Not modified", status, {
+      throw new distNode$4.RequestError("Not modified", status, {
         headers,
         request: requestOptions
       });
@@ -6015,7 +5995,7 @@ function fetchWrapper(requestOptions) {
 
     if (status >= 400) {
       return response.text().then(message => {
-        const error = new distNode$3.RequestError(message, status, {
+        const error = new distNode$4.RequestError(message, status, {
           headers,
           request: requestOptions
         });
@@ -6052,11 +6032,11 @@ function fetchWrapper(requestOptions) {
       data
     };
   }).catch(error => {
-    if (error instanceof distNode$3.RequestError) {
+    if (error instanceof distNode$4.RequestError) {
       throw error;
     }
 
-    throw new distNode$3.RequestError(error.message, 500, {
+    throw new distNode$4.RequestError(error.message, 500, {
       headers,
       request: requestOptions
     });
@@ -6092,7 +6072,7 @@ function withDefaults(oldEndpoint, newDefaults) {
 
 const request = withDefaults(distNode$1.endpoint, {
   headers: {
-    "user-agent": `octokit-request.js/${VERSION} ${distNode.getUserAgent()}`
+    "user-agent": `octokit-request.js/${VERSION} ${distNode$2.getUserAgent()}`
   }
 });
 
@@ -6100,8 +6080,8 @@ exports.request = request;
 
 });
 
-unwrapExports(distNode$4);
-var distNode_1$4 = distNode$4.request;
+unwrapExports(distNode$5);
+var distNode_1$5 = distNode$5.request;
 
 var universalUserAgent = getUserAgentNode;
 
@@ -6321,7 +6301,7 @@ function withDefaults (request, newDefaults) {
 
 var require$$1$1 = getCjsExportFromNamespace(_package$1);
 
-const { request } = distNode$4;
+const { request } = distNode$5;
 
 
 const version$1 = require$$1$1.version;
@@ -6487,6 +6467,33 @@ var Collection = Hook.Collection;
 beforeAfterHook.Hook = Hook_1;
 beforeAfterHook.Singular = Singular;
 beforeAfterHook.Collection = Collection;
+
+var distNode$6 = createCommonjsModule(function (module, exports) {
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var osName = _interopDefault(osName_1);
+
+function getUserAgent() {
+  try {
+    return `Node.js/${process.version.substr(1)} (${osName()}; ${process.arch})`;
+  } catch (error) {
+    if (/wmic os get Caption/.test(error.message)) {
+      return "Windows <version undetectable>";
+    }
+
+    throw error;
+  }
+}
+
+exports.getUserAgent = getUserAgent;
+
+});
+
+unwrapExports(distNode$6);
+var distNode_1$6 = distNode$6.getUserAgent;
 
 var name$1 = "@octokit/rest";
 var version$2 = "16.35.0";
@@ -6667,8 +6674,8 @@ var pkg = getCjsExportFromNamespace(_package$3);
 
 var parseClientOptions = parseOptions;
 
-const { Deprecation } = distNode$2;
-const { getUserAgent } = distNode;
+const { Deprecation } = distNode$3;
+const { getUserAgent } = distNode$6;
 
 
 
@@ -6757,7 +6764,7 @@ function parseOptions(options, log, hook) {
 
 var constructor_1 = Octokit;
 
-const { request: request$1 } = distNode$4;
+const { request: request$1 } = distNode$5;
 
 
 
@@ -6839,7 +6846,7 @@ function octokitDebug(octokit) {
 
 var authenticate_1 = authenticate;
 
-const { Deprecation: Deprecation$1 } = distNode$2;
+const { Deprecation: Deprecation$1 } = distNode$3;
 
 
 const deprecateAuthenticate = once_1((log, deprecation) => log.warn(deprecation));
@@ -7509,7 +7516,7 @@ function assocIndexOf(array, key) {
  *  else `false`.
  */
 function baseIsNative(value) {
-  if (!isObject$2(value) || isMasked(value)) {
+  if (!isObject$1(value) || isMasked(value)) {
     return false;
   }
   var pattern = (isFunction(value) || isHostObject(value)) ? reIsNative : reIsHostCtor;
@@ -7739,7 +7746,7 @@ function eq(value, other) {
 function isFunction(value) {
   // The use of `Object#toString` avoids issues with the `typeof` operator
   // in Safari 8-9 which returns 'object' for typed array and other constructors.
-  var tag = isObject$2(value) ? objectToString.call(value) : '';
+  var tag = isObject$1(value) ? objectToString.call(value) : '';
   return tag == funcTag || tag == genTag;
 }
 
@@ -7768,7 +7775,7 @@ function isFunction(value) {
  * _.isObject(null);
  * // => false
  */
-function isObject$2(value) {
+function isObject$1(value) {
   var type = typeof value;
   return !!value && (type == 'object' || type == 'function');
 }
@@ -7837,7 +7844,7 @@ function authenticationBeforeRequest(state, options) {
 
 var requestError = authenticationRequestError;
 
-const { RequestError } = distNode$3;
+const { RequestError } = distNode$4;
 
 function authenticationRequestError(state, error, options) {
   /* istanbul ignore next */
@@ -7893,7 +7900,7 @@ function authenticationRequestError(state, error, options) {
 
 var authenticationDeprecated = authenticationPlugin;
 
-const { Deprecation: Deprecation$2 } = distNode$2;
+const { Deprecation: Deprecation$2 } = distNode$3;
 
 
 const deprecateAuthenticate$1 = once_1((log, deprecation) => log.warn(deprecation));
@@ -8019,7 +8026,7 @@ function authenticationBeforeRequest$1(state, options) {
 
 var requestError$1 = authenticationRequestError$1;
 
-const { RequestError: RequestError$1 } = distNode$3;
+const { RequestError: RequestError$1 } = distNode$4;
 
 function authenticationRequestError$1(state, error, options) {
   if (!error.headers) throw error;
@@ -8147,7 +8154,7 @@ function authenticationPlugin$1(octokit, options) {
 
 var normalizePaginatedListResponse_1 = normalizePaginatedListResponse;
 
-const { Deprecation: Deprecation$3 } = distNode$2;
+const { Deprecation: Deprecation$3 } = distNode$3;
 
 
 const deprecateIncompleteResults = once_1((log, deprecation) =>
@@ -8328,7 +8335,7 @@ function paginatePlugin(octokit) {
 
 var registerEndpoints_1 = registerEndpoints;
 
-const { Deprecation: Deprecation$4 } = distNode$2;
+const { Deprecation: Deprecation$4 } = distNode$3;
 
 function registerEndpoints(octokit, routes) {
   Object.keys(routes).forEach(namespaceName => {
@@ -20736,7 +20743,7 @@ function baseGet(object, path) {
  *  else `false`.
  */
 function baseIsNative$1(value) {
-  if (!isObject$3(value) || isMasked$1(value)) {
+  if (!isObject$2(value) || isMasked$1(value)) {
     return false;
   }
   var pattern = (isFunction$1(value) || isHostObject$1(value)) ? reIsNative$1 : reIsHostCtor$1;
@@ -21050,7 +21057,7 @@ var isArray = Array.isArray;
 function isFunction$1(value) {
   // The use of `Object#toString` avoids issues with the `typeof` operator
   // in Safari 8-9 which returns 'object' for typed array and other constructors.
-  var tag = isObject$3(value) ? objectToString$1.call(value) : '';
+  var tag = isObject$2(value) ? objectToString$1.call(value) : '';
   return tag == funcTag$1 || tag == genTag$1;
 }
 
@@ -21079,7 +21086,7 @@ function isFunction$1(value) {
  * _.isObject(null);
  * // => false
  */
-function isObject$3(value) {
+function isObject$2(value) {
   var type = typeof value;
   return !!value && (type == 'object' || type == 'function');
 }
@@ -21670,7 +21677,7 @@ function assocIndexOf$2(array, key) {
  *  else `false`.
  */
 function baseIsNative$2(value) {
-  if (!isObject$4(value) || isMasked$2(value)) {
+  if (!isObject$3(value) || isMasked$2(value)) {
     return false;
   }
   var pattern = (isFunction$2(value) || isHostObject$2(value)) ? reIsNative$2 : reIsHostCtor$2;
@@ -21688,7 +21695,7 @@ function baseIsNative$2(value) {
  * @returns {Object} Returns `object`.
  */
 function baseSet(object, path, value, customizer) {
-  if (!isObject$4(object)) {
+  if (!isObject$3(object)) {
     return object;
   }
   path = isKey$1(path, object) ? [path] : castPath$1(path);
@@ -21706,7 +21713,7 @@ function baseSet(object, path, value, customizer) {
       var objValue = nested[key];
       newValue = customizer ? customizer(objValue, key, nested) : undefined;
       if (newValue === undefined) {
-        newValue = isObject$4(objValue)
+        newValue = isObject$3(objValue)
           ? objValue
           : (isIndex(path[index + 1]) ? [] : {});
       }
@@ -22039,7 +22046,7 @@ var isArray$1 = Array.isArray;
 function isFunction$2(value) {
   // The use of `Object#toString` avoids issues with the `typeof` operator
   // in Safari 8-9 which returns 'object' for typed array and other constructors.
-  var tag = isObject$4(value) ? objectToString$2.call(value) : '';
+  var tag = isObject$3(value) ? objectToString$2.call(value) : '';
   return tag == funcTag$2 || tag == genTag$2;
 }
 
@@ -22068,7 +22075,7 @@ function isFunction$2(value) {
  * _.isObject(null);
  * // => false
  */
-function isObject$4(value) {
+function isObject$3(value) {
   var type = typeof value;
   return !!value && (type == 'object' || type == 'function');
 }
@@ -22184,7 +22191,7 @@ var lodash_set = set;
 
 var validate_1 = validate$1;
 
-const { RequestError: RequestError$2 } = distNode$3;
+const { RequestError: RequestError$2 } = distNode$4;
 
 
 
@@ -22833,16 +22840,19 @@ function toFolder(path) {
 function getStatement(file) {
 	const { branches, functions, lines } = file;
 
-	return [branches, functions, lines].reduce(function(acc, curr) {
-		if (!curr) {
-			return acc
-		}
+	return [branches, functions, lines].reduce(
+		function(acc, curr) {
+			if (!curr) {
+				return acc
+			}
 
-		return {
-			hit: acc.hit + curr.hit,
-			found: acc.found + curr.found,
-		}
-	}, { hit: 0, found: 0 })
+			return {
+				hit: acc.hit + curr.hit,
+				found: acc.found + curr.found,
+			}
+		},
+		{ hit: 0, found: 0 },
+	)
 }
 
 function toRow(file, indent, options) {
@@ -22889,13 +22899,18 @@ function uncovered(file, options) {
 
 	const all = ranges([...branches, ...lines]);
 
-
 	return all
 		.map(function(range) {
-			const fragment = range.start === range.end ? `L${range.start}` : `L${range.start}-L${range.end}`;
+			const fragment =
+				range.start === range.end
+					? `L${range.start}`
+					: `L${range.start}-L${range.end}`;
 			const relative = file.file.replace(options.prefix, "");
 			const href = `https://github.com/${options.repository}/blob/${options.commit}/${relative}#${fragment}`;
-			const text = range.start === range.end ? range.start : `${range.start}&ndash;${range.end}`;
+			const text =
+				range.start === range.end
+					? range.start
+					: `${range.start}&ndash;${range.end}`;
 
 			return a({ href }, text)
 		})
@@ -22929,7 +22944,7 @@ function ranges(linenos) {
 	return res
 }
 
-function comment (lcov, options) {
+function comment(lcov, options) {
 	return fragment(
 		options.base
 			? `Coverage after merging ${b(options.head)} into ${b(options.base)}`
@@ -22949,21 +22964,20 @@ function diff(lcov, before, options) {
 	const pafter = percentage(lcov);
 	const pdiff = pafter - pbefore;
 	const plus = pdiff > 0 ? "+" : "";
-	const arrow =
-		pdiff === 0
-			? ""
-			: pdiff < 0
-				? "▾"
-				: "▴";
+	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴";
 
 	return fragment(
 		options.base
 			? `Coverage after merging ${b(options.head)} into ${b(options.base)}`
 			: `Coverage for this commit`,
-		table(tbody(tr(
-			th(pafter.toFixed(2), "%"),
-			th(arrow, " ", plus, pdiff.toFixed(2), "%"),
-		))),
+		table(
+			tbody(
+				tr(
+					th(pafter.toFixed(2), "%"),
+					th(arrow, " ", plus, pdiff.toFixed(2), "%"),
+				),
+			),
+		),
 		"\n\n",
 		details(summary("Coverage Report"), tabulate(lcov, options)),
 	)
@@ -22973,6 +22987,7 @@ async function main$1() {
 	const token = core$1.getInput("github-token");
 	const lcovFile = core$1.getInput("lcov-file") || "./coverage/lcov.info";
 	const baseFile = core$1.getInput("lcov-base");
+	const pr_number = core$1.getInput("pr_number");
 
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
 	if (!raw) {
@@ -22980,44 +22995,36 @@ async function main$1() {
 		return
 	}
 
-	const baseRaw = baseFile && await fs.promises.readFile(baseFile, "utf-8").catch(err => null);
+	const baseRaw =
+		baseFile && (await fs.promises.readFile(baseFile, "utf-8").catch(err => null));
 	if (baseFile && !baseRaw) {
 		console.log(`No coverage report found at '${baseFile}', ignoring...`);
 	}
 
+	const pull_request = await new github_2(token).pulls.get({
+		owner: github_1.repo.owner,
+		repo: github_1.repo.repo,
+		pull_number: pr_number,
+	});
+
 	const options = {
 		repository: github_1.payload.repository.full_name,
 		prefix: `${process.env.GITHUB_WORKSPACE}/`,
+		commit: pull_request.head.sha,
+		head: pull_request.head.ref,
+		base: pull_request.base.ref,
 	};
 
-	if (github_1.eventName === "pull_request") {
-		options.commit = github_1.payload.pull_request.head.sha;
-		options.head = github_1.payload.pull_request.head.ref;
-		options.base = github_1.payload.pull_request.base.ref;
-	} else if (github_1.eventName === "push") {
-		options.commit = github_1.payload.after;
-		options.head = github_1.ref;
-	}
-
 	const lcov = await parse$2(raw);
-	const baselcov = baseRaw && await parse$2(baseRaw);
+	const baselcov = baseRaw && (await parse$2(baseRaw));
 	const body = diff(lcov, baselcov, options);
 
-	if (github_1.eventName === "pull_request") {
-		await new github_2(token).issues.createComment({
-			repo: github_1.repo.repo,
-			owner: github_1.repo.owner,
-			issue_number: github_1.payload.pull_request.number,
-			body: diff(lcov, baselcov, options),
-		});
-	} else if (github_1.eventName === "push") {
-		await new github_2(token).repos.createCommitComment({
-			repo: github_1.repo.repo,
-			owner: github_1.repo.owner,
-			commit_sha: options.commit,
-			body: diff(lcov, baselcov, options),
-		});
-	}
+	await new github_2(token).issues.createComment({
+		repo: github_1.repo.repo,
+		owner: github_1.repo.owner,
+		issue_number: pr_number,
+		body: diff(lcov, baselcov, options),
+	});
 }
 
 main$1().catch(function(err) {

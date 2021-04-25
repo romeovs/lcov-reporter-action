@@ -1,10 +1,10 @@
 {
 	"name": "lcov-reporter-action",
-	"version": "0.2.19",
-	"description": "Comments a pull request with the lcov code coverage",
+	"version": "0.3.2",
+	"description": "Comments on a pull request with a lcov code coverage report",
 	"license": "MIT",
-	"author": "Romeo Van Snick",
-	"repository": "https://github.com/romeovs/lcov-reporter-action",
+	"author": "Steffen Koette",
+	"repository": "https://github.com/Nef10/lcov-reporter-action",
 	"keywords": [
 		"actions",
 		"pull-request",
