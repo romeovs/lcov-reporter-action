@@ -190,14 +190,14 @@ test("tabulate should generate a correct table", function() {
 						{
 							href: `https://github.com/${options.repository}/blob/${options.commit}/src/bar/baz.js#L20-L21`,
 						},
-						'20&ndash;21',
+						"20&ndash;21",
 					),
-					', ',
+					", ",
 					a(
 						{
 							href: `https://github.com/${options.repository}/blob/${options.commit}/src/bar/baz.js#L27`,
 						},
-						'27',
+						"27",
 					),
 				),
 			),

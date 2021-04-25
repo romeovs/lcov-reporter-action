@@ -44,16 +44,19 @@ function toFolder(path) {
 function getStatement(file) {
 	const { branches, functions, lines } = file
 
-	return [branches, functions, lines].reduce(function(acc, curr) {
-		if (!curr) {
-			return acc
-		}
+	return [branches, functions, lines].reduce(
+		function(acc, curr) {
+			if (!curr) {
+				return acc
+			}
 
-		return {
-			hit: acc.hit + curr.hit,
-			found: acc.found + curr.found,
-		}
-	}, { hit: 0, found: 0 })
+			return {
+				hit: acc.hit + curr.hit,
+				found: acc.found + curr.found,
+			}
+		},
+		{ hit: 0, found: 0 },
+	)
 }
 
 function toRow(file, indent, options) {
@@ -100,13 +103,18 @@ function uncovered(file, options) {
 
 	const all = ranges([...branches, ...lines])
 
-
 	return all
 		.map(function(range) {
-			const fragment = range.start === range.end ? `L${range.start}` : `L${range.start}-L${range.end}`
+			const fragment =
+				range.start === range.end
+					? `L${range.start}`
+					: `L${range.start}-L${range.end}`
 			const relative = file.file.replace(options.prefix, "")
 			const href = `https://github.com/${options.repository}/blob/${options.commit}/${relative}#${fragment}`
-			const text = range.start === range.end ? range.start : `${range.start}&ndash;${range.end}`
+			const text =
+				range.start === range.end
+					? range.start
+					: `${range.start}&ndash;${range.end}`
 
 			return a({ href }, text)
 		})
