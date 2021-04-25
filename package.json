@@ -20,7 +20,7 @@
 	},
 	"dependencies": {
 		"@actions/core": "^1.2.7",
-		"@actions/github": "^1.1.0",
+		"@actions/github": "^4.0.0",
 		"lcov-parse": "^1.0.0"
 	},
 	"devDependencies": {

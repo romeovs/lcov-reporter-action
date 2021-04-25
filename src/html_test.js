@@ -12,7 +12,7 @@ import {
 	fragment,
 } from "./html"
 
-test("html tags should return the correct html", function() {
+test("html tags should return the correct html", function () {
 	expect(details("foo", "bar")).toBe("<details>foobar</details>")
 	expect(summary("foo", "bar")).toBe("<summary>foobar</summary>")
 	expect(tr("foo", "bar")).toBe("<tr>foobar</tr>")
@@ -25,13 +25,13 @@ test("html tags should return the correct html", function() {
 	expect(span("foo", "bar")).toBe("<span>foobar</span>")
 })
 
-test("html fragment should return the children", function() {
+test("html fragment should return the children", function () {
 	expect(fragment()).toBe("")
 	expect(fragment("foo")).toBe("foo")
 	expect(fragment("foo", "bar")).toBe("foobar")
 })
 
-test("html tags should accept props", function() {
+test("html tags should accept props", function () {
 	expect(a({ href: "http://www.example.com" }, "example")).toBe(
 		"<a href='http://www.example.com'>example</a>",
 	)

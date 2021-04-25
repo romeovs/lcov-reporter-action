@@ -1,9 +1,9 @@
 function tag(name) {
-	return function(...children) {
+	return function (...children) {
 		const props =
 			typeof children[0] === "object"
 				? Object.keys(children[0])
-						.map(key => ` ${key}='${children[0][key]}'`)
+						.map((key) => ` ${key}='${children[0][key]}'`)
 						.join("")
 				: ""
 
@@ -24,6 +24,6 @@ export const tbody = tag("tbody")
 export const a = tag("a")
 export const span = tag("span")
 
-export const fragment = function(...children) {
+export const fragment = function (...children) {
 	return children.join("")
 }

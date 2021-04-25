@@ -30,7 +30,7 @@ async function main() {
 	console.log(diff(lcov, before, options))
 }
 
-main().catch(function(err) {
+main().catch(function (err) {
 	console.log(err)
 	process.exit(1)
 })
