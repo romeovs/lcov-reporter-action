@@ -41,7 +41,6 @@ async function main() {
 
 	const lcov = await parse(raw);
 	const baselcov = baseRaw && (await parse(baseRaw));
-	const body = diff(lcov, baselcov, options);
 
 	await new octokit.issues.createComment({
 		repo: context.repo.repo,
