@@ -19,7 +19,7 @@
 		"format": "prettier --write src/*.js src/**/*.js"
 	},
 	"dependencies": {
-		"@actions/core": "^1.2.0",
+		"@actions/core": "^1.2.7",
 		"@actions/github": "^1.1.0",
 		"lcov-parse": "^1.0.0"
 	},
