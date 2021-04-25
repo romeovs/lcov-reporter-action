@@ -25,7 +25,7 @@ async function main() {
 		console.log(`No coverage report found at '${baseFile}', ignoring...`);
 	}
 
-	const pull_request = await octokit.pulls.get({
+	const { data } = await octokit.pulls.get({
 		owner: context.repo.owner,
 		repo: context.repo.repo,
 		pull_number: pr_number,
@@ -34,9 +34,9 @@ async function main() {
 	const options = {
 		repository: context.payload.repository.full_name,
 		prefix: `${process.env.GITHUB_WORKSPACE}/`,
-		commit: pull_request.head.sha,
-		head: pull_request.head.ref,
-		base: pull_request.base.ref,
+		commit: data.head.sha,
+		head: data.head.ref,
+		base: data.base.ref,
 	};
 
 	const lcov = await parse(raw);
