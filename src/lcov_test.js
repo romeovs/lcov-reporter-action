@@ -1,4 +1,4 @@
-import { parse, percentage } from "./lcov"
+import { parse, percentage } from "./lcov";
 
 test("parse should parse lcov strings correctly", async function () {
 	const data = `
@@ -22,9 +22,9 @@ BRDA:37,2,0,0
 BRF:5
 BRH:4
 end_of_record
-`
+`;
 
-	const lcov = await parse(data)
+	const lcov = await parse(data);
 	expect(lcov).toEqual([
 		{
 			title: "",
@@ -102,18 +102,18 @@ end_of_record
 				],
 			},
 		},
-	])
-})
+	]);
+});
 
 test("parse should fail on invalid lcov", async function () {
-	await expect(parse("invalid")).rejects.toBe("Failed to parse string")
-})
+	await expect(parse("invalid")).rejects.toBe("Failed to parse string");
+});
 
 test("percentage should calculate the correct percentage", function () {
 	expect(
 		percentage([
 			{ lines: { hit: 20, found: 25 } },
 			{ lines: { hit: 10, found: 15 } },
-		]),
-	).toBe(75)
-})
+		])
+	).toBe(75);
+});

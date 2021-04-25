@@ -5973,11 +5973,11 @@ function parse(data) {
 		lib(data, function (err, res) {
 			if (err) {
 				reject(err);
-				return
+				return;
 			}
 			resolve(res);
 		});
-	})
+	});
 }
 
 // Get the total coverage percentage from the lcov data.
@@ -5989,7 +5989,7 @@ function percentage$1(lcov) {
 		found += entry.lines.found;
 	}
 
-	return (hit / found) * 100
+	return (hit / found) * 100;
 }
 
 function tag(name) {
@@ -6003,8 +6003,8 @@ function tag(name) {
 
 		const c = typeof children[0] === "string" ? children : children.slice(1);
 
-		return `<${name}${props}>${c.join("")}</${name}>`
-	}
+		return `<${name}${props}>${c.join("")}</${name}>`;
+	};
 }
 
 const details = tag("details");
@@ -6018,7 +6018,7 @@ const tbody = tag("tbody");
 const a = tag("a");
 
 const fragment = function (...children) {
-	return children.join("")
+	return children.join("");
 };
 
 // Tabulate the lcov data in a HTML table.
@@ -6029,7 +6029,7 @@ function tabulate(lcov, options) {
 		th("Branches"),
 		th("Funcs"),
 		th("Lines"),
-		th("Uncovered Lines"),
+		th("Uncovered Lines")
 	);
 
 	const folders = {};
@@ -6048,18 +6048,18 @@ function tabulate(lcov, options) {
 				toFolder(key),
 				...folders[key].map((file) => toRow(file, key !== "", options)),
 			],
-			[],
+			[]
 		);
 
-	return table(tbody(head, ...rows))
+	return table(tbody(head, ...rows));
 }
 
 function toFolder(path) {
 	if (path === "") {
-		return ""
+		return "";
 	}
 
-	return tr(td({ colspan: 6 }, b(path)))
+	return tr(td({ colspan: 6 }, b(path)));
 }
 
 function getStatement(file) {
@@ -6068,16 +6068,16 @@ function getStatement(file) {
 	return [branches, functions, lines].reduce(
 		function (acc, curr) {
 			if (!curr) {
-				return acc
+				return acc;
 			}
 
 			return {
 				hit: acc.hit + curr.hit,
 				found: acc.found + curr.found,
-			}
+			};
 		},
-		{ hit: 0, found: 0 },
-	)
+		{ hit: 0, found: 0 }
+	);
 }
 
 function toRow(file, indent, options) {
@@ -6087,8 +6087,8 @@ function toRow(file, indent, options) {
 		td(percentage(file.branches)),
 		td(percentage(file.functions)),
 		td(percentage(file.lines)),
-		td(uncovered(file, options)),
-	)
+		td(uncovered(file, options))
+	);
 }
 
 function filename(file, indent, options) {
@@ -6097,12 +6097,12 @@ function filename(file, indent, options) {
 	const parts = relative.split("/");
 	const last = parts[parts.length - 1];
 	const space = indent ? "&nbsp; &nbsp;" : "";
-	return fragment(space, a({ href }, last))
+	return fragment(space, a({ href }, last));
 }
 
 function percentage(item) {
 	if (!item) {
-		return "N/A"
+		return "N/A";
 	}
 
 	const value = item.found === 0 ? 100 : (item.hit / item.found) * 100;
@@ -6110,7 +6110,7 @@ function percentage(item) {
 
 	const tag = value === 100 ? fragment : b;
 
-	return tag(`${rounded}%`)
+	return tag(`${rounded}%`);
 }
 
 function uncovered(file, options) {
@@ -6137,9 +6137,9 @@ function uncovered(file, options) {
 					? range.start
 					: `${range.start}&ndash;${range.end}`;
 
-			return a({ href }, text)
+			return a({ href }, text);
 		})
-		.join(", ")
+		.join(", ");
 }
 
 function ranges(linenos) {
@@ -6150,12 +6150,12 @@ function ranges(linenos) {
 	linenos.sort().forEach(function (lineno) {
 		if (last === null) {
 			last = { start: lineno, end: lineno };
-			return
+			return;
 		}
 
 		if (last.end + 1 === lineno) {
 			last.end = lineno;
-			return
+			return;
 		}
 
 		res.push(last);
@@ -6166,7 +6166,7 @@ function ranges(linenos) {
 		res.push(last);
 	}
 
-	return res
+	return res;
 }
 
 function comment(lcov, options) {
@@ -6176,13 +6176,13 @@ function comment(lcov, options) {
 			: `Coverage for this commit`,
 		table(tbody(tr(th(percentage$1(lcov).toFixed(2), "%")))),
 		"\n\n",
-		details(summary("Coverage Report"), tabulate(lcov, options)),
-	)
+		details(summary("Coverage Report"), tabulate(lcov, options))
+	);
 }
 
 function diff(lcov, before, options) {
 	if (!before) {
-		return comment(lcov, options)
+		return comment(lcov, options);
 	}
 
 	const pbefore = percentage$1(before);
@@ -6199,13 +6199,13 @@ function diff(lcov, before, options) {
 			tbody(
 				tr(
 					th(pafter.toFixed(2), "%"),
-					th(arrow, " ", plus, pdiff.toFixed(2), "%"),
-				),
-			),
+					th(arrow, " ", plus, pdiff.toFixed(2), "%")
+				)
+			)
 		),
 		"\n\n",
-		details(summary("Coverage Report"), tabulate(lcov, options)),
-	)
+		details(summary("Coverage Report"), tabulate(lcov, options))
+	);
 }
 
 async function main() {
@@ -6219,7 +6219,7 @@ async function main() {
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch((err) => null);
 	if (!raw) {
 		console.log(`No coverage report found at '${lcovFile}', exiting...`);
-		return
+		return;
 	}
 
 	const baseRaw =

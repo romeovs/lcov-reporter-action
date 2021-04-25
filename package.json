@@ -56,8 +56,6 @@
 		]
 	},
 	"prettier": {
-		"semi": false,
-		"useTabs": true,
-		"trailingComma": "all"
+		"useTabs": true
 	}
 }
