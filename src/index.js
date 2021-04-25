@@ -12,8 +12,6 @@ async function main() {
 	const commit = core.getInput("commit")
 	const head = core.getInput("head")
 	const base = core.getInput("base")
-	const repo = core.getInput("repo")
-	const owner = core.getInput("owner")
 	const pr_number = core.getInput("pr_number")
 	
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
@@ -40,8 +38,8 @@ async function main() {
 	const body = diff(lcov, baselcov, options)
 
 	await new GitHub(token).issues.createComment({
-		repo: repo,
-		owner: owner,
+		repo: context.repo.repo,
+		owner: context.repo.owner,
 		issue_number: pr_number
 		body: diff(lcov, baselcov, options),
 	})
