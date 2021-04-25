@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [ '14', '16' ]
+        node: [ '12', '14', '16' ]
     name: Node ${{ matrix.node }}
     steps:
       - uses: actions/checkout@v2
@@ -27,7 +27,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: 12
       - run: npm install
       - run: npm run build
       - run: npm run format
