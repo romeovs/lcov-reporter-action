@@ -1,4 +1,4 @@
-name: Code Coverage Report
+name: Comment lcov Code Coverage Report
 description: Comments on a pull request with a lcov code coverage report
 author: Steffen Koette
 branding:
