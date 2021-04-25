@@ -21,7 +21,7 @@ jobs:
       - run: npm test
   build:
     runs-on: ubuntu-latest
-    name: Check npm run build has been run
+    name: Check build and format have been run
     steps:
       - uses: actions/checkout@v2
       - name: Setup node
@@ -30,9 +30,11 @@ jobs:
           node-version: 14
       - run: npm install
       - run: npm run build
+      - run: npm run format
       - uses: technote-space/get-diff-action@v4
         with:
           PATTERNS: |
-            +dist/**/*.js
-      - run: return 1
+            +(dist|src)/**/*.js
+      - name: Fail if files changed
+        run: return 1
         if: env.GIT_DIFF
