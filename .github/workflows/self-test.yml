@@ -1,0 +1,35 @@
+name: Self Tests
+on:
+  pull_request:
+    branches: [ master ]
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Self test basic comment
+        uses: ./
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: test-resources/lcov.info
+          pr-number: ${{ github.event.pull_request.number }}
+  file:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Self test file output
+        uses: ./
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: test-resources/lcov.info
+          pr-number: ${{ github.event.pull_request.number }}
+          output-file: test.html
+  hide-branch-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Self test no branch coverage in file
+        uses: ./
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: test-resources/lcov.info
+          pr-number: ${{ github.event.pull_request.number }}
+          output-file: test-no-branch.html
+          hide-branch-coverage: true
