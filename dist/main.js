@@ -6235,6 +6235,7 @@ async function main() {
 	const baseFile = core$1.getInput("lcov-base");
 	const prNumber = core$1.getInput("pr-number");
 	const hide_branch_coverage = core$1.getInput("hide-branch-coverage") == "true";
+	const outputFile = core$1.getInput("output-file");
 
 	const octokit = github_1(token);
 
@@ -6267,13 +6268,18 @@ async function main() {
 
 	const lcov = await parse(raw);
 	const baselcov = baseRaw && (await parse(baseRaw));
+	const body = diff(lcov, baselcov, options);
 
-	await new octokit.issues.createComment({
-		repo: github_2.repo.repo,
-		owner: github_2.repo.owner,
-		issue_number: prNumber,
-		body: diff(lcov, baselcov, options),
-	});
+	if (outputFile != null && outputFile != "") {
+		await fs.promises.writeFile(outputFile, body);
+	} else {
+		await new octokit.issues.createComment({
+			repo: github_2.repo.repo,
+			owner: github_2.repo.owner,
+			issue_number: prNumber,
+			body: body,
+		});
+	}
 }
 
 main().catch(function (err) {

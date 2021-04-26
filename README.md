@@ -30,6 +30,9 @@ branch. When this is set a diff of the coverage percentages is shown.
 ##### `hide-branch-coverage` (**Optional**)
 Hides the branch coverage in the output if set to true
 
+##### `output-file` (**Optional**)
+Filename to output the html to. If set the action will not comment on the PR.
+
 ## Example usage
 
 *Note: You need to somehow read the `pr_number` into the environment.*

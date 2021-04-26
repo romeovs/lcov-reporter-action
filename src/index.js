@@ -11,6 +11,7 @@ async function main() {
 	const baseFile = core.getInput("lcov-base");
 	const prNumber = core.getInput("pr-number");
 	const hide_branch_coverage = core.getInput("hide-branch-coverage") == "true";
+	const outputFile = core.getInput("output-file");
 
 	const octokit = getOctokit(token);
 
@@ -43,13 +44,18 @@ async function main() {
 
 	const lcov = await parse(raw);
 	const baselcov = baseRaw && (await parse(baseRaw));
+	const body = diff(lcov, baselcov, options);
 
-	await new octokit.issues.createComment({
-		repo: context.repo.repo,
-		owner: context.repo.owner,
-		issue_number: prNumber,
-		body: diff(lcov, baselcov, options),
-	});
+	if (outputFile != null && outputFile != "") {
+		await fs.writeFile(outputFile, body);
+	} else {
+		await new octokit.issues.createComment({
+			repo: context.repo.repo,
+			owner: context.repo.owner,
+			issue_number: prNumber,
+			body: body,
+		});
+	}
 }
 
 main().catch(function (err) {

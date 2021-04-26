@@ -20,6 +20,9 @@ inputs:
   hide-branch-coverage:
     description: Hides the branch coverage in the output if set to true
     required: false
+  output-file:
+    description: Filename to output result to, instead of posting a comment
+    required: false
 
 
 runs:
