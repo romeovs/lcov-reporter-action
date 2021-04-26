@@ -8,7 +8,7 @@ inputs:
   github-token:
     description: Github token
     required: true
-  pr_number:
+  pr-number:
     descirption: Number of the Pull Request
     required: true
   lcov-file:
@@ -17,6 +17,10 @@ inputs:
   lcov-base:
     description: The location of the lcov file for the base branch
     required: false
+  hide-branch-coverage:
+    description: Hides the branch coverage in the output if set to true
+    required: false
+
 
 runs:
   using: node12

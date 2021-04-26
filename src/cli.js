@@ -25,6 +25,7 @@ async function main() {
 		prefix,
 		head: "feat/test",
 		base: "master",
+		hide_branch_coverage: false,
 	};
 
 	console.log(diff(lcov, before, options));

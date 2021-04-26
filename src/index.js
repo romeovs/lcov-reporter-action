@@ -9,7 +9,8 @@ async function main() {
 	const token = core.getInput("github-token");
 	const lcovFile = core.getInput("lcov-file") || "./coverage/lcov.info";
 	const baseFile = core.getInput("lcov-base");
-	const pr_number = core.getInput("pr_number");
+	const prNumber = core.getInput("pr-number");
+	const hide_branch_coverage = core.getInput("hide-branch-coverage") == "true";
 
 	const octokit = getOctokit(token);
 
@@ -28,7 +29,7 @@ async function main() {
 	const { data } = await octokit.pulls.get({
 		owner: context.repo.owner,
 		repo: context.repo.repo,
-		pull_number: pr_number,
+		pull_number: prNumber,
 	});
 
 	const options = {
@@ -37,6 +38,7 @@ async function main() {
 		commit: data.head.sha,
 		head: data.head.ref,
 		base: data.base.ref,
+		hide_branch_coverage: hide_branch_coverage,
 	};
 
 	const lcov = await parse(raw);
@@ -45,7 +47,7 @@ async function main() {
 	await new octokit.issues.createComment({
 		repo: context.repo.repo,
 		owner: context.repo.owner,
-		issue_number: pr_number,
+		issue_number: prNumber,
 		body: diff(lcov, baselcov, options),
 	});
 }

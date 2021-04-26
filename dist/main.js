@@ -6023,14 +6023,25 @@ const fragment = function (...children) {
 
 // Tabulate the lcov data in a HTML table.
 function tabulate(lcov, options) {
-	const head = tr(
-		th("File"),
-		th("Stmts"),
-		th("Branches"),
-		th("Funcs"),
-		th("Lines"),
-		th("Uncovered Lines")
-	);
+	let head;
+	if (options.hide_branch_coverage) {
+		head = tr(
+			th("File"),
+			th("Stmts"),
+			th("Funcs"),
+			th("Lines"),
+			th("Uncovered Lines")
+		);
+	} else {
+		head = tr(
+			th("File"),
+			th("Stmts"),
+			th("Branches"),
+			th("Funcs"),
+			th("Lines"),
+			th("Uncovered Lines")
+		);
+	}
 
 	const folders = {};
 	for (const file of lcov) {
@@ -6081,14 +6092,24 @@ function getStatement(file) {
 }
 
 function toRow(file, indent, options) {
-	return tr(
-		td(filename(file, indent, options)),
-		td(percentage(getStatement(file))),
-		td(percentage(file.branches)),
-		td(percentage(file.functions)),
-		td(percentage(file.lines)),
-		td(uncovered(file, options))
-	);
+	if (options.hide_branch_coverage) {
+		return tr(
+			td(filename(file, indent, options)),
+			td(percentage(getStatement(file))),
+			td(percentage(file.functions)),
+			td(percentage(file.lines)),
+			td(uncovered(file, options))
+		);
+	} else {
+		return tr(
+			td(filename(file, indent, options)),
+			td(percentage(getStatement(file))),
+			td(percentage(file.branches)),
+			td(percentage(file.functions)),
+			td(percentage(file.lines)),
+			td(uncovered(file, options))
+		);
+	}
 }
 
 function filename(file, indent, options) {
@@ -6212,7 +6233,8 @@ async function main() {
 	const token = core$1.getInput("github-token");
 	const lcovFile = core$1.getInput("lcov-file") || "./coverage/lcov.info";
 	const baseFile = core$1.getInput("lcov-base");
-	const pr_number = core$1.getInput("pr_number");
+	const prNumber = core$1.getInput("pr-number");
+	const hide_branch_coverage = core$1.getInput("hide-branch-coverage") == "true";
 
 	const octokit = github_1(token);
 
@@ -6231,7 +6253,7 @@ async function main() {
 	const { data } = await octokit.pulls.get({
 		owner: github_2.repo.owner,
 		repo: github_2.repo.repo,
-		pull_number: pr_number,
+		pull_number: prNumber,
 	});
 
 	const options = {
@@ -6240,16 +6262,16 @@ async function main() {
 		commit: data.head.sha,
 		head: data.head.ref,
 		base: data.base.ref,
+		hide_branch_coverage: hide_branch_coverage,
 	};
 
 	const lcov = await parse(raw);
 	const baselcov = baseRaw && (await parse(baseRaw));
-	diff(lcov, baselcov, options);
 
 	await new octokit.issues.createComment({
 		repo: github_2.repo.repo,
 		owner: github_2.repo.owner,
-		issue_number: pr_number,
+		issue_number: prNumber,
 		body: diff(lcov, baselcov, options),
 	});
 }

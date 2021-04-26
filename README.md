@@ -16,7 +16,7 @@ Total Coverage: <b>99.39%</b>
 Github token used for posting the comment. To use the key provided by the GitHub
 action runner, use `${{ secrets.GITHUB_TOKEN }}`.
 
-##### `pr_number` (**Required**)
+##### `pr-number` (**Required**)
 Number of the Pull Request.
 
 ##### `lcov-file` (**Optional**)
@@ -27,6 +27,9 @@ The location of the lcov file to read the coverage report from. Defaults to
 The location of the lcov file resulting from running the tests in the base
 branch. When this is set a diff of the coverage percentages is shown.
 
+##### `hide-branch-coverage` (**Optional**)
+Hides the branch coverage in the output if set to true
+
 ## Example usage
 
 *Note: You need to somehow read the `pr_number` into the environment.*
@@ -36,7 +39,7 @@ uses: Nef10/lcov-reporter-action@v0.3.0
 with:
   github-token: ${{ secrets.GITHUB_TOKEN }}
   lcov-file: lcov.info
-  pr_number: ${{ env.pr_number }}
+  pr-number: ${{ env.pr_number }}
 ```
 
 ## Acknowledgements

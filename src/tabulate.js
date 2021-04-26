@@ -2,14 +2,25 @@ import { th, tr, td, table, tbody, a, b, span, fragment } from "./html";
 
 // Tabulate the lcov data in a HTML table.
 export function tabulate(lcov, options) {
-	const head = tr(
-		th("File"),
-		th("Stmts"),
-		th("Branches"),
-		th("Funcs"),
-		th("Lines"),
-		th("Uncovered Lines")
-	);
+	let head;
+	if (options.hide_branch_coverage) {
+		head = tr(
+			th("File"),
+			th("Stmts"),
+			th("Funcs"),
+			th("Lines"),
+			th("Uncovered Lines")
+		);
+	} else {
+		head = tr(
+			th("File"),
+			th("Stmts"),
+			th("Branches"),
+			th("Funcs"),
+			th("Lines"),
+			th("Uncovered Lines")
+		);
+	}
 
 	const folders = {};
 	for (const file of lcov) {
@@ -60,14 +71,24 @@ function getStatement(file) {
 }
 
 function toRow(file, indent, options) {
-	return tr(
-		td(filename(file, indent, options)),
-		td(percentage(getStatement(file), options)),
-		td(percentage(file.branches, options)),
-		td(percentage(file.functions, options)),
-		td(percentage(file.lines, options)),
-		td(uncovered(file, options))
-	);
+	if (options.hide_branch_coverage) {
+		return tr(
+			td(filename(file, indent, options)),
+			td(percentage(getStatement(file), options)),
+			td(percentage(file.functions, options)),
+			td(percentage(file.lines, options)),
+			td(uncovered(file, options))
+		);
+	} else {
+		return tr(
+			td(filename(file, indent, options)),
+			td(percentage(getStatement(file), options)),
+			td(percentage(file.branches, options)),
+			td(percentage(file.functions, options)),
+			td(percentage(file.lines, options)),
+			td(uncovered(file, options))
+		);
+	}
 }
 
 function filename(file, indent, options) {
