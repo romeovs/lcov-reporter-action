@@ -3,8 +3,8 @@
 	"version": "0.2.19",
 	"description": "Comments a pull request with the lcov code coverage",
 	"license": "MIT",
-	"author": "Romeo Van Snick",
-	"repository": "https://github.com/romeovs/lcov-reporter-action",
+	"author": "Romeo Van Snick, Sebastian Loh",
+	"repository": "https://github.com/livelyhood/lcov-reporter-action",
 	"keywords": [
 		"actions",
 		"pull-request",
