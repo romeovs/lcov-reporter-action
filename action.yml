@@ -15,6 +15,9 @@ inputs:
   lcov-base:
     description: The location of the lcov file for the base branch
     required: false
+  lcov-omit_details: 
+    description: Omits the detailed coverage report. For large repos this may be necessary to stay under the character limit for PR comments (65536 characters that is)
+    required: false
 runs:
   using: node12
   main: dist/main.js
