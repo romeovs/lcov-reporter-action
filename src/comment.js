@@ -10,7 +10,7 @@ export function comment (lcov, options) {
 			: `Coverage for this commit`,
 		table(tbody(tr(th(percentage(lcov).toFixed(2), "%")))),
 		"\n\n",
-		details(summary("Coverage Report"), tabulate(lcov, options)),
+		options.omit_details ? '' : details(summary("Coverage Report"), tabulate(lcov, options)),
 	)
 }
 
@@ -39,6 +39,6 @@ export function diff(lcov, before, options) {
 			th(arrow, " ", plus, pdiff.toFixed(2), "%"),
 		))),
 		"\n\n",
-		details(summary("Coverage Report"), tabulate(lcov, options)),
+		options.omit_details ? '' : details(summary("Coverage Report"), tabulate(lcov, options)),
 	)
 }
