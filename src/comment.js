@@ -8,9 +8,7 @@ export function comment (lcov, options) {
 		options.base
 			? `Coverage after merging ${b(options.head)} into ${b(options.base)}`
 			: `Coverage for this commit`,
-		table(tbody(tr(th(percentage(lcov).toFixed(2), "%")))),
-		"\n\n",
-		options.omit_details ? '' : details(summary("Coverage Report"), tabulate(lcov, options)),
+		table(tbody(tr(th(percentage(lcov).toFixed(2), "%"))))
 	)
 }
 
@@ -37,8 +35,6 @@ export function diff(lcov, before, options) {
 		table(tbody(tr(
 			th(pafter.toFixed(2), "%"),
 			th(arrow, " ", plus, pdiff.toFixed(2), "%"),
-		))),
-		"\n\n",
-		options.omit_details ? '' : details(summary("Coverage Report"), tabulate(lcov, options)),
+		)))
 	)
 }
