@@ -37,7 +37,22 @@ async function main() {
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && await parse(baseRaw)
 	const body = diff(lcov, baselcov, options)
+    core.debug(`HTML body is ${body}`)
 
+	const path = core.getInput(Inputs.Path, {required: false})
+
+    let resolvedPath
+    // resolve tilde expansions, path.replace only replaces the first occurrence of a pattern
+    if (path.startsWith(`~`)) {
+      resolvedPath = resolve(path.replace('~', os.homedir()))
+    } else {
+      resolvedPath = resolve(path)
+    }
+    core.debug(`Resolved path is ${resolvedPath}`)
+
+	// output the directory that the artifact(s) was/were downloaded to
+    // if no path is provided, an empty string resolves to the current working directory
+    core.setOutput(body, resolvedPath)
 }
 
 main().catch(function(err) {

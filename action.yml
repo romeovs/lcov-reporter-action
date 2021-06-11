@@ -1,5 +1,5 @@
 name: Code Coverage Report
-description: Comments a pull request with the code coverage
+description: Generate a HTML body with the code coverage
 author: Romeo Van Snick
 branding:
   icon: check-square
@@ -12,6 +12,10 @@ inputs:
   lcov-base:
     description: The location of the lcov file for the base branch
     required: false
+  path:
+    description: 'The destination path the HTML body file'
+    required: false
+    default: ./coverage/body.html
 runs:
   using: node12
   main: dist/main.js
