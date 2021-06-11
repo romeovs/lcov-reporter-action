@@ -37,7 +37,7 @@ async function main() {
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && await parse(baseRaw)
 	const body = diff(lcov, baselcov, options)
-    core.debug(`HTML body is ${body}`)
+    console.log(`HTML body is ${body}`)
 
 	const path = core.getInput(Inputs.Path, {required: false})
 
@@ -50,9 +50,7 @@ async function main() {
     }
     core.debug(`Resolved path is ${resolvedPath}`)
 
-	// output the directory that the artifact(s) was/were downloaded to
-    // if no path is provided, an empty string resolves to the current working directory
-    core.setOutput(body, resolvedPath)
+	fs.writeFile(resolvedPath, body).catch(err => null);
 }
 
 main().catch(function(err) {
