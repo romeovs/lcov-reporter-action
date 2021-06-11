@@ -22970,8 +22970,7 @@ function diff(lcov, before, options) {
 }
 
 async function main$1() {
-	const token = core$1.getInput("github-token");
-	const lcovFile = core$1.getInput("lcov-file") || "./coverage/lcov.info";
+	const lcovFile = core$1.getInput("lcov-file");
 	const baseFile = core$1.getInput("lcov-base");
 
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
@@ -23003,21 +23002,6 @@ async function main$1() {
 	const baselcov = baseRaw && await parse$2(baseRaw);
 	const body = diff(lcov, baselcov, options);
 
-	if (github_1.eventName === "pull_request") {
-		await new github_2(token).issues.createComment({
-			repo: github_1.repo.repo,
-			owner: github_1.repo.owner,
-			issue_number: github_1.payload.pull_request.number,
-			body: diff(lcov, baselcov, options),
-		});
-	} else if (github_1.eventName === "push") {
-		await new github_2(token).repos.createCommitComment({
-			repo: github_1.repo.repo,
-			owner: github_1.repo.owner,
-			commit_sha: options.commit,
-			body: diff(lcov, baselcov, options),
-		});
-	}
 }
 
 main$1().catch(function(err) {
