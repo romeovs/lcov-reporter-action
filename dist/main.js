@@ -23001,9 +23001,9 @@ async function main$1() {
 	const lcov = await parse$2(raw);
 	const baselcov = baseRaw && await parse$2(baseRaw);
 	const body = diff(lcov, baselcov, options);
-    console.log(`HTML body is ${body}`);
+    console.log(body);
 
-	const path = core$1.getInput(Inputs.Path, {required: false});
+	const path = core$1.getInput('path');
 
     let resolvedPath;
     // resolve tilde expansions, path.replace only replaces the first occurrence of a pattern
