@@ -5,6 +5,8 @@ import { context } from "@actions/github"
 import { parse } from "./lcov"
 import { diff } from "./comment"
 
+import { resolve } from 'path'
+
 async function main() {
 	const lcovFile = core.getInput("lcov-file")
 	const baseFile = core.getInput("lcov-base")
