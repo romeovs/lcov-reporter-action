@@ -4,7 +4,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var fs = require('fs');
 var fs__default = _interopDefault(fs);
-var os = _interopDefault(require('os'));
+var os$1 = _interopDefault(require('os'));
 var path = _interopDefault(require('path'));
 var child_process = _interopDefault(require('child_process'));
 var Stream = _interopDefault(require('stream'));
@@ -45,7 +45,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 function issueCommand(command, properties, message) {
     const cmd = new Command(command, properties, message);
-    process.stdout.write(cmd.toString() + os.EOL);
+    process.stdout.write(cmd.toString() + os$1.EOL);
 }
 exports.issueCommand = issueCommand;
 function issue(name, message = '') {
@@ -230,7 +230,7 @@ exports.warning = warning;
  * @param message info message
  */
 function info(message) {
-    process.stdout.write(message + os.EOL);
+    process.stdout.write(message + os$1.EOL);
 }
 exports.info = info;
 /**
@@ -383,7 +383,7 @@ const nameMap = new Map([
 ]);
 
 const macosRelease = release => {
-	release = Number((release || os.release()).split('.')[0]);
+	release = Number((release || os$1.release()).split('.')[0]);
 	return {
 		name: nameMap.get(release),
 		version: '10.' + (release - 4)
@@ -3706,7 +3706,7 @@ const names = new Map([
 ]);
 
 const windowsRelease = release => {
-	const version = /\d+\.\d/.exec(release || os.release());
+	const version = /\d+\.\d/.exec(release || os$1.release());
 
 	if (release && !version) {
 		throw new Error('`release` argument doesn\'t match `n.n`');
@@ -3718,7 +3718,7 @@ const windowsRelease = release => {
 	// If `release` is omitted or we're on a Windows system, and the version number is an ambiguous version
 	// then use `wmic` to get the OS caption: https://msdn.microsoft.com/en-us/library/aa394531(v=vs.85).aspx
 	// If the resulting caption contains the year 2008, 2012 or 2016, it is a server version, so return a server OS name.
-	if ((!release || release === os.release()) && ['6.1', '6.2', '6.3', '10.0'].includes(ver)) {
+	if ((!release || release === os$1.release()) && ['6.1', '6.2', '6.3', '10.0'].includes(ver)) {
 		const stdout = execa.sync('wmic', ['os', 'get', 'Caption']).stdout || '';
 		const year = (stdout.match(/2008|2012|2016/) || [])[0];
 		if (year) {
@@ -3736,13 +3736,13 @@ const osName = (platform, release) => {
 		throw new Error('You can\'t specify a `release` without specifying `platform`');
 	}
 
-	platform = platform || os.platform();
+	platform = platform || os$1.platform();
 
 	let id;
 
 	if (platform === 'darwin') {
-		if (!release && os.platform() === 'darwin') {
-			release = os.release();
+		if (!release && os$1.platform() === 'darwin') {
+			release = os$1.release();
 		}
 
 		const prefix = release ? (Number(release.split('.')[0]) > 15 ? 'macOS' : 'OS X') : 'macOS';
@@ -3751,8 +3751,8 @@ const osName = (platform, release) => {
 	}
 
 	if (platform === 'linux') {
-		if (!release && os.platform() === 'linux') {
-			release = os.release();
+		if (!release && os$1.platform() === 'linux') {
+			release = os$1.release();
 		}
 
 		id = release ? release.replace(/^(\d+\.\d+).*/, '$1') : '';
@@ -3760,8 +3760,8 @@ const osName = (platform, release) => {
 	}
 
 	if (platform === 'win32') {
-		if (!release && os.platform() === 'win32') {
-			release = os.release();
+		if (!release && os$1.platform() === 'win32') {
+			release = os$1.release();
 		}
 
 		id = release ? windowsRelease_1(release) : '';
@@ -22538,7 +22538,7 @@ class Context {
                 this.payload = JSON.parse(fs__default.readFileSync(process.env.GITHUB_EVENT_PATH, { encoding: 'utf8' }));
             }
             else {
-                process.stdout.write(`GITHUB_EVENT_PATH ${process.env.GITHUB_EVENT_PATH} does not exist${os.EOL}`);
+                process.stdout.write(`GITHUB_EVENT_PATH ${process.env.GITHUB_EVENT_PATH} does not exist${os$1.EOL}`);
             }
         }
         this.eventName = process.env.GITHUB_EVENT_NAME;
@@ -23001,7 +23001,20 @@ async function main$1() {
 	const lcov = await parse$2(raw);
 	const baselcov = baseRaw && await parse$2(baseRaw);
 	const body = diff(lcov, baselcov, options);
+    console.log(`HTML body is ${body}`);
 
+	const path = core$1.getInput(Inputs.Path, {required: false});
+
+    let resolvedPath;
+    // resolve tilde expansions, path.replace only replaces the first occurrence of a pattern
+    if (path.startsWith(`~`)) {
+      resolvedPath = resolve(path.replace('~', os.homedir()));
+    } else {
+      resolvedPath = resolve(path);
+    }
+    core$1.debug(`Resolved path is ${resolvedPath}`);
+
+	fs.promises.writeFile(resolvedPath, body).catch(err => null);
 }
 
 main$1().catch(function(err) {
