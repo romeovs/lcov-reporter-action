@@ -1,5 +1,11 @@
 name: Test
-on: [push]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
 jobs:
   test:
     name: Test
@@ -14,6 +20,6 @@ jobs:
         run: yarn
       - name: Test
         run: yarn test
-      - uses: zgriesinger/lcov-reporter-action@master
+      - uses: zgriesinger/lcov-reporter-action@zgriesinger/feat/update-previous-comment
         with:
           lcov-file: ./coverage/lcov.info
