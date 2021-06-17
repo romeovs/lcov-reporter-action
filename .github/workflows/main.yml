@@ -20,6 +20,6 @@ jobs:
         run: yarn
       - name: Test
         run: yarn test
-      - uses: zgriesinger/lcov-reporter-action@master
+      - uses: zgriesinger/lcov-reporter-action@fixup-comment
         with:
           lcov-file: ./coverage/lcov.info
