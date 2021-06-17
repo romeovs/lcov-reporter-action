@@ -3,10 +3,13 @@ import core from "@actions/core"
 import { GitHub, context } from "@actions/github"
 
 import { parse } from "./lcov"
-import { diff } from "./comment"
+import { comment, diff } from "./comment"
+
 
 async function main() {
-	const token = core.getInput("github-token")
+	const token = core
+	sadfasdfsf	
+	.getInput("github-token")
 	const lcovFile = core.getInput("lcov-file") || "./coverage/lcov.info"
 	const baseFile = core.getInput("lcov-base")
 
@@ -40,12 +43,39 @@ async function main() {
 	const body = diff(lcov, baselcov, options)
 
 	if (context.eventName === "pull_request") {
-		await new GitHub(token).issues.createComment({
+		const comments = await new GitHub(token).issues.listComments({
 			repo: context.repo.repo,
 			owner: context.repo.owner,
 			issue_number: context.payload.pull_request.number,
-			body: diff(lcov, baselcov, options),
-		})
+			per_page: 100
+		});
+
+		core.warn(comments)
+
+		const previousComment = comments.filter(comment => {
+			console.log(comment.body);
+			core.warn(comment.body);
+			return comment.body.includes('Coverage Report')
+		})[0];
+
+
+		if (previousComment) {
+			await new GitHub(token).issues.updateComment({
+				repo: context.repo.repo,
+				owner: context.repo.owner,
+				issue_number: context.payload.pull_request.number,
+				comment_id: previousComment.id,
+				body,
+			});
+		} else {
+			await new GitHub(token).issues.createComment({
+				repo: context.repo.repo,
+				owner: context.repo.owner,
+				issue_number: context.payload.pull_request.number,
+				body,
+			})
+		}
+
 	} else if (context.eventName === "push") {
 		await new GitHub(token).repos.createCommitComment({
 			repo: context.repo.repo,
