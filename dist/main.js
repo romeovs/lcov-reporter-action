@@ -23004,12 +23004,39 @@ async function main$1() {
 	const body = diff(lcov, baselcov, options);
 
 	if (github_1.eventName === "pull_request") {
-		await new github_2(token).issues.createComment({
+		const comments = await new github_2(token).issues.listComments({
 			repo: github_1.repo.repo,
 			owner: github_1.repo.owner,
 			issue_number: github_1.payload.pull_request.number,
-			body: diff(lcov, baselcov, options),
+			per_page: 100
 		});
+
+		core$1.warn(comments);
+
+		const previousComment = comments.filter(comment => {
+			console.log(comment.body);
+			core$1.warn(comment.body);
+			return comment.body.includes('Coverage Report')
+		})[0];
+
+
+		if (previousComment) {
+			await new github_2(token).issues.updateComment({
+				repo: github_1.repo.repo,
+				owner: github_1.repo.owner,
+				issue_number: github_1.payload.pull_request.number,
+				comment_id: previousComment.id,
+				body,
+			});
+		} else {
+			await new github_2(token).issues.createComment({
+				repo: github_1.repo.repo,
+				owner: github_1.repo.owner,
+				issue_number: github_1.payload.pull_request.number,
+				body,
+			});
+		}
+
 	} else if (github_1.eventName === "push") {
 		await new github_2(token).repos.createCommitComment({
 			repo: github_1.repo.repo,

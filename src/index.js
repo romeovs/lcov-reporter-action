@@ -7,9 +7,7 @@ import { comment, diff } from "./comment"
 
 
 async function main() {
-	const token = core
-	sadfasdfsf	
-	.getInput("github-token")
+	const token = core.getInput("github-token")
 	const lcovFile = core.getInput("lcov-file") || "./coverage/lcov.info"
 	const baseFile = core.getInput("lcov-base")
 
