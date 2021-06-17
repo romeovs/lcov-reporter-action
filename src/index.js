@@ -41,18 +41,16 @@ async function main() {
 	const body = diff(lcov, baselcov, options)
 
 	if (context.eventName === "pull_request") {
-		const comments = await new GitHub(token).issues.listComments({
+		const { data: comments } = await new GitHub(token).issues.listComments({
 			repo: context.repo.repo,
 			owner: context.repo.owner,
 			issue_number: context.payload.pull_request.number,
 			per_page: 100
 		});
 
-		core.warn(comments)
 
 		const previousComment = comments.filter(comment => {
-			console.log(comment.body);
-			core.warn(comment.body);
+			core.info('Found previous comment, updating instead of writing a new one');
 			return comment.body.includes('Coverage Report')
 		})[0];
 
