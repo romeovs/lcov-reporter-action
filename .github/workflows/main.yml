@@ -1,0 +1,19 @@
+name: Test
+on: [push]
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Install
+        run: yarn
+      - name: Test
+        run: yarn test
+      - uses: zgriesinger/lcov-reporter-action@master
+        with:
+          lcov-file: ./coverage/lcov.info
