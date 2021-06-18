@@ -4,8 +4,9 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var fs = require('fs');
 var fs__default = _interopDefault(fs);
-var os = _interopDefault(require('os'));
-var path = _interopDefault(require('path'));
+var os$1 = _interopDefault(require('os'));
+var path = require('path');
+var path__default = _interopDefault(path);
 var child_process = _interopDefault(require('child_process'));
 var Stream = _interopDefault(require('stream'));
 var assert = _interopDefault(require('assert'));
@@ -45,7 +46,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 function issueCommand(command, properties, message) {
     const cmd = new Command(command, properties, message);
-    process.stdout.write(cmd.toString() + os.EOL);
+    process.stdout.write(cmd.toString() + os$1.EOL);
 }
 exports.issueCommand = issueCommand;
 function issue(name, message = '') {
@@ -157,7 +158,7 @@ exports.setSecret = setSecret;
  */
 function addPath(inputPath) {
     command.issueCommand('add-path', {}, inputPath);
-    process.env['PATH'] = `${inputPath}${path.delimiter}${process.env['PATH']}`;
+    process.env['PATH'] = `${inputPath}${path__default.delimiter}${process.env['PATH']}`;
 }
 exports.addPath = addPath;
 /**
@@ -230,7 +231,7 @@ exports.warning = warning;
  * @param message info message
  */
 function info(message) {
-    process.stdout.write(message + os.EOL);
+    process.stdout.write(message + os$1.EOL);
 }
 exports.info = info;
 /**
@@ -383,7 +384,7 @@ const nameMap = new Map([
 ]);
 
 const macosRelease = release => {
-	release = Number((release || os.release()).split('.')[0]);
+	release = Number((release || os$1.release()).split('.')[0]);
 	return {
 		name: nameMap.get(release),
 		version: '10.' + (release - 4)
@@ -622,7 +623,7 @@ function which (cmd, opt, cb) {
     if (pathPart.charAt(0) === '"' && pathPart.slice(-1) === '"')
       pathPart = pathPart.slice(1, -1);
 
-    var p = path.join(pathPart, cmd);
+    var p = path__default.join(pathPart, cmd);
     if (!pathPart && (/^\.[\\\/]/).test(cmd)) {
       p = cmd.slice(0, 2) + p;
     }
@@ -656,7 +657,7 @@ function whichSync (cmd, opt) {
     if (pathPart.charAt(0) === '"' && pathPart.slice(-1) === '"')
       pathPart = pathPart.slice(1, -1);
 
-    var p = path.join(pathPart, cmd);
+    var p = path__default.join(pathPart, cmd);
     if (!pathPart && /^\.[\\\/]/.test(cmd)) {
       p = cmd.slice(0, 2) + p;
     }
@@ -718,7 +719,7 @@ function resolveCommandAttempt(parsed, withoutPathExt) {
     try {
         resolved = which_1.sync(parsed.command, {
             path: (parsed.options.env || process.env)[pathKey$1],
-            pathExt: withoutPathExt ? path.delimiter : undefined,
+            pathExt: withoutPathExt ? path__default.delimiter : undefined,
         });
     } catch (e) {
         /* Empty */
@@ -729,7 +730,7 @@ function resolveCommandAttempt(parsed, withoutPathExt) {
     // If we successfully resolved, ensure that an absolute path is returned
     // Note that when a custom `cwd` was used, we need to resolve to an absolute path based on it
     if (resolved) {
-        resolved = path.resolve(hasCustomCwd ? parsed.options.cwd : '', resolved);
+        resolved = path__default.resolve(hasCustomCwd ? parsed.options.cwd : '', resolved);
     }
 
     return resolved;
@@ -2407,7 +2408,7 @@ function parseNonShell(parsed) {
 
         // Normalize posix paths into OS compatible paths (e.g.: foo/bar -> foo\bar)
         // This is necessary otherwise it will always fail with ENOENT in those cases
-        parsed.command = path.normalize(parsed.command);
+        parsed.command = path__default.normalize(parsed.command);
 
         // Escape command & arguments
         parsed.command = _escape.command(parsed.command);
@@ -2602,19 +2603,19 @@ module.exports = opts => {
 	}, opts);
 
 	let prev;
-	let pth = path.resolve(opts.cwd);
+	let pth = path__default.resolve(opts.cwd);
 	const ret = [];
 
 	while (prev !== pth) {
-		ret.push(path.join(pth, 'node_modules/.bin'));
+		ret.push(path__default.join(pth, 'node_modules/.bin'));
 		prev = pth;
-		pth = path.resolve(pth, '..');
+		pth = path__default.resolve(pth, '..');
 	}
 
 	// ensure the running `node` binary is used
-	ret.push(path.dirname(process.execPath));
+	ret.push(path__default.dirname(process.execPath));
 
-	return ret.concat(opts.path).join(path.delimiter);
+	return ret.concat(opts.path).join(path__default.delimiter);
 };
 
 module.exports.env = opts => {
@@ -3387,7 +3388,7 @@ function handleArgs(cmd, args, opts) {
 		opts.cleanup = false;
 	}
 
-	if (process.platform === 'win32' && path.basename(parsed.command) === 'cmd.exe') {
+	if (process.platform === 'win32' && path__default.basename(parsed.command) === 'cmd.exe') {
 		// #116
 		parsed.args.unshift('/q');
 	}
@@ -3706,7 +3707,7 @@ const names = new Map([
 ]);
 
 const windowsRelease = release => {
-	const version = /\d+\.\d/.exec(release || os.release());
+	const version = /\d+\.\d/.exec(release || os$1.release());
 
 	if (release && !version) {
 		throw new Error('`release` argument doesn\'t match `n.n`');
@@ -3718,7 +3719,7 @@ const windowsRelease = release => {
 	// If `release` is omitted or we're on a Windows system, and the version number is an ambiguous version
 	// then use `wmic` to get the OS caption: https://msdn.microsoft.com/en-us/library/aa394531(v=vs.85).aspx
 	// If the resulting caption contains the year 2008, 2012 or 2016, it is a server version, so return a server OS name.
-	if ((!release || release === os.release()) && ['6.1', '6.2', '6.3', '10.0'].includes(ver)) {
+	if ((!release || release === os$1.release()) && ['6.1', '6.2', '6.3', '10.0'].includes(ver)) {
 		const stdout = execa.sync('wmic', ['os', 'get', 'Caption']).stdout || '';
 		const year = (stdout.match(/2008|2012|2016/) || [])[0];
 		if (year) {
@@ -3736,13 +3737,13 @@ const osName = (platform, release) => {
 		throw new Error('You can\'t specify a `release` without specifying `platform`');
 	}
 
-	platform = platform || os.platform();
+	platform = platform || os$1.platform();
 
 	let id;
 
 	if (platform === 'darwin') {
-		if (!release && os.platform() === 'darwin') {
-			release = os.release();
+		if (!release && os$1.platform() === 'darwin') {
+			release = os$1.release();
 		}
 
 		const prefix = release ? (Number(release.split('.')[0]) > 15 ? 'macOS' : 'OS X') : 'macOS';
@@ -3751,8 +3752,8 @@ const osName = (platform, release) => {
 	}
 
 	if (platform === 'linux') {
-		if (!release && os.platform() === 'linux') {
-			release = os.release();
+		if (!release && os$1.platform() === 'linux') {
+			release = os$1.release();
 		}
 
 		id = release ? release.replace(/^(\d+\.\d+).*/, '$1') : '';
@@ -3760,8 +3761,8 @@ const osName = (platform, release) => {
 	}
 
 	if (platform === 'win32') {
-		if (!release && os.platform() === 'win32') {
-			release = os.release();
+		if (!release && os$1.platform() === 'win32') {
+			release = os$1.release();
 		}
 
 		id = release ? windowsRelease_1(release) : '';
@@ -22538,7 +22539,7 @@ class Context {
                 this.payload = JSON.parse(fs__default.readFileSync(process.env.GITHUB_EVENT_PATH, { encoding: 'utf8' }));
             }
             else {
-                process.stdout.write(`GITHUB_EVENT_PATH ${process.env.GITHUB_EVENT_PATH} does not exist${os.EOL}`);
+                process.stdout.write(`GITHUB_EVENT_PATH ${process.env.GITHUB_EVENT_PATH} does not exist${os$1.EOL}`);
             }
         }
         this.eventName = process.env.GITHUB_EVENT_NAME;
@@ -22617,7 +22618,7 @@ http://yuilibrary.com/license/
 
 
 /* istanbul ignore next */
-var exists = fs__default.exists || path.exists;
+var exists = fs__default.exists || path__default.exists;
 
 var walkFile = function(str, cb) {
     var data = [], item;
@@ -22970,8 +22971,7 @@ function diff(lcov, before, options) {
 }
 
 async function main$1() {
-	const token = core$1.getInput("github-token");
-	const lcovFile = core$1.getInput("lcov-file") || "./coverage/lcov.info";
+	const lcovFile = core$1.getInput("lcov-file");
 	const baseFile = core$1.getInput("lcov-base");
 
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
@@ -23002,22 +23002,20 @@ async function main$1() {
 	const lcov = await parse$2(raw);
 	const baselcov = baseRaw && await parse$2(baseRaw);
 	const body = diff(lcov, baselcov, options);
+    console.log(body);
 
-	if (github_1.eventName === "pull_request") {
-		await new github_2(token).issues.createComment({
-			repo: github_1.repo.repo,
-			owner: github_1.repo.owner,
-			issue_number: github_1.payload.pull_request.number,
-			body: diff(lcov, baselcov, options),
-		});
-	} else if (github_1.eventName === "push") {
-		await new github_2(token).repos.createCommitComment({
-			repo: github_1.repo.repo,
-			owner: github_1.repo.owner,
-			commit_sha: options.commit,
-			body: diff(lcov, baselcov, options),
-		});
-	}
+	const path$1 = core$1.getInput('path');
+
+    let resolvedPath;
+    // resolve tilde expansions, path.replace only replaces the first occurrence of a pattern
+    if (path$1.startsWith(`~`)) {
+      resolvedPath = path.resolve(path$1.replace('~', os.homedir()));
+    } else {
+      resolvedPath = path.resolve(path$1);
+    }
+    core$1.debug(`Resolved path is ${resolvedPath}`);
+
+	fs.promises.writeFile(resolvedPath, body).catch(err => null);
 }
 
 main$1().catch(function(err) {
