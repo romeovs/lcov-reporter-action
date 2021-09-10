@@ -15,6 +15,13 @@ inputs:
   lcov-base:
     description: The location of the lcov file for the base branch
     required: false
+  create-comment:
+    description: Whether or not to create a comment on the PR
+    required: false
+    default: true
+outputs:
+  html:
+    description: The html result
 runs:
   using: node12
   main: dist/main.js

@@ -9,6 +9,7 @@ async function main() {
 	const token = core.getInput("github-token")
 	const lcovFile = core.getInput("lcov-file") || "./coverage/lcov.info"
 	const baseFile = core.getInput("lcov-base")
+	const createComment = core.getInput('create-comment');
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
@@ -39,20 +40,24 @@ async function main() {
 	const baselcov = baseRaw && await parse(baseRaw)
 	const body = diff(lcov, baselcov, options)
 
-	if (context.eventName === "pull_request") {
-		await new GitHub(token).issues.createComment({
-			repo: context.repo.repo,
-			owner: context.repo.owner,
-			issue_number: context.payload.pull_request.number,
-			body: diff(lcov, baselcov, options),
-		})
-	} else if (context.eventName === "push") {
-		await new GitHub(token).repos.createCommitComment({
-			repo: context.repo.repo,
-			owner: context.repo.owner,
-			commit_sha: options.commit,
-			body: diff(lcov, baselcov, options),
-		})
+	core.setOutput('html', body)
+
+	if (createComment) {
+		if (context.eventName === "pull_request") {
+			await new GitHub(token).issues.createComment({
+				repo: context.repo.repo,
+				owner: context.repo.owner,
+				issue_number: context.payload.pull_request.number,
+				body: body,
+			})
+		} else if (context.eventName === "push") {
+			await new GitHub(token).repos.createCommitComment({
+				repo: context.repo.repo,
+				owner: context.repo.owner,
+				commit_sha: options.commit,
+				body: body,
+			})
+		}
 	}
 }
 
