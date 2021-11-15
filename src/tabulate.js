@@ -1,4 +1,5 @@
 import { th, tr, td, table, tbody, a, b, span, fragment } from "./html"
+import { normalisePath } from "./util"
 
 // Tabulate the lcov data in a HTML table.
 export function tabulate(lcov, options) {
@@ -12,7 +13,7 @@ export function tabulate(lcov, options) {
 	)
 
 	const folders = {}
-	for (const file of lcov) {
+	for (const file of filterAndNormaliseLcov(lcov, options)) {
 		const parts = file.file.replace(options.prefix, "").split("/")
 		const folder = parts.slice(0, -1).join("/")
 		folders[folder] = folders[folder] || []
@@ -33,6 +34,22 @@ export function tabulate(lcov, options) {
 	return table(tbody(head, ...rows))
 }
 
+function filterAndNormaliseLcov(lcov, options) {
+	return lcov
+		.map(file => ({
+			...file,
+			file: normalisePath(file.file),
+		}))
+		.filter(file => shouldBeIncluded(file.file, options))
+}
+
+function shouldBeIncluded(fileName, options) {
+	if (!options.shouldFilterChangedFiles) {
+		return true
+	}
+	return options.changedFiles.includes(fileName.replace(options.prefix, ""))
+}
+
 function toFolder(path) {
 	if (path === "") {
 		return ""
@@ -44,16 +61,19 @@ function toFolder(path) {
 function getStatement(file) {
 	const { branches, functions, lines } = file
 
-	return [branches, functions, lines].reduce(function(acc, curr) {
-		if (!curr) {
-			return acc
-		}
+	return [branches, functions, lines].reduce(
+		function(acc, curr) {
+			if (!curr) {
+				return acc
+			}
 
-		return {
-			hit: acc.hit + curr.hit,
-			found: acc.found + curr.found,
-		}
-	}, { hit: 0, found: 0 })
+			return {
+				hit: acc.hit + curr.hit,
+				found: acc.found + curr.found,
+			}
+		},
+		{ hit: 0, found: 0 },
+	)
 }
 
 function toRow(file, indent, options) {
@@ -100,13 +120,18 @@ function uncovered(file, options) {
 
 	const all = ranges([...branches, ...lines])
 
-
 	return all
 		.map(function(range) {
-			const fragment = range.start === range.end ? `L${range.start}` : `L${range.start}-L${range.end}`
+			const fragment =
+				range.start === range.end
+					? `L${range.start}`
+					: `L${range.start}-L${range.end}`
 			const relative = file.file.replace(options.prefix, "")
 			const href = `https://github.com/${options.repository}/blob/${options.commit}/${relative}#${fragment}`
-			const text = range.start === range.end ? range.start : `${range.start}&ndash;${range.end}`
+			const text =
+				range.start === range.end
+					? range.start
+					: `${range.start}&ndash;${range.end}`
 
 			return a({ href }, text)
 		})
