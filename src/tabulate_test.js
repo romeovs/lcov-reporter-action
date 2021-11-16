@@ -527,3 +527,108 @@ test("filtered tabulate should fix backwards slashes in filenames", function() {
 	)
 	expect(tabulate(data, options)).toBe(html)
 })
+
+test("maxUncoveredLines should limit number of uncovered lines displayed", function() {
+	const data = [
+		{
+			file: "/files/project/src/bar/baz.js",
+			lines: {
+				found: 10,
+				hit: 5,
+				details: [
+					{
+						line: 20,
+						hit: 0,
+					},
+					{
+						line: 21,
+						hit: 0,
+					},
+					{
+						line: 27,
+						hit: 0,
+					},
+					{
+						line: 29,
+						hit: 0,
+					},
+					{
+						line: 41,
+						hit: 0,
+					},
+				],
+			},
+			functions: {
+				hit: 2,
+				found: 3,
+				details: [
+					{
+						name: "foo",
+						line: 19,
+					},
+					{
+						name: "bar",
+						line: 33,
+					},
+					{
+						name: "baz",
+						line: 54,
+					},
+				],
+			},
+		},
+	]
+
+	const options = {
+		repository: "example/foo",
+		commit: "2e15bee6fe0df5003389aa5ec894ec0fea2d874a",
+		prefix: "/files/project/",
+		maxUncoveredLines: 2,
+	}
+
+	const html = table(
+		tbody(
+			tr(
+				th("File"),
+				th("Stmts"),
+				th("Branches"),
+				th("Funcs"),
+				th("Lines"),
+				th("Uncovered Lines"),
+			),
+			tr(td({ colspan: 6 }, b("src/bar"))),
+			tr(
+				td(
+					"&nbsp; &nbsp;",
+					a(
+						{
+							href: `https://github.com/${options.repository}/blob/${options.commit}/src/bar/baz.js`,
+						},
+						"baz.js",
+					),
+				),
+				td(b("53.85%")),
+				td("N/A"),
+				td(b("66.67%")),
+				td(b("50%")),
+				td(
+					a(
+						{
+							href: `https://github.com/${options.repository}/blob/${options.commit}/src/bar/baz.js#L20-L21`,
+						},
+						"20&ndash;21",
+					),
+					", ",
+					a(
+						{
+							href: `https://github.com/${options.repository}/blob/${options.commit}/src/bar/baz.js#L27`,
+						},
+						"27",
+					),
+					" and 2 more...",
+				),
+			),
+		),
+	)
+	expect(tabulate(data, options)).toBe(html)
+})
