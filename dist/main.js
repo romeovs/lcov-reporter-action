@@ -23110,8 +23110,10 @@ async function main$1() {
 	const shouldDeleteOldComments = core$1.getInput("delete-old-comments");
 	const title = core$1.getInput("title");
 	const maxUncoveredLines = core$1.getInput("max-uncovered-lines");
-	if (maxUncoveredLines && !Number.isInteger(maxUncoveredLines)) {
-		console.log(`Invalid parameter for max-uncovered-lines '${maxUncoveredLines}'. Must be an integer. Exiting...`);
+	if (maxUncoveredLines && isNaN(parseInt(maxUncoveredLines))) {
+		console.log(
+			`Invalid parameter for max-uncovered-lines '${maxUncoveredLines}'. Must be an integer. Exiting...`,
+		);
 		return
 	}
 
@@ -23145,7 +23147,9 @@ async function main$1() {
 
 	options.shouldFilterChangedFiles = shouldFilterChangedFiles;
 	options.title = title;
-	options.maxUncoveredLines = maxUncoveredLines;
+	if (maxUncoveredLines) {
+		options.maxUncoveredLines = parseInt(maxUncoveredLines);
+	}
 
 	if (shouldFilterChangedFiles) {
 		options.changedFiles = await getChangedFiles(githubClient, options, github_1);
