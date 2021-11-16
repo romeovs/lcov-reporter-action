@@ -18,6 +18,13 @@ async function main() {
 	const shouldFilterChangedFiles = core.getInput("filter-changed-files")
 	const shouldDeleteOldComments = core.getInput("delete-old-comments")
 	const title = core.getInput("title")
+	const maxUncoveredLines = core.getInput("max-uncovered-lines")
+	if (maxUncoveredLines && !Number.isInteger(maxUncoveredLines)) {
+		console.log(
+			`Invalid parameter for max-uncovered-lines '${maxUncoveredLines}'. Must be an integer. Exiting...`,
+		)
+		return
+	}
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
@@ -49,6 +56,7 @@ async function main() {
 
 	options.shouldFilterChangedFiles = shouldFilterChangedFiles
 	options.title = title
+	options.maxUncoveredLines = maxUncoveredLines
 
 	if (shouldFilterChangedFiles) {
 		options.changedFiles = await getChangedFiles(githubClient, options, context)

@@ -22831,17 +22831,16 @@ function filterAndNormaliseLcov(lcov, options) {
 	return lcov
 		.map(file => ({
 			...file,
-			file: normalisePath(file.file)
+			file: normalisePath(file.file),
 		}))
-		.filter(file =>
-			shouldBeIncluded(file.file, options))
+		.filter(file => shouldBeIncluded(file.file, options))
 }
 
 function shouldBeIncluded(fileName, options) {
 	if (!options.shouldFilterChangedFiles) {
 		return true
 	}
-	return options.changedFiles.includes(fileName.replace(options.prefix, ""));
+	return options.changedFiles.includes(fileName.replace(options.prefix, ""))
 }
 
 function toFolder(path) {
@@ -22914,7 +22913,13 @@ function uncovered(file, options) {
 
 	const all = ranges([...branches, ...lines]);
 
-	return all
+	var numNotIncluded = 0;
+	if (options.maxUncoveredLines) {
+		const notIncluded = all.splice(options.maxUncoveredLines);
+		numNotIncluded = notIncluded.length;
+	}
+
+	const result = all
 		.map(function(range) {
 			const fragment =
 				range.start === range.end
@@ -22929,7 +22934,13 @@ function uncovered(file, options) {
 
 			return a({ href }, text)
 		})
-		.join(", ")
+		.join(", ");
+
+	if (numNotIncluded > 0) {
+		return result + ` and ${numNotIncluded} more...`
+	} else {
+		return result
+	}
 }
 
 function ranges(linenos) {
@@ -23083,7 +23094,7 @@ async function getExistingComments(github, options, context) {
 	return results.filter(
 		comment =>
 			!!comment.user &&
-            (!options.title || comment.body.includes(options.title)) &&
+			(!options.title || comment.body.includes(options.title)) &&
 			comment.body.includes("Coverage Report"),
 	)
 }
@@ -23098,6 +23109,11 @@ async function main$1() {
 	const shouldFilterChangedFiles = core$1.getInput("filter-changed-files");
 	const shouldDeleteOldComments = core$1.getInput("delete-old-comments");
 	const title = core$1.getInput("title");
+	const maxUncoveredLines = core$1.getInput("max-uncovered-lines");
+	if (maxUncoveredLines && !Number.isInteger(maxUncoveredLines)) {
+		console.log(`Invalid parameter for max-uncovered-lines '${maxUncoveredLines}'. Must be an integer. Exiting...`);
+		return
+	}
 
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
 	if (!raw) {
@@ -23129,6 +23145,7 @@ async function main$1() {
 
 	options.shouldFilterChangedFiles = shouldFilterChangedFiles;
 	options.title = title;
+	options.maxUncoveredLines = maxUncoveredLines;
 
 	if (shouldFilterChangedFiles) {
 		options.changedFiles = await getChangedFiles(githubClient, options, github_1);
@@ -23136,8 +23153,7 @@ async function main$1() {
 
 	const lcov = await parse$2(raw);
 	const baselcov = baseRaw && (await parse$2(baseRaw));
-	const body = diff(lcov, baselcov, options)
-		.substring(0, MAX_COMMENT_CHARS);
+	const body = diff(lcov, baselcov, options).substring(0, MAX_COMMENT_CHARS);
 
 	if (shouldDeleteOldComments) {
 		await deleteOldComments(githubClient, options, github_1);

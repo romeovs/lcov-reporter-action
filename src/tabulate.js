@@ -120,7 +120,13 @@ function uncovered(file, options) {
 
 	const all = ranges([...branches, ...lines])
 
-	return all
+	var numNotIncluded = 0
+	if (options.maxUncoveredLines) {
+		const notIncluded = all.splice(options.maxUncoveredLines)
+		numNotIncluded = notIncluded.length
+	}
+
+	const result = all
 		.map(function(range) {
 			const fragment =
 				range.start === range.end
@@ -136,6 +142,12 @@ function uncovered(file, options) {
 			return a({ href }, text)
 		})
 		.join(", ")
+
+	if (numNotIncluded > 0) {
+		return result + ` and ${numNotIncluded} more...`
+	} else {
+		return result
+	}
 }
 
 function ranges(linenos) {
