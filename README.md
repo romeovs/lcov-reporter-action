@@ -37,6 +37,9 @@ If set to true, old comments will be deleted before a new comment is posted
 ##### `title` (**Optional**)
 If included, will be added as a title for the comment produced.
 
+##### `max-uncovered-lines` (**Optional**)
+If included, will limit the number of uncovered lines displayed in the Uncovered Lines column.
+
 ## Example usage
 
 ```yml

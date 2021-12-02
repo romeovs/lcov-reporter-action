@@ -22913,7 +22913,13 @@ function uncovered(file, options) {
 
 	const all = ranges([...branches, ...lines]);
 
-	return all
+	var numNotIncluded = 0;
+	if (options.maxUncoveredLines) {
+		const notIncluded = all.splice(options.maxUncoveredLines);
+		numNotIncluded = notIncluded.length;
+	}
+
+	const result = all
 		.map(function(range) {
 			const fragment =
 				range.start === range.end
@@ -22928,7 +22934,13 @@ function uncovered(file, options) {
 
 			return a({ href }, text)
 		})
-		.join(", ")
+		.join(", ");
+
+	if (numNotIncluded > 0) {
+		return result + ` and ${numNotIncluded} more...`
+	} else {
+		return result
+	}
 }
 
 function ranges(linenos) {
@@ -23097,6 +23109,13 @@ async function main$1() {
 	const shouldFilterChangedFiles = core$1.getInput("filter-changed-files").toLowerCase() === 'true';
 	const shouldDeleteOldComments = core$1.getInput("delete-old-comments").toLowerCase() === 'true';
 	const title = core$1.getInput("title");
+	const maxUncoveredLines = core$1.getInput("max-uncovered-lines");
+	if (maxUncoveredLines && isNaN(parseInt(maxUncoveredLines))) {
+		console.log(
+			`Invalid parameter for max-uncovered-lines '${maxUncoveredLines}'. Must be an integer. Exiting...`,
+		);
+		return
+	}
 
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
 	if (!raw) {
@@ -23128,6 +23147,9 @@ async function main$1() {
 
 	options.shouldFilterChangedFiles = shouldFilterChangedFiles;
 	options.title = title;
+	if (maxUncoveredLines) {
+		options.maxUncoveredLines = parseInt(maxUncoveredLines);
+	}
 
 	if (shouldFilterChangedFiles) {
 		options.changedFiles = await getChangedFiles(githubClient, options, github_1);

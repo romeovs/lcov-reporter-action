@@ -26,6 +26,9 @@ inputs:
   title:
     description: Title to add to the comment
     required: false
+  max-uncovered-lines:
+    description: Max number of uncovered lines to display in uncovered lines column (integer)
+    required: false
 runs:
   using: node12
   main: dist/main.js
