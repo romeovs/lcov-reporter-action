@@ -10,6 +10,7 @@ async function main() {
 	const token = core.getInput("github-token")
 	const lcovFile = core.getInput("lcov-file") || "./coverage/lcov.info"
 	const baseFile = core.getInput("lcov-base")
+        const shouldUpdateExisting = core.getInput("overwrite-existing-comment")
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
@@ -55,7 +56,7 @@ async function main() {
 		})[0];
 
 
-		if (previousComment) {
+		if (shouldUpdateExisting && previousComment) {
 			await new GitHub(token).issues.updateComment({
 				repo: context.repo.repo,
 				owner: context.repo.owner,

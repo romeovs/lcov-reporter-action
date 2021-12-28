@@ -15,6 +15,10 @@ inputs:
   lcov-base:
     description: The location of the lcov file for the base branch
     required: false
+  overwrite-existing-comment:
+    description: Overwrite Comment if it Exists
+    required: false
+    default: false
 runs:
   using: node12
   main: dist/main.js
