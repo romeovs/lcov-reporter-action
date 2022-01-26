@@ -1,7 +1,7 @@
 import * as core from "@actions/core"
 
 // Get list of changed files
-export async function getChangedFiles(githubClient, options, context) {
+export async function getChangedFiles(githubClient, options, context, pathTrimmingLength) {
 	if (!options.commit || !options.baseCommit) {
 		core.setFailed(
 			`The base and head commits are missing from the payload for this ${context.eventName} event.`,
@@ -23,7 +23,17 @@ export async function getChangedFiles(githubClient, options, context) {
 		)
 	}
 
-	return response.data.files
+	const changedFiles = response.data.files
 		.filter(file => file.status == "modified" || file.status == "added")
 		.map(file => file.filename)
+
+	if (pathTrimmingLength && pathTrimmingLength > 0) {
+		const trimmedChangedFiles = changedFiles.map((file) => {
+			return file.split('/').splice(pathTrimmingLength).join('/');
+		});
+
+		return trimmedChangedFiles;
+	}
+
+	return changedFiles;
 }

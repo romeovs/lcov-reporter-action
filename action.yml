@@ -26,6 +26,9 @@ inputs:
   title:
     description: Title to add to the comment
     required: false
+  path-trimming-length:
+    description: Amount of directories to trim off the front of changed files.
+    required: false
 runs:
   using: node12
   main: dist/main.js

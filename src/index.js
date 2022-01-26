@@ -20,6 +20,9 @@ async function main() {
 	const shouldDeleteOldComments =
 		core.getInput("delete-old-comments").toLowerCase() === "true"
 	const title = core.getInput("title")
+	const pathTrimmingLength =
+		isNaN(core.getInput("path-trimming-length")) === false ?
+			core.getInput("path-trimming-length") : 0
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
@@ -50,10 +53,11 @@ async function main() {
 	}
 
 	options.shouldFilterChangedFiles = shouldFilterChangedFiles
+	options.pathTrimmingLength = pathTrimmingLength
 	options.title = title
 
 	if (shouldFilterChangedFiles) {
-		options.changedFiles = await getChangedFiles(githubClient, options, context)
+		options.changedFiles = await getChangedFiles(githubClient, options, context, pathTrimmingLength)
 	}
 
 	const lcov = await parse(raw)
