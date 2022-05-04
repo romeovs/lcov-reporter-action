@@ -23137,11 +23137,11 @@ async function main$1() {
 	const baselcov = baseRaw && (await parse$2(baseRaw));
 	const body = diff(lcov, baselcov, options).substring(0, MAX_COMMENT_CHARS);
 
-	if (shouldDeleteOldComments) {
-		await deleteOldComments(githubClient, options, github_1);
-	}
-
 	if (github_1.eventName === "pull_request") {
+		if (shouldDeleteOldComments) {
+			await deleteOldComments(githubClient, options, github_1);
+		}
+
 		await githubClient.issues.createComment({
 			repo: github_1.repo.repo,
 			owner: github_1.repo.owner,
@@ -23158,7 +23158,7 @@ async function main$1() {
 	}
 }
 
-main$1().catch(function(err) {
+main$1().catch(function (err) {
 	console.log(err);
 	core$1.setFailed(err.message);
 });
