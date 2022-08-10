@@ -19,6 +19,10 @@ inputs:
     description: Set to true to only comment with coverage on files changed in this commit
     required: false
     default: false
+  excluded-files:
+    description: List of files to be excluded from coverage
+    required: false
+    default: []
   delete-old-comments:
     description: Set to true to delete old Coverage Report comments
     required: false
