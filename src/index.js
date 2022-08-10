@@ -17,6 +17,10 @@ async function main() {
 	const baseFile = core.getInput("lcov-base")
 	const shouldFilterChangedFiles =
 		core.getInput("filter-changed-files").toLowerCase() === "true"
+	const excludedFiles = core
+		.getInput("excluded-files")
+		.split("\n")
+		.filter(x => x !== "")
 	const shouldDeleteOldComments =
 		core.getInput("delete-old-comments").toLowerCase() === "true"
 	const title = core.getInput("title")
@@ -50,6 +54,7 @@ async function main() {
 	}
 
 	options.shouldFilterChangedFiles = shouldFilterChangedFiles
+	options.excludedFiles = excludedFiles
 	options.title = title
 
 	if (shouldFilterChangedFiles) {

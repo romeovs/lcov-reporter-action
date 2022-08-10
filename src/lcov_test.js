@@ -110,10 +110,17 @@ test("parse should fail on invalid lcov", async function() {
 })
 
 test("percentage should calculate the correct percentage", function() {
+	const options = {
+		excludedFiles: ["lib/ignore"],
+	}
 	expect(
-		percentage([
-			{ lines: { hit: 20, found: 25 } },
-			{ lines: { hit: 10, found: 15 } },
-		]),
+		percentage(
+			[
+				{ lines: { hit: 20, found: 25 }, file: "" },
+				{ lines: { hit: 10, found: 15 }, file: "" },
+				{ lines: { hit: 0, found: 15 }, file: "lib/ignore" },
+			],
+			options,
+		),
 	).toBe(75)
 })

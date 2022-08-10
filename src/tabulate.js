@@ -44,6 +44,11 @@ function filterAndNormaliseLcov(lcov, options) {
 }
 
 function shouldBeIncluded(fileName, options) {
+	for (let i in options.excludedFiles) {
+		if (fileName.startsWith(options.excludedFiles[i])) {
+			return false
+		}
+	}
 	if (!options.shouldFilterChangedFiles) {
 		return true
 	}

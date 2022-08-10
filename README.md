@@ -31,6 +31,9 @@ branch. When this is set a diff of the coverage percentages is shown.
 ##### `filter-changed-files` (**Default: false**)
 If set to true, only changed files will be included in the report. Total percentage will still include all files.
 
+##### `excluded-files` (**Default: []**)
+A list of contains string for files without unit testing. Total percentage will be impacted.
+
 ##### `delete-old-comments` (**Default: false**)
 If set to true, old comments will be deleted before a new comment is posted
 

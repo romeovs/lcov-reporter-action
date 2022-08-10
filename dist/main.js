@@ -22749,15 +22749,26 @@ function parse$2(data) {
 }
 
 // Get the total coverage percentage from the lcov data.
-function percentage(lcov) {
+function percentage(lcov, options) {
 	let hit = 0;
 	let found = 0;
 	for (const entry of lcov) {
-		hit += entry.lines.hit;
-		found += entry.lines.found;
+		if (shouldBeIncluded(entry.file, options)) {
+			hit += entry.lines.hit;
+			found += entry.lines.found;
+		}
 	}
 
 	return (hit / found) * 100
+}
+
+function shouldBeIncluded(fileName, options) {
+	for (let i in options.excludedFiles) {
+		if (fileName.startsWith(options.excludedFiles[i])) {
+			return false
+		}
+	}
+	return true
 }
 
 function tag(name) {
@@ -22833,10 +22844,15 @@ function filterAndNormaliseLcov(lcov, options) {
 			...file,
 			file: normalisePath(file.file),
 		}))
-		.filter(file => shouldBeIncluded(file.file, options))
+		.filter(file => shouldBeIncluded$1(file.file, options))
 }
 
-function shouldBeIncluded(fileName, options) {
+function shouldBeIncluded$1(fileName, options) {
+	for (let i in options.excludedFiles) {
+		if (fileName.startsWith(options.excludedFiles[i])) {
+			return false
+		}
+	}
 	if (!options.shouldFilterChangedFiles) {
 		return true
 	}
@@ -22966,7 +22982,7 @@ function comment(lcov, options) {
 					options.base,
 			  )} will be`
 			: `Coverage for this commit`,
-		table(tbody(tr(th(percentage(lcov).toFixed(2), "%")))),
+		table(tbody(tr(th(percentage(lcov, options).toFixed(2), "%")))),
 		"\n\n",
 		details(
 			summary(
@@ -22984,8 +23000,8 @@ function diff(lcov, before, options) {
 		return comment(lcov, options)
 	}
 
-	const pbefore = percentage(before);
-	const pafter = percentage(lcov);
+	const pbefore = percentage(before, options);
+	const pafter = percentage(lcov, options);
 	const pdiff = pafter - pbefore;
 	const plus = pdiff > 0 ? "+" : "";
 	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴";
@@ -23094,8 +23110,14 @@ async function main$1() {
 	const githubClient = new github_2(token);
 	const lcovFile = core$1.getInput("lcov-file") || "./coverage/lcov.info";
 	const baseFile = core$1.getInput("lcov-base");
-	const shouldFilterChangedFiles = core$1.getInput("filter-changed-files").toLowerCase() === 'true';
-	const shouldDeleteOldComments = core$1.getInput("delete-old-comments").toLowerCase() === 'true';
+	const shouldFilterChangedFiles =
+		core$1.getInput("filter-changed-files").toLowerCase() === "true";
+	const excludedFiles = core$1
+		.getInput("excluded-files")
+		.split("\n")
+		.filter(x => x !== "");
+	const shouldDeleteOldComments =
+		core$1.getInput("delete-old-comments").toLowerCase() === "true";
 	const title = core$1.getInput("title");
 
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
@@ -23127,6 +23149,7 @@ async function main$1() {
 	}
 
 	options.shouldFilterChangedFiles = shouldFilterChangedFiles;
+	options.excludedFiles = excludedFiles;
 	options.title = title;
 
 	if (shouldFilterChangedFiles) {

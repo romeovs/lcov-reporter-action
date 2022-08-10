@@ -11,7 +11,7 @@ export function comment(lcov, options) {
 					options.base,
 			  )} will be`
 			: `Coverage for this commit`,
-		table(tbody(tr(th(percentage(lcov).toFixed(2), "%")))),
+		table(tbody(tr(th(percentage(lcov, options).toFixed(2), "%")))),
 		"\n\n",
 		details(
 			summary(
@@ -29,8 +29,8 @@ export function diff(lcov, before, options) {
 		return comment(lcov, options)
 	}
 
-	const pbefore = percentage(before)
-	const pafter = percentage(lcov)
+	const pbefore = percentage(before, options)
+	const pafter = percentage(lcov, options)
 	const pdiff = pafter - pbefore
 	const plus = pdiff > 0 ? "+" : ""
 	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴"
