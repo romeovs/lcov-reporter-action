@@ -6,7 +6,7 @@ import path from "path"
 import { parse } from "./lcov"
 import { diff } from "./comment"
 import { getChangedFiles } from "./get_changes"
-import { deleteOldComments } from "./delete_old_comments"
+import { deleteOldComments, getExistingComments } from "./delete_old_comments"
 import { normalisePath } from "./util"
 
 const MAX_COMMENT_CHARS = 65536
@@ -21,6 +21,8 @@ async function main() {
 		core.getInput("filter-changed-files").toLowerCase() === "true"
 	const shouldDeleteOldComments =
 		core.getInput("delete-old-comments").toLowerCase() === "true"
+	const shouldUpdateLastComment =
+		core.getInput("update-comment").toLowerCase() === "true"
 	const title = core.getInput("title")
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
@@ -62,12 +64,28 @@ async function main() {
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && (await parse(baseRaw))
 	const body = diff(lcov, baselcov, options).substring(0, MAX_COMMENT_CHARS)
-
+	let commentToUpdate
 	if (shouldDeleteOldComments) {
-		await deleteOldComments(githubClient, options, context)
+		commentToUpdate = await deleteOldComments(
+			githubClient,
+			options,
+			context,
+			shouldUpdateLastComment,
+		)
+	} else if (shouldUpdateLastComment) {
+		commentToUpdate = (
+			await getExistingComments(githubClient, options, context)
+		).shift()
 	}
 
-	if (context.eventName === "pull_request") {
+	if (context.eventName === "pull_request" && commentToUpdate) {
+		await githubClient.issues.updateComment({
+			repo: context.repo.repo,
+			owner: context.repo.owner,
+			comment_id: commentToUpdate.id,
+			body: body,
+		})
+	} else if (context.eventName === "pull_request") {
 		await githubClient.issues.createComment({
 			repo: context.repo.repo,
 			owner: context.repo.owner,

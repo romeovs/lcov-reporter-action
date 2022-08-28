@@ -1,4 +1,4 @@
-name: Code Coverage Report
+name: Code Coverage Report Updater
 description: Comments a pull request with the code coverage
 author: Romeo Van Snick
 branding:
@@ -23,10 +23,10 @@ inputs:
     description: Set to true to delete old Coverage Report comments
     required: false
     default: false
-  working-directory:
-    description: Set working directory if project is not in root folder  
+  update-comment:
+    description: Set to true to update the last Coverage Report comment
     required: false
-    default: "./"
+    default: false
   title:
     description: Title to add to the comment
     required: false
