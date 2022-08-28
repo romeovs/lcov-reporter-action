@@ -2,8 +2,9 @@ import * as core from "@actions/core"
 
 const REQUESTED_COMMENTS_PER_PAGE = 20
 
-export async function deleteOldComments(github, options, context) {
+export async function deleteOldComments(github, options, context, keepLast) {
 	const existingComments = await getExistingComments(github, options, context)
+	const commentToUpdate = keepLast ? existingComments.shift() : null;
 	for (const comment of existingComments) {
 		core.debug(`Deleting comment: ${comment.id}`)
 		try {
@@ -16,9 +17,10 @@ export async function deleteOldComments(github, options, context) {
 			console.error(error)
 		}
 	}
+	return commentToUpdate;
 }
 
-async function getExistingComments(github, options, context) {
+export async function getExistingComments(github, options, context) {
 	let page = 0
 	let results = []
 	let response
@@ -29,6 +31,8 @@ async function getExistingComments(github, options, context) {
 			repo: context.repo.repo,
 			per_page: REQUESTED_COMMENTS_PER_PAGE,
 			page: page,
+			sort: "updated",
+			direction: "desc"
 		})
 		results = results.concat(response.data)
 		page++
