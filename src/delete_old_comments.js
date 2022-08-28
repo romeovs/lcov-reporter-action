@@ -4,7 +4,7 @@ const REQUESTED_COMMENTS_PER_PAGE = 20
 
 export async function deleteOldComments(github, options, context, keepLast) {
 	const existingComments = await getExistingComments(github, options, context)
-	const commentToUpdate = keepLast ? existingComments.shift() : null;
+	const commentToUpdate = keepLast ? existingComments.shift() : null
 	for (const comment of existingComments) {
 		core.debug(`Deleting comment: ${comment.id}`)
 		try {
@@ -17,7 +17,7 @@ export async function deleteOldComments(github, options, context, keepLast) {
 			console.error(error)
 		}
 	}
-	return commentToUpdate;
+	return commentToUpdate
 }
 
 export async function getExistingComments(github, options, context) {
@@ -32,7 +32,7 @@ export async function getExistingComments(github, options, context) {
 			per_page: REQUESTED_COMMENTS_PER_PAGE,
 			page: page,
 			sort: "updated",
-			direction: "desc"
+			direction: "desc",
 		})
 		results = results.concat(response.data)
 		page++

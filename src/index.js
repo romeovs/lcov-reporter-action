@@ -63,9 +63,16 @@ async function main() {
 	const body = diff(lcov, baselcov, options).substring(0, MAX_COMMENT_CHARS)
 	let commentToUpdate
 	if (shouldDeleteOldComments) {
-		commentToUpdate = await deleteOldComments(githubClient, options, context, shouldUpdateLastComment)
+		commentToUpdate = await deleteOldComments(
+			githubClient,
+			options,
+			context,
+			shouldUpdateLastComment,
+		)
 	} else if (shouldUpdateLastComment) {
-		commentToUpdate = (await getExistingComments(githubClient, options, context)).shift();
+		commentToUpdate = (
+			await getExistingComments(githubClient, options, context)
+		).shift()
 	}
 
 	if (context.eventName === "pull_request" && commentToUpdate) {
