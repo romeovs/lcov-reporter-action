@@ -22,6 +22,8 @@ async function main() {
 	const shouldUpdateLastComment =
 		core.getInput("update-comment").toLowerCase() === "true"
 	const title = core.getInput("title")
+	const prepend = core.getInput("comment_prepend") || ""
+	const append = core.getInput("comment_append") || ""
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
@@ -60,7 +62,8 @@ async function main() {
 
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && (await parse(baseRaw))
-	const body = diff(lcov, baselcov, options).substring(0, MAX_COMMENT_CHARS)
+	const reportMaxChars = MAX_COMMENT_CHARS - prepend.length - append.length - 4
+	const body = `${prepend}\n\n${diff(lcov, baselcov, options).substring(0, reportMaxChars)}\n\n${append}`
 	let commentToUpdate
 	if (shouldDeleteOldComments) {
 		commentToUpdate = await deleteOldComments(

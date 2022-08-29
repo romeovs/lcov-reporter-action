@@ -40,6 +40,12 @@ If set to true, the most recently updated comment will be updated with the new r
 ##### `title` (**Optional**)
 If included, will be added as a title for the comment produced.
 
+##### `prepend` (**Optional**)
+If included, will be added at the beginning of the produced comment.
+
+##### `append` (**Optional**)
+If included, will be added at the end of the produced comment.
+
 ## Example usage
 
 ```yml
