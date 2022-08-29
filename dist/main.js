@@ -22986,14 +22986,14 @@ function comment(lcov, options) {
 			: `Coverage for this commit`,
 		table(tbody(tr(th(percentage(lcov).toFixed(2), "%")))),
 		"\n\n",
-		details(
+		reportTable ? details(
 			summary(
 				options.shouldFilterChangedFiles
 					? "Coverage Report for Changed Files"
 					: "Coverage Report",
 			),
 			reportTable,
-		),
+		) : '',
 	)
 }
 
@@ -23029,14 +23029,14 @@ function diff(lcov, before, options) {
 			),
 		),
 		"\n\n",
-		details(
+		reportTable ? details(
 			summary(
 				options.shouldFilterChangedFiles
 					? "Coverage Report for Changed Files"
 					: "Coverage Report",
 			),
 			reportTable,
-		),
+		) : '',
 	)
 }
 
