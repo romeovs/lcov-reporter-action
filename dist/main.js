@@ -23174,10 +23174,12 @@ async function main$1() {
 
 	const lcov = await parse$2(raw);
 	const baselcov = baseRaw && (await parse$2(baseRaw));
-	const body = diff(lcov, baselcov, options).substring(0, MAX_COMMENT_CHARS);
+	let body = diff(lcov, baselcov, options);
 	if (!body) {
 		console.log(`No changed files in report, exiting...`);
 		return
+	} else {
+		body = body.substring(0, MAX_COMMENT_CHARS);
 	}
 
 	if (shouldDeleteOldComments) {
