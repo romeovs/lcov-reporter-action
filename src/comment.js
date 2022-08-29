@@ -4,6 +4,10 @@ import { percentage } from "./lcov"
 import { tabulate } from "./tabulate"
 
 export function comment(lcov, options) {
+	const reportTable = tabulate(lcov, options)
+	if (options.dontPostIfNoChangedFilesInReport && !reportTable) {
+		return
+	}
 	return fragment(
 		options.title ? h2(options.title) : "",
 		options.base
@@ -19,7 +23,7 @@ export function comment(lcov, options) {
 					? "Coverage Report for Changed Files"
 					: "Coverage Report",
 			),
-			tabulate(lcov, options),
+			reportTable,
 		),
 	)
 }
@@ -34,6 +38,11 @@ export function diff(lcov, before, options) {
 	const pdiff = pafter - pbefore
 	const plus = pdiff > 0 ? "+" : ""
 	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴"
+
+	const reportTable = tabulate(lcov, options)
+	if (options.dontPostIfNoChangedFilesInReport && !reportTable) {
+		return
+	}
 
 	return fragment(
 		options.title ? h2(options.title) : "",
@@ -57,7 +66,7 @@ export function diff(lcov, before, options) {
 					? "Coverage Report for Changed Files"
 					: "Coverage Report",
 			),
-			tabulate(lcov, options),
+			reportTable,
 		),
 	)
 }

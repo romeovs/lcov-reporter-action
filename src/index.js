@@ -19,6 +19,9 @@ async function main() {
 		core.getInput("filter-changed-files").toLowerCase() === "true"
 	const shouldDeleteOldComments =
 		core.getInput("delete-old-comments").toLowerCase() === "true"
+	const dontPostIfNoChangedFilesInReport =
+		core.getInput("dont-post-if-no-changed-files-in-report").toLowerCase() ===
+		"true"
 	const title = core.getInput("title")
 	const maxUncoveredLines = core.getInput("max-uncovered-lines")
 	if (maxUncoveredLines && isNaN(parseInt(maxUncoveredLines))) {
@@ -57,18 +60,23 @@ async function main() {
 	}
 
 	options.shouldFilterChangedFiles = shouldFilterChangedFiles
+	options.dontPostIfNoChangedFilesInReport = dontPostIfNoChangedFilesInReport
 	options.title = title
 	if (maxUncoveredLines) {
 		options.maxUncoveredLines = parseInt(maxUncoveredLines)
 	}
 
-	if (shouldFilterChangedFiles) {
+	if (shouldFilterChangedFiles || dontPostIfNoChangedFilesInReport) {
 		options.changedFiles = await getChangedFiles(githubClient, options, context)
 	}
 
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && (await parse(baseRaw))
 	const body = diff(lcov, baselcov, options).substring(0, MAX_COMMENT_CHARS)
+	if (!body) {
+		console.log(`No changed files in report, exiting...`)
+		return
+	}
 
 	if (shouldDeleteOldComments) {
 		await deleteOldComments(githubClient, options, context)

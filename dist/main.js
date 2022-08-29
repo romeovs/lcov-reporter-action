@@ -22823,7 +22823,9 @@ function tabulate(lcov, options) {
 			],
 			[],
 		);
-
+	if (rows.length === 0) {
+		return ""
+	}
 	return table(tbody(head, ...rows))
 }
 
@@ -22971,6 +22973,10 @@ function ranges(linenos) {
 }
 
 function comment(lcov, options) {
+	const reportTable = tabulate(lcov, options);
+	if (options.dontPostIfNoChangedFilesInReport && !reportTable) {
+		return
+	}
 	return fragment(
 		options.title ? h2(options.title) : "",
 		options.base
@@ -22986,7 +22992,7 @@ function comment(lcov, options) {
 					? "Coverage Report for Changed Files"
 					: "Coverage Report",
 			),
-			tabulate(lcov, options),
+			reportTable,
 		),
 	)
 }
@@ -23001,6 +23007,11 @@ function diff(lcov, before, options) {
 	const pdiff = pafter - pbefore;
 	const plus = pdiff > 0 ? "+" : "";
 	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴";
+
+	const reportTable = tabulate(lcov, options);
+	if (options.dontPostIfNoChangedFilesInReport && !reportTable) {
+		return
+	}
 
 	return fragment(
 		options.title ? h2(options.title) : "",
@@ -23024,7 +23035,7 @@ function diff(lcov, before, options) {
 					? "Coverage Report for Changed Files"
 					: "Coverage Report",
 			),
-			tabulate(lcov, options),
+			reportTable,
 		),
 	)
 }
@@ -23106,8 +23117,13 @@ async function main$1() {
 	const githubClient = new github_2(token);
 	const lcovFile = core$1.getInput("lcov-file") || "./coverage/lcov.info";
 	const baseFile = core$1.getInput("lcov-base");
-	const shouldFilterChangedFiles = core$1.getInput("filter-changed-files").toLowerCase() === 'true';
-	const shouldDeleteOldComments = core$1.getInput("delete-old-comments").toLowerCase() === 'true';
+	const shouldFilterChangedFiles =
+		core$1.getInput("filter-changed-files").toLowerCase() === "true";
+	const shouldDeleteOldComments =
+		core$1.getInput("delete-old-comments").toLowerCase() === "true";
+	const dontPostIfNoChangedFilesInReport =
+		core$1.getInput("dont-post-if-no-changed-files-in-report").toLowerCase() ===
+		"true";
 	const title = core$1.getInput("title");
 	const maxUncoveredLines = core$1.getInput("max-uncovered-lines");
 	if (maxUncoveredLines && isNaN(parseInt(maxUncoveredLines))) {
@@ -23146,18 +23162,23 @@ async function main$1() {
 	}
 
 	options.shouldFilterChangedFiles = shouldFilterChangedFiles;
+	options.dontPostIfNoChangedFilesInReport = dontPostIfNoChangedFilesInReport;
 	options.title = title;
 	if (maxUncoveredLines) {
 		options.maxUncoveredLines = parseInt(maxUncoveredLines);
 	}
 
-	if (shouldFilterChangedFiles) {
+	if (shouldFilterChangedFiles || dontPostIfNoChangedFilesInReport) {
 		options.changedFiles = await getChangedFiles(githubClient, options, github_1);
 	}
 
 	const lcov = await parse$2(raw);
 	const baselcov = baseRaw && (await parse$2(baseRaw));
 	const body = diff(lcov, baselcov, options).substring(0, MAX_COMMENT_CHARS);
+	if (!body) {
+		console.log(`No changed files in report, exiting...`);
+		return
+	}
 
 	if (shouldDeleteOldComments) {
 		await deleteOldComments(githubClient, options, github_1);
