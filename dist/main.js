@@ -98340,11 +98340,11 @@ function getOctokit(token, options) {
 getOctokit_1 = github.getOctokit = getOctokit;
 
 function tag(name) {
-	return function (...children) {
+	return function(...children) {
 		const props =
 			typeof children[0] === "object"
 				? Object.keys(children[0])
-						.map((key) => ` ${key}='${children[0][key]}'`)
+						.map(key => ` ${key}='${children[0][key]}'`)
 						.join("")
 				: "";
 
@@ -98365,7 +98365,7 @@ const tbody = tag("tbody");
 const a = tag("a");
 const h2 = tag("h2");
 
-const fragment = function (...children) {
+const fragment = function(...children) {
 	return children.join("")
 };
 
@@ -98500,8 +98500,8 @@ lib.exports.source = walkFile;
 
 // Parse lcov string into lcov data
 function parse(data) {
-	return new Promise(function (resolve, reject) {
-		lib.exports(data, function (err, res) {
+	return new Promise(function(resolve, reject) {
+		lib.exports(data, function(err, res) {
 			if (err) {
 				reject(err);
 				return
@@ -98552,7 +98552,7 @@ function tabulate(lcov, options) {
 			(acc, key) => [
 				...acc,
 				toFolder(key),
-				...folders[key].map((file) => toRow(file, key !== "", options)),
+				...folders[key].map(file => toRow(file, key !== "", options)),
 			],
 			[],
 		);
@@ -98562,11 +98562,11 @@ function tabulate(lcov, options) {
 
 function filterAndNormaliseLcov(lcov, options) {
 	return lcov
-		.map((file) => ({
+		.map(file => ({
 			...file,
 			file: normalisePath(file.file),
 		}))
-		.filter((file) => shouldBeIncluded(file.file, options))
+		.filter(file => shouldBeIncluded(file.file, options))
 }
 
 function shouldBeIncluded(fileName, options) {
@@ -98588,7 +98588,7 @@ function getStatement(file) {
 	const { branches, functions, lines } = file;
 
 	return [branches, functions, lines].reduce(
-		function (acc, curr) {
+		function(acc, curr) {
 			if (!curr) {
 				return acc
 			}
@@ -98637,17 +98637,17 @@ function percentage(item) {
 
 function uncovered(file, options) {
 	const branches = (file.branches ? file.branches.details : [])
-		.filter((branch) => branch.taken === 0)
-		.map((branch) => branch.line);
+		.filter(branch => branch.taken === 0)
+		.map(branch => branch.line);
 
 	const lines = (file.lines ? file.lines.details : [])
-		.filter((line) => line.hit === 0)
-		.map((line) => line.line);
+		.filter(line => line.hit === 0)
+		.map(line => line.line);
 
 	const all = ranges([...branches, ...lines]);
 
 	return all
-		.map(function (range) {
+		.map(function(range) {
 			const fragment =
 				range.start === range.end
 					? `L${range.start}`
@@ -98669,7 +98669,7 @@ function ranges(linenos) {
 
 	let last = null;
 
-	linenos.sort().forEach(function (lineno) {
+	linenos.sort().forEach(function(lineno) {
 		if (last === null) {
 			last = { start: lineno, end: lineno };
 			return
@@ -98789,7 +98789,7 @@ async function getExistingComments(github, options, context) {
 	} while (response.data.length === REQUESTED_COMMENTS_PER_PAGE)
 
 	return results.filter(
-		(comment) =>
+		comment =>
 			!!comment.user &&
 			(!options.title || comment.body.includes(options.title)) &&
 			comment.body.includes("Coverage Report"),
@@ -98797,13 +98797,6 @@ async function getExistingComments(github, options, context) {
 }
 
 // Get list of changed files
-/**
- * 
- * @param {ReturnType<getOctokit>['rest']} githubClient 
- * @param {*} options 
- * @param {*} context 
- * @returns 
- */
 async function getChangedFiles(githubClient, options, context) {
 	if (!options.commit || !options.baseCommit) {
 		coreExports.setFailed(
@@ -98827,8 +98820,8 @@ async function getChangedFiles(githubClient, options, context) {
 	}
 
 	return response.data.files
-		.filter((file) => file.status == "modified" || file.status == "added")
-		.map((file) => file.filename)
+		.filter(file => file.status == "modified" || file.status == "added")
+		.map(file => file.filename)
 }
 
 const MAX_COMMENT_CHARS = 65536;
@@ -98848,14 +98841,14 @@ async function main() {
 	const prepend = coreExports.getInput("comment_prepend") || "";
 	const append = coreExports.getInput("comment_append") || "";
 
-	const raw = await require$$0$2.promises.readFile(lcovFile, "utf-8").catch((err) => null);
+	const raw = await require$$0$2.promises.readFile(lcovFile, "utf-8").catch(err => null);
 	if (!raw) {
 		console.log(`No coverage report found at '${lcovFile}', exiting...`);
 		return
 	}
 
 	const baseRaw =
-		baseFile && (await require$$0$2.promises.readFile(baseFile, "utf-8").catch((err) => null));
+		baseFile && (await require$$0$2.promises.readFile(baseFile, "utf-8").catch(err => null));
 	if (baseFile && !baseRaw) {
 		console.log(`No coverage report found at '${baseFile}', ignoring...`);
 	}
@@ -98886,10 +98879,7 @@ async function main() {
 	const lcov = await parse(raw);
 	const baselcov = baseRaw && (await parse(baseRaw));
 	const reportMaxChars = MAX_COMMENT_CHARS - prepend.length - append.length - 4;
-	const body = `${prepend}\n\n${diff(lcov, baselcov, options).substring(
-		0,
-		reportMaxChars,
-	)}\n\n${append}`;
+	const body = `${prepend}\n\n${diff(lcov, baselcov, options).substring(0, reportMaxChars)}\n\n${append}`;
 	let commentToUpdate;
 	if (shouldDeleteOldComments) {
 		commentToUpdate = await deleteOldComments(
@@ -98928,7 +98918,7 @@ async function main() {
 	}
 }
 
-main().catch(function (err) {
+main().catch(function(err) {
 	console.log(err);
 	coreExports.setFailed(err.message);
 });
