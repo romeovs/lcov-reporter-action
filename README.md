@@ -47,7 +47,7 @@ If included, will be added as a title for the comment produced.
 If included, will be added at the beginning of the produced comment.
 
 ##### `comment_append` (**Optional**)
-If included, will be added at the end of the produced comment.
+If included, will be added at the end of the produced comment if comment is not too long
 
 ## Example usage
 
