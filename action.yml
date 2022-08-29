@@ -30,10 +30,10 @@ inputs:
   title:
     description: Title to add to the comment
     required: false
-  prepend:
+  comment_prepend:
     description: Content to add at the beginning of the comment
     required: false
-  append:
+  comment_append:
     description: Content to add at the end of the comment
     required: false
 runs:
