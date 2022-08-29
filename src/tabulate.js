@@ -30,7 +30,9 @@ export function tabulate(lcov, options) {
 			],
 			[],
 		)
-
+	if (rows.length === 0) {
+		return ""
+	}
 	return table(tbody(head, ...rows))
 }
 

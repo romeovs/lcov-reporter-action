@@ -40,6 +40,9 @@ If included, will be added as a title for the comment produced.
 ##### `max-uncovered-lines` (**Optional**)
 If included, will limit the number of uncovered lines displayed in the Uncovered Lines column.
 
+##### `dont-post-if-no-changed-files-in-report` (**Optional**)
+If included, will skip posting a coverage report if no changed files would be included in the report
+
 ## Example usage
 
 ```yml
