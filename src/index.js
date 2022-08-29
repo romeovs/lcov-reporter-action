@@ -1,18 +1,18 @@
-import { promises as fs } from "fs"
 import core from "@actions/core"
-import { GitHub, context } from "@actions/github"
+import { context, getOctokit } from "@actions/github"
+import { promises as fs } from "fs"
 
-import { parse } from "./lcov"
 import { diff } from "./comment"
-import { getChangedFiles } from "./get_changes"
 import { deleteOldComments, getExistingComments } from "./delete_old_comments"
+import { getChangedFiles } from "./get_changes"
+import { parse } from "./lcov"
 import { normalisePath } from "./util"
 
 const MAX_COMMENT_CHARS = 65536
 
 async function main() {
 	const token = core.getInput("github-token")
-	const githubClient = new GitHub(token)
+	const githubClient = getOctokit(token).rest;
 	const lcovFile = core.getInput("lcov-file") || "./coverage/lcov.info"
 	const baseFile = core.getInput("lcov-base")
 	const shouldFilterChangedFiles =
