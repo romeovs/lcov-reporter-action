@@ -30,6 +30,12 @@ inputs:
   title:
     description: Title to add to the comment
     required: false
+  comment_prepend:
+    description: Content to add at the beginning of the comment
+    required: false
+  comment_append:
+    description: Content to add at the end of the comment, may not appear if comment is too long
+    required: false
 runs:
   using: node12
   main: dist/main.js

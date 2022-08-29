@@ -1,18 +1,18 @@
-import { promises as fs } from "fs"
 import core from "@actions/core"
-import { GitHub, context } from "@actions/github"
+import { context, getOctokit } from "@actions/github"
+import { promises as fs } from "fs"
 
-import { parse } from "./lcov"
 import { diff } from "./comment"
-import { getChangedFiles } from "./get_changes"
 import { deleteOldComments, getExistingComments } from "./delete_old_comments"
+import { getChangedFiles } from "./get_changes"
+import { parse } from "./lcov"
 import { normalisePath } from "./util"
 
 const MAX_COMMENT_CHARS = 65536
 
 async function main() {
 	const token = core.getInput("github-token")
-	const githubClient = new GitHub(token)
+	const githubClient = getOctokit(token).rest;
 	const lcovFile = core.getInput("lcov-file") || "./coverage/lcov.info"
 	const baseFile = core.getInput("lcov-base")
 	const shouldFilterChangedFiles =
@@ -22,6 +22,8 @@ async function main() {
 	const shouldUpdateLastComment =
 		core.getInput("update-comment").toLowerCase() === "true"
 	const title = core.getInput("title")
+	const prepend = core.getInput("comment_prepend") || ""
+	const append = core.getInput("comment_append") || ""
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
@@ -60,7 +62,8 @@ async function main() {
 
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && (await parse(baseRaw))
-	const body = diff(lcov, baselcov, options).substring(0, MAX_COMMENT_CHARS)
+	const reportMaxChars = MAX_COMMENT_CHARS - prepend.length - append.length - 4
+	const body = `${prepend}\n\n${diff(lcov, baselcov, options).substring(0, reportMaxChars)}\n\n${append}`
 	let commentToUpdate
 	if (shouldDeleteOldComments) {
 		commentToUpdate = await deleteOldComments(
