@@ -1,4 +1,15 @@
-import { details, summary, b, fragment, table, tbody, tr, th, h2 } from "./html"
+import {
+	details,
+	summary,
+	b,
+	fragment,
+	table,
+	tbody,
+	tr,
+	th,
+	td,
+	h2,
+} from "./html"
 
 import { percentage } from "./lcov"
 import { tabulate } from "./tabulate"
@@ -55,9 +66,10 @@ export function diff(lcov, before, options) {
 			: `Coverage for this commit`,
 		table(
 			tbody(
+				tr(th("Coverage"), th("Diff")),
 				tr(
-					th(pafter.toFixed(2), "%"),
-					th(arrow, " ", plus, pdiff.toFixed(2), "%"),
+					td(pafter.toFixed(2), "%"),
+					td(arrow, " ", plus, pdiff.toFixed(2), "%"),
 				),
 			),
 		),
