@@ -52,6 +52,11 @@ export function diff(lcov, before, options) {
 	const plus = pdiff > 0 ? "+" : ""
 	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴"
 
+	const thresholdWarning =
+		options.failDropThreshold && pdiff < -failDropThreshold
+			? `Failing due to coverage dropping more than ${failDropThreshold}%!`
+			: ""
+
 	const reportTable = tabulate(lcov, options)
 	if (options.dontPostIfNoChangedFilesInReport && !reportTable) {
 		return
@@ -64,6 +69,7 @@ export function diff(lcov, before, options) {
 					options.base,
 			  )} will be`
 			: `Coverage for this commit`,
+		thresholdWarning ? h2(thresholdWarning) : "",
 		table(
 			tbody(
 				tr(th("Coverage"), th("Diff")),

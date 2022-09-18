@@ -43,7 +43,7 @@ If included, will limit the number of uncovered lines displayed in the Uncovered
 ##### `dont-post-if-no-changed-files-in-report` (**Optional**)
 If included, will skip posting a coverage report if no changed files would be included in the report
 
-##### `fail-drop-threshold` (**Optional**)
+##### `fail-drop-percent-threshold` (**Optional**)
 If included, will fail if coverage drops more than the given percentage
 
 ## Example usage

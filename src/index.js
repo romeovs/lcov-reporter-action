@@ -25,7 +25,7 @@ async function main() {
 		"true"
 	const title = core.getInput("title")
 	const maxUncoveredLines = core.getInput("max-uncovered-lines")
-	const failDropThreshold = core.getInput("fail-drop-threshold")
+	const failDropThreshold = core.getInput("fail-drop-percent-threshold")
 
 	if (maxUncoveredLines && isNaN(parseInt(maxUncoveredLines))) {
 		console.log(
@@ -71,6 +71,7 @@ async function main() {
 	options.shouldFilterChangedFiles = shouldFilterChangedFiles
 	options.dontPostIfNoChangedFilesInReport = dontPostIfNoChangedFilesInReport
 	options.title = title
+	options.failDropThreshold = failDropThreshold
 	if (maxUncoveredLines) {
 		options.maxUncoveredLines = parseInt(maxUncoveredLines)
 	}
@@ -118,7 +119,7 @@ async function main() {
 			const pbefore = percentage(baselcov)
 			const pafter = percentage(lcov)
 			const pdiff = pafter - pbefore
-			if (pdiff < failDropThreshold) {
+			if (pdiff < -failDropThreshold) {
 				core.setFailed(
 					`Coverage dropped more than ${failDropThreshold}%. Failing coverage check.`,
 				)

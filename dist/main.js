@@ -23010,6 +23010,11 @@ function diff(lcov, before, options) {
 	const plus = pdiff > 0 ? "+" : "";
 	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴";
 
+	const thresholdWarning =
+		options.failDropThreshold && pdiff < -failDropThreshold
+			? `Failing due to coverage dropping more than ${failDropThreshold}%!`
+			: "";
+
 	const reportTable = tabulate(lcov, options);
 	if (options.dontPostIfNoChangedFilesInReport && !reportTable) {
 		return
@@ -23022,6 +23027,7 @@ function diff(lcov, before, options) {
 					options.base,
 			  )} will be`
 			: `Coverage for this commit`,
+		thresholdWarning ? h2(thresholdWarning) : "",
 		table(
 			tbody(
 				tr(th("Coverage"), th("Diff")),
@@ -23131,7 +23137,7 @@ async function main$1() {
 		"true";
 	const title = core$1.getInput("title");
 	const maxUncoveredLines = core$1.getInput("max-uncovered-lines");
-	const failDropThreshold = core$1.getInput("fail-drop-threshold");
+	const failDropThreshold = core$1.getInput("fail-drop-percent-threshold");
 
 	if (maxUncoveredLines && isNaN(parseInt(maxUncoveredLines))) {
 		console.log(
@@ -23177,6 +23183,7 @@ async function main$1() {
 	options.shouldFilterChangedFiles = shouldFilterChangedFiles;
 	options.dontPostIfNoChangedFilesInReport = dontPostIfNoChangedFilesInReport;
 	options.title = title;
+	options.failDropThreshold = failDropThreshold;
 	if (maxUncoveredLines) {
 		options.maxUncoveredLines = parseInt(maxUncoveredLines);
 	}
@@ -23224,7 +23231,7 @@ async function main$1() {
 			const pbefore = percentage(baselcov);
 			const pafter = percentage(lcov);
 			const pdiff = pafter - pbefore;
-			if (pdiff < failDropThreshold) {
+			if (pdiff < -failDropThreshold) {
 				core$1.setFailed(
 					`Coverage dropped more than ${failDropThreshold}%. Failing coverage check.`,
 				);
