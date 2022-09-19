@@ -69,7 +69,6 @@ export function diff(lcov, before, options) {
 					options.base,
 			  )} will be`
 			: `Coverage for this commit`,
-		thresholdWarning ? h2(thresholdWarning) : "",
 		table(
 			tbody(
 				tr(th("Coverage"), th("Diff")),
@@ -79,6 +78,7 @@ export function diff(lcov, before, options) {
 				),
 			),
 		),
+		thresholdWarning ? b(thresholdWarning) : "",
 		"\n\n",
 		reportTable
 			? details(
