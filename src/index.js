@@ -7,6 +7,7 @@ import { diff } from "./comment"
 import { getChangedFiles } from "./get_changes"
 import { deleteOldComments } from "./delete_old_comments"
 import { normalisePath } from "./util"
+import { percentage } from "./lcov"
 
 const MAX_COMMENT_CHARS = 65536
 
@@ -24,9 +25,17 @@ async function main() {
 		"true"
 	const title = core.getInput("title")
 	const maxUncoveredLines = core.getInput("max-uncovered-lines")
+	const failDropThreshold = core.getInput("fail-drop-percent-threshold")
+
 	if (maxUncoveredLines && isNaN(parseInt(maxUncoveredLines))) {
 		console.log(
 			`Invalid parameter for max-uncovered-lines '${maxUncoveredLines}'. Must be an integer. Exiting...`,
+		)
+		return
+	}
+	if (failDropThreshold && isNaN(parseFloat(failDropThreshold))) {
+		console.log(
+			`Invalid parameter for fail-drop-threshold '${failDropThreshold}'. Must be a number. Exiting...`,
 		)
 		return
 	}
@@ -62,6 +71,7 @@ async function main() {
 	options.shouldFilterChangedFiles = shouldFilterChangedFiles
 	options.dontPostIfNoChangedFilesInReport = dontPostIfNoChangedFilesInReport
 	options.title = title
+	options.failDropThreshold = failDropThreshold
 	if (maxUncoveredLines) {
 		options.maxUncoveredLines = parseInt(maxUncoveredLines)
 	}
@@ -98,6 +108,23 @@ async function main() {
 			commit_sha: options.commit,
 			body: body,
 		})
+	}
+
+	if (failDropThreshold) {
+		if (!baselcov) {
+			console.warn(
+				"Cannot check coverage drop threshold with no base coverage file. Skipping this step.",
+			)
+		} else {
+			const pbefore = percentage(baselcov)
+			const pafter = percentage(lcov)
+			const pdiff = pafter - pbefore
+			if (pdiff < -failDropThreshold) {
+				core.setFailed(
+					`Coverage dropped more than ${failDropThreshold}%. Failing coverage check.`,
+				)
+			}
+		}
 	}
 }
 

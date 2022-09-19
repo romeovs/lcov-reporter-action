@@ -33,6 +33,9 @@ inputs:
     description: Set to true to prevent posting when no files in the report have been changed
     required: false
     default: false
+  fail-drop-percent-threshold:
+    description: If included, will fail if coverage drops more than the given percentage
+    required: false
 runs:
   using: node12
   main: dist/main.js
