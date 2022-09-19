@@ -23011,8 +23011,8 @@ function diff(lcov, before, options) {
 	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴";
 
 	const thresholdWarning =
-		options.failDropThreshold && pdiff < -failDropThreshold
-			? `Failing due to coverage dropping more than ${failDropThreshold}%!`
+		options.failDropThreshold && pdiff < -options.failDropThreshold
+			? `Failing due to coverage dropping more than ${options.failDropThreshold}%!`
 			: "";
 
 	const reportTable = tabulate(lcov, options);
