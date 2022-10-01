@@ -1,6 +1,7 @@
 import core from "@actions/core"
 import { context, getOctokit } from "@actions/github"
 import { promises as fs } from "fs"
+import path from "path"
 
 import { diff } from "./comment"
 import { deleteOldComments, getExistingComments } from "./delete_old_comments"
@@ -12,8 +13,12 @@ const MAX_COMMENT_CHARS = 65536
 
 async function main() {
 	const token = core.getInput("github-token")
-	const githubClient = getOctokit(token).rest;
-	const lcovFile = core.getInput("lcov-file") || "./coverage/lcov.info"
+	const githubClient = getOctokit(token).rest
+	const workingDir = core.getInput("working-directory") || "./"
+	const lcovFile = path.join(
+		workingDir,
+		core.getInput("lcov-file") || "./coverage/lcov.info",
+	)
 	const baseFile = core.getInput("lcov-base")
 	const shouldFilterChangedFiles =
 		core.getInput("filter-changed-files").toLowerCase() === "true"
@@ -25,14 +30,14 @@ async function main() {
 	const prepend = core.getInput("comment_prepend") || ""
 	const append = core.getInput("comment_append") || ""
 
-	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
+	const raw = await fs.readFile(lcovFile, "utf-8").catch((err) => null)
 	if (!raw) {
 		console.log(`No coverage report found at '${lcovFile}', exiting...`)
 		return
 	}
 
 	const baseRaw =
-		baseFile && (await fs.readFile(baseFile, "utf-8").catch(err => null))
+		baseFile && (await fs.readFile(baseFile, "utf-8").catch((err) => null))
 	if (baseFile && !baseRaw) {
 		console.log(`No coverage report found at '${baseFile}', ignoring...`)
 	}
@@ -40,6 +45,7 @@ async function main() {
 	const options = {
 		repository: context.payload.repository.full_name,
 		prefix: normalisePath(`${process.env.GITHUB_WORKSPACE}/`),
+		workingDir,
 	}
 
 	if (context.eventName === "pull_request") {
@@ -63,7 +69,10 @@ async function main() {
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && (await parse(baseRaw))
 	const reportMaxChars = MAX_COMMENT_CHARS - prepend.length - append.length - 4
-	const body = `${prepend}\n\n${diff(lcov, baselcov, options).substring(0, reportMaxChars)}\n\n${append}`
+	const body = `${prepend}\n\n${diff(lcov, baselcov, options).substring(
+		0,
+		reportMaxChars,
+	)}\n\n${append}`
 	let commentToUpdate
 	if (shouldDeleteOldComments) {
 		commentToUpdate = await deleteOldComments(
@@ -102,7 +111,7 @@ async function main() {
 	}
 }
 
-main().catch(function(err) {
+main().catch(function (err) {
 	console.log(err)
 	core.setFailed(err.message)
 })

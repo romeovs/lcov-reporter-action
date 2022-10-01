@@ -119,6 +119,7 @@ test("tabulate should generate a correct table", function() {
 		repository: "example/foo",
 		commit: "2e15bee6fe0df5003389aa5ec894ec0fea2d874a",
 		prefix: "/files/project/",
+		workingDir: 'frontend'
 	}
 
 	const html = table(
@@ -135,7 +136,7 @@ test("tabulate should generate a correct table", function() {
 				td(
 					a(
 						{
-							href: `https://github.com/${options.repository}/blob/${options.commit}/index.js`,
+							href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/index.js`,
 						},
 						"index.js",
 					),
@@ -152,7 +153,7 @@ test("tabulate should generate a correct table", function() {
 					"&nbsp; &nbsp;",
 					a(
 						{
-							href: `https://github.com/${options.repository}/blob/${options.commit}/src/foo.js`,
+							href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/src/foo.js`,
 						},
 						"foo.js",
 					),
@@ -164,7 +165,7 @@ test("tabulate should generate a correct table", function() {
 				td(
 					a(
 						{
-							href: `https://github.com/${options.repository}/blob/${options.commit}/src/foo.js#L37`,
+							href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/src/foo.js#L37`,
 						},
 						37,
 					),
@@ -176,7 +177,7 @@ test("tabulate should generate a correct table", function() {
 					"&nbsp; &nbsp;",
 					a(
 						{
-							href: `https://github.com/${options.repository}/blob/${options.commit}/src/bar/baz.js`,
+							href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/src/bar/baz.js`,
 						},
 						"baz.js",
 					),
@@ -188,14 +189,14 @@ test("tabulate should generate a correct table", function() {
 				td(
 					a(
 						{
-							href: `https://github.com/${options.repository}/blob/${options.commit}/src/bar/baz.js#L20-L21`,
+							href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/src/bar/baz.js#L20-L21`,
 						},
 						"20&ndash;21",
 					),
 					", ",
 					a(
 						{
-							href: `https://github.com/${options.repository}/blob/${options.commit}/src/bar/baz.js#L27`,
+							href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/src/bar/baz.js#L27`,
 						},
 						"27",
 					),
@@ -488,7 +489,7 @@ test("filtered tabulate should fix backwards slashes in filenames", function() {
 		shouldFilterChangedFiles: true,
 		changedFiles: ["src/foo.js"],
 	}
-
+	
 	const html = table(
 		tbody(
 			tr(
