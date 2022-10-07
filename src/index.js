@@ -14,8 +14,11 @@ const MAX_COMMENT_CHARS = 65536
 async function main() {
 	const token = core.getInput("github-token")
 	const githubClient = new GitHub(token)
-	const workingDir = core.getInput('working-directory') || './';	
-	const lcovFile = path.join(workingDir, core.getInput("lcov-file") || "./coverage/lcov.info")
+	const workingDir = core.getInput("working-directory") || "./"
+	const lcovFile = path.join(
+		workingDir,
+		core.getInput("lcov-file") || "./coverage/lcov.info",
+	)
 	const baseFile = core.getInput("lcov-base")
 	const shouldFilterChangedFiles =
 		core.getInput("filter-changed-files").toLowerCase() === "true"
@@ -41,11 +44,14 @@ async function main() {
 		workingDir,
 	}
 
-	if (context.eventName === "pull_request") {
-		options.commit = context.payload.pull_request.head.sha
-		options.baseCommit = context.payload.pull_request.base.sha
-		options.head = context.payload.pull_request.head.ref
-		options.base = context.payload.pull_request.base.ref
+	if (
+		context.eventName === "pull_request" ||
+		context.eventName === "pull_request_target"
+	) {
+		options.commit = context.payload[context.eventName].head.sha
+		options.baseCommit = context.payload[context.eventName].base.sha
+		options.head = context.payload[context.eventName].head.ref
+		options.base = context.payload[context.eventName].base.ref
 	} else if (context.eventName === "push") {
 		options.commit = context.payload.after
 		options.baseCommit = context.payload.before
@@ -67,11 +73,14 @@ async function main() {
 		await deleteOldComments(githubClient, options, context)
 	}
 
-	if (context.eventName === "pull_request") {
+	if (
+		context.eventName === "pull_request" ||
+		context.eventName === "pull_request_target"
+	) {
 		await githubClient.issues.createComment({
 			repo: context.repo.repo,
 			owner: context.repo.owner,
-			issue_number: context.payload.pull_request.number,
+			issue_number: context.payload[context.eventName].number,
 			body: body,
 		})
 	} else if (context.eventName === "push") {
