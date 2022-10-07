@@ -23135,6 +23135,10 @@ async function main$1() {
 		workingDir,
 	};
 
+	core$1.info(github_1.payload);
+	core$1.debug(github_1.payload);
+	console.log("context.payload");
+	console.log(github_1.payload);
 	if (
 		github_1.eventName === "pull_request" ||
 		github_1.eventName === "pull_request_target"

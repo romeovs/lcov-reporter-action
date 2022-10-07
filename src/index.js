@@ -44,6 +44,10 @@ async function main() {
 		workingDir,
 	}
 
+	core.info(context.payload)
+	core.debug(context.payload)
+	console.log("context.payload")
+	console.log(context.payload)
 	if (
 		context.eventName === "pull_request" ||
 		context.eventName === "pull_request_target"
