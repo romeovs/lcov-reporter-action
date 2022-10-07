@@ -44,18 +44,16 @@ async function main() {
 		workingDir,
 	}
 
-	core.info(context.payload)
-	core.debug(context.payload)
 	console.log("context.payload")
 	console.log(context.payload)
 	if (
 		context.eventName === "pull_request" ||
 		context.eventName === "pull_request_target"
 	) {
-		options.commit = context.payload[context.eventName].head.sha
-		options.baseCommit = context.payload[context.eventName].base.sha
-		options.head = context.payload[context.eventName].head.ref
-		options.base = context.payload[context.eventName].base.ref
+		options.commit = context.payload.pull_request.head.sha
+		options.baseCommit = context.payload.pull_request.base.sha
+		options.head = context.payload.pull_request.head.ref
+		options.base = context.payload.pull_request.base.ref
 	} else if (context.eventName === "push") {
 		options.commit = context.payload.after
 		options.baseCommit = context.payload.before
@@ -84,7 +82,7 @@ async function main() {
 		await githubClient.issues.createComment({
 			repo: context.repo.repo,
 			owner: context.repo.owner,
-			issue_number: context.payload[context.eventName].number,
+			issue_number: context.payload.pull_request.number,
 			body: body,
 		})
 	} else if (context.eventName === "push") {
