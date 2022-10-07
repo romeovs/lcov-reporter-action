@@ -23135,18 +23135,16 @@ async function main$1() {
 		workingDir,
 	};
 
-	core$1.info(github_1.payload);
-	core$1.debug(github_1.payload);
 	console.log("context.payload");
 	console.log(github_1.payload);
 	if (
 		github_1.eventName === "pull_request" ||
 		github_1.eventName === "pull_request_target"
 	) {
-		options.commit = github_1.payload[github_1.eventName].head.sha;
-		options.baseCommit = github_1.payload[github_1.eventName].base.sha;
-		options.head = github_1.payload[github_1.eventName].head.ref;
-		options.base = github_1.payload[github_1.eventName].base.ref;
+		options.commit = github_1.payload.pull_request.head.sha;
+		options.baseCommit = github_1.payload.pull_request.base.sha;
+		options.head = github_1.payload.pull_request.head.ref;
+		options.base = github_1.payload.pull_request.base.ref;
 	} else if (github_1.eventName === "push") {
 		options.commit = github_1.payload.after;
 		options.baseCommit = github_1.payload.before;
@@ -23175,7 +23173,7 @@ async function main$1() {
 		await githubClient.issues.createComment({
 			repo: github_1.repo.repo,
 			owner: github_1.repo.owner,
-			issue_number: github_1.payload[github_1.eventName].number,
+			issue_number: github_1.payload.pull_request.number,
 			body: body,
 		});
 	} else if (github_1.eventName === "push") {
