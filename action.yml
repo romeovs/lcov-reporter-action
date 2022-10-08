@@ -24,12 +24,21 @@ inputs:
     required: false
     default: false
   working-directory:
-    description: Set working directory if project is not in root folder  
+    description: Set working directory if project is not in root folder
     required: false
     default: "./"
   title:
     description: Title to add to the comment
     required: false
+  diff_threshold:
+    description: The minimum coverage (%) the diff must have
+    required: false
+    default: "85"
+outputs:
+  diff_coverage:
+    description: (String - Number) The coverage of this branch (%)
+  result:
+    description: (String - Boolean) Branch coverage is above coverage threshold (diff_threshold) or not
 runs:
   using: node12
   main: dist/main.js

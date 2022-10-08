@@ -25,6 +25,7 @@ async function main() {
 	const shouldDeleteOldComments =
 		core.getInput("delete-old-comments").toLowerCase() === "true"
 	const title = core.getInput("title")
+	const diff_threshold = parseFloat(core.getInput("diff_threshold")) || 0
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
@@ -67,7 +68,9 @@ async function main() {
 
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && (await parse(baseRaw))
-	const body = diff(lcov, baselcov, options).substring(0, MAX_COMMENT_CHARS)
+	const message_pdiff = diff(lcov, baselcov, options)
+	const body = message_pdiff.fragment.substring(0, MAX_COMMENT_CHARS)
+	const pdiff = message_pdiff.pdiff
 
 	if (shouldDeleteOldComments) {
 		await deleteOldComments(githubClient, options, context)
@@ -90,6 +93,14 @@ async function main() {
 			commit_sha: options.commit,
 			body: body,
 		})
+	}
+
+	core.setOutput("diff_coverage", pdiff.toString())
+	core.setOutput("result", (pdiff < diff_threshold).toString())
+
+	// Fail if coverage less than threshold
+	if (pdiff < diff_threshold) {
+		throw new Error(pdiff.toString())
 	}
 }
 
