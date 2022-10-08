@@ -44,8 +44,6 @@ async function main() {
 		workingDir,
 	}
 
-	console.log("context.payload")
-	console.log(context.payload)
 	if (
 		context.eventName === "pull_request" ||
 		context.eventName === "pull_request_target"

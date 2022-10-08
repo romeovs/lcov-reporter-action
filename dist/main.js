@@ -23133,8 +23133,6 @@ async function main$1() {
 		workingDir,
 	};
 
-	console.log("context.payload");
-	console.log(github_1.payload);
 	if (
 		github_1.eventName === "pull_request" ||
 		github_1.eventName === "pull_request_target"
