@@ -61,7 +61,12 @@ export function diff(lcov, before, options) {
 				: `Coverage for this commit`,
 			table(
 				tbody(
-					tr(th("Diff Coverage"), th(pafter.toFixed(2), "%")),
+					// tr(th("Diff Coverage"), th(pdiffLcov.toFixed(2), "%")),
+					tr(
+						th("Threshold"),
+						th(options.diffCoverageThreshold.toFixed(2), "%"),
+					),
+					tr(th("Total Coverage"), th(pafter.toFixed(2), "%")),
 					tr(
 						th("Coverage Change"),
 						th(arrow, " ", plus, pdiff.toFixed(2), "%"),
