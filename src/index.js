@@ -26,6 +26,7 @@ async function main() {
 		core.getInput("delete-old-comments").toLowerCase() === "true"
 	const title = core.getInput("title")
 	const diff_threshold = parseFloat(core.getInput("diff_threshold")) || 0
+	const files_changed = core.getInput("files_changed")
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
@@ -69,9 +70,24 @@ async function main() {
 
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && (await parse(baseRaw))
-	const message_pdiff = diff(lcov, baselcov, options)
+
+	console.log(baselcov)
+	console.log(files_changed)
+	// extract diffLcov
+	let diffLcov = []
+	if (files_changed) {
+		diffLcov = baselcov.filter(lcov_json => {
+			return files_changed.includes(lcov_json.file)
+		})
+	} else {
+		console.log(
+			"files changed from base branch not specified. Skipping diff coverage",
+		)
+	}
+
+	const message_pdiff = diff(lcov, baselcov, diffLcov, options)
 	const body = message_pdiff.fragment.substring(0, MAX_COMMENT_CHARS)
-	const pdiff = message_pdiff.pdiff
+	const pdiffLcov = message_pdiff.pdiffLcov
 
 	if (shouldDeleteOldComments) {
 		await deleteOldComments(githubClient, options, context)
@@ -100,7 +116,7 @@ async function main() {
 	core.setOutput("result", (pdiff < diff_threshold).toString())
 
 	// Fail if coverage less than threshold
-	if (pdiff < diff_threshold) {
+	if (pdiffLcov < diff_threshold) {
 		throw new Error(pdiff.toString())
 	}
 }

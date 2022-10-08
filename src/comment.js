@@ -24,27 +24,29 @@ export function comment(lcov, options) {
 	)
 }
 
-export function diff(lcov, before, options) {
-	if (!before) {
-		return comment(lcov, options)
+export function diff(headLcov, baseLcov, diffLcov, options) {
+	if (!baseLcov) {
+		return comment(headLcov, options)
 	}
 
-	const pbefore = percentage(before)
-	const pafter = percentage(lcov)
-	const pdiff = pafter - pbefore
-	const plus = pdiff > 0 ? "+" : ""
-	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴"
+	const pbaseLcov = percentage(baseLcov)
+	const pheadLcov = percentage(headLcov)
+	const pCoverageChange = pheadLcov - pbaseLcov
+	const plus = pCoverageChange > 0 ? "+" : ""
+	const arrow = pCoverageChange === 0 ? "" : pCoverageChange < 0 ? "▾" : "▴"
+	const pdiffLcov = diffLcov ? percentage(diffLcov) : null
 
 	// 1. - Total coverage - Coverage of head branch
-	// pafter
+	// pheadLcov
 
 	// 2. - Diff coverage - Coverage of the diff. diff - files changed between base and head branch
+	// pdiffLcov
 
 	// 3. - Diff Threshold - Minimum coverage the diff needs to have
 	// diff_threshold { action input }
 
 	// 4. - Coverage Change - Difference between total coverage of base branch and head branch
-	//  pbefore - pafter
+	//  pCoverageChange
 
 	// Output format
 
@@ -59,17 +61,20 @@ export function diff(lcov, before, options) {
 						options.base,
 				  )} will be`
 				: `Coverage for this commit`,
+			// Link to download if message exceeds charcs
 			table(
 				tbody(
-					// tr(th("Diff Coverage"), th(pdiffLcov.toFixed(2), "%")),
+					pdiffLcov
+						? tr(th("Diff Coverage"), th(pdiffLcov.toFixed(2), "%"))
+						: "",
 					tr(
 						th("Threshold"),
 						th(options.diffCoverageThreshold.toFixed(2), "%"),
 					),
-					tr(th("Total Coverage"), th(pafter.toFixed(2), "%")),
+					tr(th("Total Coverage"), th(pheadLcov.toFixed(2), "%")),
 					tr(
 						th("Coverage Change"),
-						th(arrow, " ", plus, pdiff.toFixed(2), "%"),
+						th(arrow, " ", plus, pCoverageChange.toFixed(2), "%"),
 					),
 				),
 			),
@@ -80,9 +85,9 @@ export function diff(lcov, before, options) {
 						? "Coverage Report for Changed Files"
 						: "Coverage Report",
 				),
-				tabulate(lcov, options),
+				tabulate(headLcov, options),
 			),
 		),
-		pdiff,
+		pCoverageChange,
 	}
 }

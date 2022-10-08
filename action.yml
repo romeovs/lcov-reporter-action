@@ -34,6 +34,10 @@ inputs:
     description: The minimum coverage (%) the diff must have
     required: false
     default: "85"
+  files_changed:
+    description: String of files that have changed from base branch
+    required: false
+    default: ""
 outputs:
   diff_coverage:
     description: (String - Number) The coverage of this branch (%)
