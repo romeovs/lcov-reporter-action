@@ -23056,7 +23056,7 @@ function diff(headLcov, baseLcov, diffLcov, options) {
 				tabulate(headLcov, options),
 			),
 		),
-		pCoverageChange,
+		pdiffLcov,
 	}
 }
 
@@ -23151,14 +23151,14 @@ async function main$1() {
 
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
 	if (!raw) {
-		core$1.info(`No coverage report found at '${lcovFile}', exiting...`);
+		console.log(`No coverage report found at '${lcovFile}', exiting...`);
 		return
 	}
 
 	const baseRaw =
 		baseFile && (await fs.promises.readFile(baseFile, "utf-8").catch(err => null));
 	if (baseFile && !baseRaw) {
-		core$1.info(`No coverage report found at '${baseFile}', ignoring...`);
+		console.log(`No coverage report found at '${baseFile}', ignoring...`);
 	}
 
 	const options = {
@@ -23192,8 +23192,8 @@ async function main$1() {
 	const lcov = await parse$2(raw);
 	const baselcov = baseRaw && (await parse$2(baseRaw));
 
-	core$1.info(baselcov);
-	core$1.info(files_changed);
+	console.log(baselcov);
+	console.log(files_changed);
 	// extract diffLcov
 	let diffLcov = [];
 	if (files_changed) {
@@ -23201,14 +23201,14 @@ async function main$1() {
 			return files_changed.includes(lcov_json.file)
 		});
 	} else {
-		core$1.info(
+		console.log(
 			"files changed from base branch not specified. Skipping diff coverage",
 		);
 	}
 
 	const message_pdiff = diff(lcov, baselcov, diffLcov, options);
 	const body = message_pdiff.fragment.substring(0, MAX_COMMENT_CHARS);
-	const pdiffLcov = message_pdiff.pCoverageChange;
+	const pdiffLcov = message_pdiff.pdiffLcov;
 
 	if (shouldDeleteOldComments) {
 		await deleteOldComments(githubClient, options, github_1);
@@ -23233,17 +23233,16 @@ async function main$1() {
 		});
 	}
 
-	core$1.setOutput("diff_coverage", pdiff.toString());
-	core$1.setOutput("result", (pdiff < diff_threshold).toString());
+	core$1.setOutput("diff_coverage", pdiffLcov.toString());
+	core$1.setOutput("result", (pdiffLcov < diff_threshold).toString());
 
 	// Fail if coverage less than threshold
 	if (pdiffLcov < diff_threshold) {
-		throw new Error(pdiff.toString())
+		throw new Error(pdiffLcov.toString())
 	}
 }
 
 main$1().catch(function(err) {
 	console.log(err);
-	core$1.error(err);
 	core$1.setFailed(err.message);
 });
