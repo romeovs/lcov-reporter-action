@@ -30,14 +30,14 @@ async function main() {
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
-		core.info(`No coverage report found at '${lcovFile}', exiting...`)
+		console.log(`No coverage report found at '${lcovFile}', exiting...`)
 		return
 	}
 
 	const baseRaw =
 		baseFile && (await fs.readFile(baseFile, "utf-8").catch(err => null))
 	if (baseFile && !baseRaw) {
-		core.info(`No coverage report found at '${baseFile}', ignoring...`)
+		console.log(`No coverage report found at '${baseFile}', ignoring...`)
 	}
 
 	const options = {
@@ -71,8 +71,8 @@ async function main() {
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && (await parse(baseRaw))
 
-	core.info(baselcov)
-	core.info(files_changed)
+	console.log(baselcov)
+	console.log(files_changed)
 	// extract diffLcov
 	let diffLcov = []
 	if (files_changed) {
@@ -80,7 +80,7 @@ async function main() {
 			return files_changed.includes(lcov_json.file)
 		})
 	} else {
-		core.info(
+		console.log(
 			"files changed from base branch not specified. Skipping diff coverage",
 		)
 	}
@@ -123,6 +123,5 @@ async function main() {
 
 main().catch(function(err) {
 	console.log(err)
-	core.error(err)
 	core.setFailed(err.message)
 })
