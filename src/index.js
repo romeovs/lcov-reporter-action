@@ -87,7 +87,7 @@ async function main() {
 
 	const message_pdiff = diff(lcov, baselcov, diffLcov, options)
 	const body = message_pdiff.fragment.substring(0, MAX_COMMENT_CHARS)
-	const pdiffLcov = message_pdiff.pCoverageChange
+	const pdiffLcov = message_pdiff.pdiffLcov
 
 	if (shouldDeleteOldComments) {
 		await deleteOldComments(githubClient, options, context)
@@ -112,12 +112,12 @@ async function main() {
 		})
 	}
 
-	core.setOutput("diff_coverage", pdiff.toString())
-	core.setOutput("result", (pdiff < diff_threshold).toString())
+	core.setOutput("diff_coverage", pdiffLcov.toString())
+	core.setOutput("result", (pdiffLcov < diff_threshold).toString())
 
 	// Fail if coverage less than threshold
 	if (pdiffLcov < diff_threshold) {
-		throw new Error(pdiff.toString())
+		throw new Error(pdiffLcov.toString())
 	}
 }
 

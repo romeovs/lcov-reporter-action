@@ -88,6 +88,6 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 				tabulate(headLcov, options),
 			),
 		),
-		pCoverageChange,
+		pdiffLcov,
 	}
 }
