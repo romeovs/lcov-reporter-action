@@ -27,7 +27,7 @@ async function main() {
 		base: "master",
 	}
 
-	console.log(diff(lcov, before, options))
+	console.log(diff(lcov, baselcov, diffLcov, options))
 }
 
 main().catch(function(err) {

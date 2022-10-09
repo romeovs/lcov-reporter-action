@@ -22992,40 +22992,72 @@ function comment(lcov, options) {
 	)
 }
 
-function diff(lcov, before, options) {
-	if (!before) {
-		return comment(lcov, options)
+function diff(headLcov, baseLcov, diffLcov, options) {
+	if (!baseLcov) {
+		return comment(headLcov, options)
 	}
 
-	const pbefore = percentage(before);
-	const pafter = percentage(lcov);
-	const pdiff = pafter - pbefore;
-	const plus = pdiff > 0 ? "+" : "";
-	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴";
+	const pbaseLcov = percentage(baseLcov);
+	const pheadLcov = percentage(headLcov);
+	const pCoverageChange = pheadLcov - pbaseLcov;
+	const plus = pCoverageChange > 0 ? "+" : "";
+	const arrow = pCoverageChange === 0 ? "" : pCoverageChange < 0 ? "▾" : "▴";
+	const pdiffLcov = diffLcov ? percentage(diffLcov) : null;
 
-	return fragment(
-		options.title ? h2(options.title) : "",
-		options.base
-			? `Coverage after merging ${b(options.head)} into ${b(
-					options.base,
-			  )} will be`
-			: `Coverage for this commit`,
-		table(
-			tbody(
-				tr(th("Diff Coverage"), th(pafter.toFixed(2), "%")),
-				tr(th("Coverage Change"), th(arrow, " ", plus, pdiff.toFixed(2), "%")),
+	// 1. - Total coverage - Coverage of head branch
+	// pheadLcov
+
+	// 2. - Diff coverage - Coverage of the diff. diff - files changed between base and head branch
+	// pdiffLcov
+
+	// 3. - Diff Threshold - Minimum coverage the diff needs to have
+	// diff_threshold { action input }
+
+	// 4. - Coverage Change - Difference between total coverage of base branch and head branch
+	//  pCoverageChange
+
+	// Output format
+
+	// Diff Coverage | Threshold
+	// Total Coverage | Coverage Change
+
+	return {
+		fragment: fragment(
+			options.title ? h2(options.title) : "",
+			options.base
+				? `Coverage after merging ${b(options.head)} into ${b(
+						options.base,
+				  )} will be`
+				: `Coverage for this commit`,
+			// Link to download if message exceeds charcs
+			table(
+				tbody(
+					pdiffLcov
+						? tr(th("Diff Coverage"), th(pdiffLcov.toFixed(2), "%"))
+						: "",
+					tr(
+						th("Threshold"),
+						th(options.diffCoverageThreshold.toFixed(2), "%"),
+					),
+					tr(th("Total Coverage"), th(pheadLcov.toFixed(2), "%")),
+					tr(
+						th("Coverage Change"),
+						th(arrow, " ", plus, pCoverageChange.toFixed(2), "%"),
+					),
+				),
+			),
+			"\n\n",
+			details(
+				summary(
+					options.shouldFilterChangedFiles
+						? "Coverage Report for Changed Files"
+						: "Coverage Report",
+				),
+				tabulate(headLcov, options),
 			),
 		),
-		"\n\n",
-		details(
-			summary(
-				options.shouldFilterChangedFiles
-					? "Coverage Report for Changed Files"
-					: "Coverage Report",
-			),
-			tabulate(lcov, options),
-		),
-	)
+		pCoverageChange,
+	}
 }
 
 // Get list of changed files
@@ -23114,23 +23146,26 @@ async function main$1() {
 	const shouldDeleteOldComments =
 		core$1.getInput("delete-old-comments").toLowerCase() === "true";
 	const title = core$1.getInput("title");
+	const diff_threshold = parseFloat(core$1.getInput("diff_threshold")) || 0;
+	const files_changed = core$1.getInput("files_changed");
 
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
 	if (!raw) {
-		console.log(`No coverage report found at '${lcovFile}', exiting...`);
+		core$1.info(`No coverage report found at '${lcovFile}', exiting...`);
 		return
 	}
 
 	const baseRaw =
 		baseFile && (await fs.promises.readFile(baseFile, "utf-8").catch(err => null));
 	if (baseFile && !baseRaw) {
-		console.log(`No coverage report found at '${baseFile}', ignoring...`);
+		core$1.info(`No coverage report found at '${baseFile}', ignoring...`);
 	}
 
 	const options = {
 		repository: github_1.payload.repository.full_name,
 		prefix: normalisePath(`${process.env.GITHUB_WORKSPACE}/`),
 		workingDir,
+		diffCoverageThreshold: diff_threshold,
 	};
 
 	if (
@@ -23156,7 +23191,24 @@ async function main$1() {
 
 	const lcov = await parse$2(raw);
 	const baselcov = baseRaw && (await parse$2(baseRaw));
-	const body = diff(lcov, baselcov, options).substring(0, MAX_COMMENT_CHARS);
+
+	core$1.info(baselcov);
+	core$1.info(files_changed);
+	// extract diffLcov
+	let diffLcov = [];
+	if (files_changed) {
+		diffLcov = baselcov.filter(lcov_json => {
+			return files_changed.includes(lcov_json.file)
+		});
+	} else {
+		core$1.info(
+			"files changed from base branch not specified. Skipping diff coverage",
+		);
+	}
+
+	const message_pdiff = diff(lcov, baselcov, diffLcov, options);
+	const body = message_pdiff.fragment.substring(0, MAX_COMMENT_CHARS);
+	const pdiffLcov = message_pdiff.pCoverageChange;
 
 	if (shouldDeleteOldComments) {
 		await deleteOldComments(githubClient, options, github_1);
@@ -23180,9 +23232,18 @@ async function main$1() {
 			body: body,
 		});
 	}
+
+	core$1.setOutput("diff_coverage", pdiff.toString());
+	core$1.setOutput("result", (pdiff < diff_threshold).toString());
+
+	// Fail if coverage less than threshold
+	if (pdiffLcov < diff_threshold) {
+		throw new Error(pdiff.toString())
+	}
 }
 
 main$1().catch(function(err) {
 	console.log(err);
+	core$1.error(err);
 	core$1.setFailed(err.message);
 });
