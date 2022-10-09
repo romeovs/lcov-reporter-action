@@ -87,7 +87,7 @@ async function main() {
 
 	const message_pdiff = diff(lcov, baselcov, diffLcov, options)
 	const body = message_pdiff.fragment.substring(0, MAX_COMMENT_CHARS)
-	const pdiffLcov = message_pdiff.pdiffLcov
+	const pdiffLcov = message_pdiff.pCoverageChange
 
 	if (shouldDeleteOldComments) {
 		await deleteOldComments(githubClient, options, context)
