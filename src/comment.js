@@ -67,7 +67,7 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 		{
 			href: `https://github.com/interviewstreet/frontend-core/actions/runs/${options.run_id}`,
 		},
-		"Coverage directory download page link (💡 Tip: Use this if comment is clipped)",
+		"Coverage directory download page link (💡 Tip: Download coverage_dir_head from this link if comment is clipped)",
 	)
 
 	return {
