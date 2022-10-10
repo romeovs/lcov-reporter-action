@@ -22784,6 +22784,7 @@ const b = tag("b");
 const table = tag("table");
 const tbody = tag("tbody");
 const a = tag("a");
+const span = tag("span");
 const h2 = tag("h2");
 
 const fragment = function(...children) {

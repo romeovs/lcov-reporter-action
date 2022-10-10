@@ -1,4 +1,15 @@
-import { details, summary, b, fragment, table, tbody, tr, th, h2 } from "./html"
+import {
+	details,
+	summary,
+	b,
+	fragment,
+	table,
+	tbody,
+	tr,
+	th,
+	h2,
+	span,
+} from "./html"
 
 import { percentage } from "./lcov"
 import { tabulate } from "./tabulate"
