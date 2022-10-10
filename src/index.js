@@ -71,8 +71,6 @@ async function main() {
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && (await parse(baseRaw))
 
-	console.log(baselcov)
-	console.log(files_changed)
 	// extract diffLcov
 	let diffLcov = []
 	if (files_changed) {
@@ -80,10 +78,9 @@ async function main() {
 			return files_changed.includes(lcov_json.file)
 		})
 	} else {
-		console.log(
-			"files changed from base branch not specified. Skipping diff coverage",
-		)
+		console.log("No files changed from base branch. Skipping diff coverage")
 	}
+	console.log(diffLcov)
 
 	const message_pdiff = diff(lcov, baselcov, diffLcov, options)
 	const body = message_pdiff.fragment.substring(0, MAX_COMMENT_CHARS)
@@ -117,7 +114,17 @@ async function main() {
 
 	// Fail if coverage less than threshold
 	if (pdiffLcov < diff_threshold) {
-		throw new Error(pdiffLcov.toString())
+		throw new Error(
+			`Branch coverage (${pdiffLcov.toString()}%) does not meet Coverage threshold (${options.diffCoverageThreshold.toFixed(
+				2,
+			)}%)`,
+		)
+	} else {
+		core.info(
+			`Branch coverage (${pdiffLcov.toString()}%) meets Coverage threshold (${options.diffCoverageThreshold.toFixed(
+				2,
+			)}%)`,
+		)
 	}
 }
 
