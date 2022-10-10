@@ -9,6 +9,9 @@ import {
 	th,
 	h2,
 	span,
+	h4,
+	a,
+	br,
 } from "./html"
 
 import { percentage } from "./lcov"
@@ -54,18 +57,25 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 		if (pdiffLcov > options.diffCoverageThreshold) {
 			title = `✅ Branch coverage (${pdiffLcov.toFixed(
 				2,
-			)}%) meets coverage threshold (${pdiffCoverageThresholdStr}%)`
+			)}%) meets coverage threshold (${pdiffCoverageThresholdStr})`
 		}
 		title = `❌ Branch coverage (${pdiffLcov.toFixed(
 			2,
-		)}%) does not meet coverage threshold (${pdiffCoverageThresholdStr}%)`
+		)}%) does not meet coverage threshold (${pdiffCoverageThresholdStr})`
 	}
-	const coverage_dir_link = `[Coverage directory download page link (💡 Tip: Use this if comment is clipped)](https://github.com/interviewstreet/frontend-core/actions/runs/${options.run_id})`
+	const coverage_dir_link = a(
+		{
+			href: `https://github.com/interviewstreet/frontend-core/actions/runs/${options.run_id}`,
+		},
+		"Coverage directory download page link (💡 Tip: Use this if comment is clipped)",
+	)
 
 	return {
 		fragment: fragment(
-			options.title ? h2(options.title) : h2(title),
+			options.title ? h4(options.title) : h4(title),
 			span(coverage_dir_link),
+			br(),
+			br(),
 			table(
 				tbody(
 					pdiffLcov
@@ -94,6 +104,6 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 				tabulate(headLcov, options),
 			),
 		),
-		pdiffLcov,
+		pdiffLcov: pdiffLcov.toFixed(2),
 	}
 }

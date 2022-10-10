@@ -24,6 +24,9 @@ export const tbody = tag("tbody")
 export const a = tag("a")
 export const span = tag("span")
 export const h2 = tag("h2")
+export const h3 = tag("h3")
+export const h4 = tag("h4")
+export const br = tag("br")
 
 export const fragment = function(...children) {
 	return children.join("")
