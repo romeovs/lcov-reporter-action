@@ -38,6 +38,10 @@ inputs:
     description: String of files that have changed from base branch
     required: false
     default: ""
+  run_id:
+    description: Run id for the current action run
+    required: true
+    default: "-1"
 outputs:
   diff_coverage:
     description: (String - Number) The coverage of this branch (%)

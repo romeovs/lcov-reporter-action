@@ -27,6 +27,7 @@ async function main() {
 	const title = core.getInput("title")
 	const diff_threshold = parseFloat(core.getInput("diff_threshold")) || 0
 	const files_changed = core.getInput("files_changed")
+	const run_id = parseInt(core.getInput("run_id"), 10) || 0
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
@@ -45,6 +46,7 @@ async function main() {
 		prefix: normalisePath(`${process.env.GITHUB_WORKSPACE}/`),
 		workingDir,
 		diffCoverageThreshold: diff_threshold,
+		run_id,
 	}
 
 	if (

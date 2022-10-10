@@ -23017,16 +23017,12 @@ function diff(headLcov, baseLcov, diffLcov, options) {
 			2,
 		)}%) does not meet coverage threshold (${pdiffCoverageThresholdStr}%)`;
 	}
+	const coverage_dir_link = `[Coverage directory download page link (💡 Tip: Use this if comment is clipped)](https://github.com/interviewstreet/frontend-core/actions/runs/${options.run_id})`;
 
 	return {
 		fragment: fragment(
-			options.title ? h2(options.title) : title,
-			options.base
-				? `Coverage after merging ${b(options.head)} into ${b(
-						options.base,
-				  )} will be`
-				: `Coverage for this commit`,
-			// Link to download if message exceeds charcs
+			options.title ? h2(options.title) : h2(title),
+			span(coverage_dir_link),
 			table(
 				tbody(
 					pdiffLcov
@@ -23147,6 +23143,7 @@ async function main$1() {
 	const title = core$1.getInput("title");
 	const diff_threshold = parseFloat(core$1.getInput("diff_threshold")) || 0;
 	const files_changed = core$1.getInput("files_changed");
+	const run_id = parseInt(core$1.getInput("run_id"), 10) || 0;
 
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
 	if (!raw) {
@@ -23165,6 +23162,7 @@ async function main$1() {
 		prefix: normalisePath(`${process.env.GITHUB_WORKSPACE}/`),
 		workingDir,
 		diffCoverageThreshold: diff_threshold,
+		run_id,
 	};
 
 	if (

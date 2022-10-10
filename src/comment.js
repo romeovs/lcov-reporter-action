@@ -49,16 +49,12 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 			2,
 		)}%) does not meet coverage threshold (${pdiffCoverageThresholdStr}%)`
 	}
+	const coverage_dir_link = `[Coverage directory download page link (💡 Tip: Use this if comment is clipped)](https://github.com/interviewstreet/frontend-core/actions/runs/${options.run_id})`
 
 	return {
 		fragment: fragment(
-			options.title ? h2(options.title) : title,
-			options.base
-				? `Coverage after merging ${b(options.head)} into ${b(
-						options.base,
-				  )} will be`
-				: `Coverage for this commit`,
-			// Link to download if message exceeds charcs
+			options.title ? h2(options.title) : h2(title),
+			span(coverage_dir_link),
 			table(
 				tbody(
 					pdiffLcov
