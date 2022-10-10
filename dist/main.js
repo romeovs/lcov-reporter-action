@@ -23003,27 +23003,24 @@ function diff(headLcov, baseLcov, diffLcov, options) {
 	const plus = pCoverageChange > 0 ? "+" : "";
 	const arrow = pCoverageChange === 0 ? "" : pCoverageChange < 0 ? "▾" : "▴";
 	const pdiffLcov = diffLcov ? percentage(diffLcov) : null;
-
-	// 1. - Total coverage - Coverage of head branch
-	// pheadLcov
-
-	// 2. - Diff coverage - Coverage of the diff. diff - files changed between base and head branch
-	// pdiffLcov
-
-	// 3. - Diff Threshold - Minimum coverage the diff needs to have
-	// diff_threshold { action input }
-
-	// 4. - Coverage Change - Difference between total coverage of base branch and head branch
-	//  pCoverageChange
-
-	// Output format
-
-	// Diff Coverage | Threshold
-	// Total Coverage | Coverage Change
+	const pdiffCoverageThresholdStr = `${options.diffCoverageThreshold.toFixed(
+		2,
+	)}%`;
+	let title = "Error generating lcov for files changed";
+	if (diffLcov.length !== 0) {
+		if (pdiffLcov > options.diffCoverageThreshold) {
+			title = `✅ Branch coverage (${pdiffLcov.toFixed(
+				2,
+			)}%) meets coverage threshold (${pdiffCoverageThresholdStr}%)`;
+		}
+		title = `❌ Branch coverage (${pdiffLcov.toFixed(
+			2,
+		)}%) does not meet coverage threshold (${pdiffCoverageThresholdStr}%)`;
+	}
 
 	return {
 		fragment: fragment(
-			options.title ? h2(options.title) : "",
+			options.title ? h2(options.title) : title,
 			options.base
 				? `Coverage after merging ${b(options.head)} into ${b(
 						options.base,
@@ -23033,15 +23030,17 @@ function diff(headLcov, baseLcov, diffLcov, options) {
 			table(
 				tbody(
 					pdiffLcov
-						? tr(th("Diff Coverage"), th(pdiffLcov.toFixed(2), "%"))
+						? tr(
+								th("Diff Coverage"),
+								th(pdiffLcov.toFixed(2), "%"),
+								th("Threshold "),
+								th(pdiffCoverageThresholdStr),
+						  )
 						: "",
 					tr(
-						th("Threshold"),
-						th(options.diffCoverageThreshold.toFixed(2), "%"),
-					),
-					tr(th("Total Coverage"), th(pheadLcov.toFixed(2), "%")),
-					tr(
-						th("Coverage Change"),
+						th("Total Coverage"),
+						th(pheadLcov.toFixed(2), "% "),
+						th("Coverage Change "),
 						th(arrow, " ", plus, pCoverageChange.toFixed(2), "%"),
 					),
 				),
@@ -23192,8 +23191,6 @@ async function main$1() {
 	const lcov = await parse$2(raw);
 	const baselcov = baseRaw && (await parse$2(baseRaw));
 
-	console.log(baselcov);
-	console.log(files_changed);
 	// extract diffLcov
 	let diffLcov = [];
 	if (files_changed) {
@@ -23201,10 +23198,9 @@ async function main$1() {
 			return files_changed.includes(lcov_json.file)
 		});
 	} else {
-		console.log(
-			"files changed from base branch not specified. Skipping diff coverage",
-		);
+		console.log("No files changed from base branch. Skipping diff coverage");
 	}
+	console.log(diffLcov);
 
 	const message_pdiff = diff(lcov, baselcov, diffLcov, options);
 	const body = message_pdiff.fragment.substring(0, MAX_COMMENT_CHARS);
@@ -23238,7 +23234,17 @@ async function main$1() {
 
 	// Fail if coverage less than threshold
 	if (pdiffLcov < diff_threshold) {
-		throw new Error(pdiffLcov.toString())
+		throw new Error(
+			`Branch coverage (${pdiffLcov.toString()}%) does not meet Coverage threshold (${options.diffCoverageThreshold.toFixed(
+				2,
+			)}%)`,
+		)
+	} else {
+		core$1.info(
+			`Branch coverage (${pdiffLcov.toString()}%) meets Coverage threshold (${options.diffCoverageThreshold.toFixed(
+				2,
+			)}%)`,
+		);
 	}
 }
 
