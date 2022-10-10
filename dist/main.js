@@ -23000,26 +23000,25 @@ function diff(headLcov, baseLcov, diffLcov, options) {
 		return comment(headLcov, options)
 	}
 
+	// Base branch calcs
 	const pbaseLcov = percentage(baseLcov);
+
+	// Head branch calcs
 	const pheadLcov = percentage(headLcov);
+
+	// Coverage Change calcs
 	const pCoverageChange = pheadLcov - pbaseLcov;
 	const plus = pCoverageChange > 0 ? "+" : "";
 	const arrow = pCoverageChange === 0 ? "" : pCoverageChange < 0 ? "▾" : "▴";
-	const pdiffLcov = diffLcov ? percentage(diffLcov) : null;
+
+	// Diff related calcs
+	const pdiffLcov = diffLcov.length > 0 ? percentage(diffLcov) : null;
+	const pdiffLcovStr = pdiffLcov ? `${pdiffLcov.toFixed(2).toString()}%` : "";
 	const pdiffCoverageThresholdStr = `${options.diffCoverageThreshold.toFixed(
 		2,
 	)}%`;
-	let title = "Error generating lcov for files changed";
-	if (diffLcov.length !== 0) {
-		if (pdiffLcov > options.diffCoverageThreshold) {
-			title = `✅ Branch coverage (${pdiffLcov.toFixed(
-				2,
-			)}%) meets coverage threshold (${pdiffCoverageThresholdStr})`;
-		}
-		title = `❌ Branch coverage (${pdiffLcov.toFixed(
-			2,
-		)}%) does not meet coverage threshold (${pdiffCoverageThresholdStr})`;
-	}
+
+	// Coverage directory artifact page link - Useful since Github has a limit on comment size
 	const coverage_dir_link = a(
 		{
 			href: `https://github.com/interviewstreet/frontend-core/actions/runs/${options.run_id}`,
@@ -23027,6 +23026,22 @@ function diff(headLcov, baseLcov, diffLcov, options) {
 		"Coverage directory download page link (💡 Tip: Download coverage_dir_head from this link if comment is clipped)",
 	);
 
+	// Comment Title
+	let title = "Error generating lcov for files changed";
+	if (diffLcov.length !== 0) {
+		if (pdiffLcov > options.diffCoverageThreshold) {
+			title = `✅ Branch coverage (${pdiffLcovStr}) meets coverage threshold (${pdiffCoverageThresholdStr})`;
+		} else {
+			title = `❌ Branch coverage (${pdiffLcovStr}) does not meet coverage threshold (${pdiffCoverageThresholdStr})`;
+		}
+	} else {
+		if (options.files_changed.length === 0) {
+			title = `✅ No files changed.`;
+		}
+		title = "";
+	}
+
+	const shouldShowFilesCoverage = options.files_changed.length === 0;
 	return {
 		fragment: fragment(
 			options.title ? h4(options.title) : h4(title),
@@ -23037,7 +23052,7 @@ function diff(headLcov, baseLcov, diffLcov, options) {
 					pdiffLcov
 						? tr(
 								th("Diff Coverage"),
-								th(pdiffLcov.toFixed(2), "%"),
+								th(pdiffLcovStr),
 								th("Threshold "),
 								th(pdiffCoverageThresholdStr),
 						  )
@@ -23050,17 +23065,18 @@ function diff(headLcov, baseLcov, diffLcov, options) {
 					),
 				),
 			),
-			"\n\n",
-			details(
-				summary(
-					options.shouldFilterChangedFiles
-						? "Coverage Report for Changed Files"
-						: "Coverage Report",
+			shouldShowFilesCoverage && "\n\n",
+			shouldShowFilesCoverage &&
+				details(
+					summary(
+						options.shouldFilterChangedFiles
+							? "Coverage Report for Changed Files"
+							: "Coverage Report",
+					),
+					tabulate(headLcov, options),
 				),
-				tabulate(headLcov, options),
-			),
 		),
-		pdiffLcov: pdiffLcov.toFixed(2),
+		pdiffLcov: typeof pdiffLcov === "number" ? pdiffLcov.toFixed(2) : null,
 	}
 }
 
@@ -23154,8 +23170,8 @@ async function main$1() {
 	const files_changed = core$1.getInput("files_changed");
 	const run_id = parseInt(core$1.getInput("run_id"), 10) || 0;
 
-	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
-	if (!raw) {
+	const headRaw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
+	if (!headRaw) {
 		console.log(`No coverage report found at '${lcovFile}', exiting...`);
 		return
 	}
@@ -23170,6 +23186,9 @@ async function main$1() {
 		repository: github_1.payload.repository.full_name,
 		prefix: normalisePath(`${process.env.GITHUB_WORKSPACE}/`),
 		workingDir,
+		shouldFilterChangedFiles,
+		title,
+		files_changed,
 		diffCoverageThreshold: diff_threshold,
 		run_id,
 	};
@@ -23188,20 +23207,17 @@ async function main$1() {
 		options.head = github_1.ref;
 	}
 
-	options.shouldFilterChangedFiles = shouldFilterChangedFiles;
-	options.title = title;
-
 	if (shouldFilterChangedFiles) {
 		options.changedFiles = await getChangedFiles(githubClient, options, github_1);
 	}
 
-	const lcov = await parse$2(raw);
+	const lcov = await parse$2(headRaw);
 	const baselcov = baseRaw && (await parse$2(baseRaw));
 
-	// extract diffLcov
+	// Extract diffLcov from headlcov
 	let diffLcov = [];
 	if (files_changed) {
-		diffLcov = baselcov.filter(lcov_json => {
+		diffLcov = headlcov.filter(lcov_json => {
 			return files_changed.includes(lcov_json.file)
 		});
 	} else {
@@ -23209,14 +23225,18 @@ async function main$1() {
 	}
 	console.log(diffLcov);
 
+	// Get message text and percentage_diffLcov
 	const message_pdiff = diff(lcov, baselcov, diffLcov, options);
 	const body = message_pdiff.fragment.substring(0, MAX_COMMENT_CHARS);
 	const pdiffLcov = message_pdiff.pdiffLcov;
+	const pdiffLcovStr = `${pdiffLcov.toString()}%`;
 
+	// Delete old comments
 	if (shouldDeleteOldComments) {
 		await deleteOldComments(githubClient, options, github_1);
 	}
 
+	// Comment on PR
 	if (
 		github_1.eventName === "pull_request" ||
 		github_1.eventName === "pull_request_target"
@@ -23236,22 +23256,32 @@ async function main$1() {
 		});
 	}
 
-	core$1.setOutput("diff_coverage", pdiffLcov.toString());
-	core$1.setOutput("result", (pdiffLcov < diff_threshold).toString());
+	// Set outputs
+	const result = pdiffLcov ? pdiffLcov < diff_threshold : null;
+	const resultStr = result.toString();
+	core$1.setOutput("diff_coverage", pdiffLcov);
+	core$1.setOutput("result", resultStr);
 
+	// Action result
+	// Pass if no files changed i.e. pdiffLcov = null
+	if (result === null) {
+		core$1.info(`✅ No files changed.`);
+		return "100%"
+	}
 	// Fail if coverage less than threshold
-	if (pdiffLcov < diff_threshold) {
+	if (!result) {
 		throw new Error(
-			`Branch coverage (${pdiffLcov.toString()}%) does not meet Coverage threshold (${options.diffCoverageThreshold.toFixed(
+			`Branch coverage (${pdiffLcovStr}) does not meet Coverage threshold (${options.diffCoverageThreshold.toFixed(
 				2,
 			)}%)`,
 		)
 	} else {
 		core$1.info(
-			`Branch coverage (${pdiffLcov.toString()}%) meets Coverage threshold (${options.diffCoverageThreshold.toFixed(
+			`Branch coverage (${pdiffLcovStr}) meets Coverage threshold (${options.diffCoverageThreshold.toFixed(
 				2,
 			)}%)`,
 		);
+		return pdiffLcovStr
 	}
 }
 

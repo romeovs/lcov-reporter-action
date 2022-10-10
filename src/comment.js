@@ -119,6 +119,6 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 					tabulate(headLcov, options),
 				),
 		),
-		pdiffLcov: pdiffLcov?.toFixed(2),
+		pdiffLcov: typeof pdiffLcov === "number" ? pdiffLcov.toFixed(2) : null,
 	}
 }
