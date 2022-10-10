@@ -44,9 +44,9 @@ inputs:
     default: "-1"
 outputs:
   diff_coverage:
-    description: (String - Number) The coverage of this branch (%)
+    description: (String - Number) The coverage of this branch
   result:
-    description: (String - Boolean) Branch coverage is above coverage threshold (diff_threshold) or not
+    description: (String - Boolean) Branch coverage is above coverage threshold (diff_threshold input) or not
 runs:
   using: node12
   main: dist/main.js

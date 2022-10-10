@@ -29,8 +29,8 @@ async function main() {
 	const files_changed = core.getInput("files_changed")
 	const run_id = parseInt(core.getInput("run_id"), 10) || 0
 
-	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
-	if (!raw) {
+	const headRaw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
+	if (!headRaw) {
 		console.log(`No coverage report found at '${lcovFile}', exiting...`)
 		return
 	}
@@ -45,6 +45,9 @@ async function main() {
 		repository: context.payload.repository.full_name,
 		prefix: normalisePath(`${process.env.GITHUB_WORKSPACE}/`),
 		workingDir,
+		shouldFilterChangedFiles,
+		title,
+		files_changed,
 		diffCoverageThreshold: diff_threshold,
 		run_id,
 	}
@@ -63,20 +66,17 @@ async function main() {
 		options.head = context.ref
 	}
 
-	options.shouldFilterChangedFiles = shouldFilterChangedFiles
-	options.title = title
-
 	if (shouldFilterChangedFiles) {
 		options.changedFiles = await getChangedFiles(githubClient, options, context)
 	}
 
-	const lcov = await parse(raw)
+	const lcov = await parse(headRaw)
 	const baselcov = baseRaw && (await parse(baseRaw))
 
-	// extract diffLcov
+	// Extract diffLcov from headlcov
 	let diffLcov = []
 	if (files_changed) {
-		diffLcov = baselcov.filter(lcov_json => {
+		diffLcov = headlcov.filter(lcov_json => {
 			return files_changed.includes(lcov_json.file)
 		})
 	} else {
@@ -84,14 +84,18 @@ async function main() {
 	}
 	console.log(diffLcov)
 
+	// Get message text and percentage_diffLcov
 	const message_pdiff = diff(lcov, baselcov, diffLcov, options)
 	const body = message_pdiff.fragment.substring(0, MAX_COMMENT_CHARS)
 	const pdiffLcov = message_pdiff.pdiffLcov
+	const pdiffLcovStr = `${pdiffLcov.toString()}%`
 
+	// Delete old comments
 	if (shouldDeleteOldComments) {
 		await deleteOldComments(githubClient, options, context)
 	}
 
+	// Comment on PR
 	if (
 		context.eventName === "pull_request" ||
 		context.eventName === "pull_request_target"
@@ -111,22 +115,33 @@ async function main() {
 		})
 	}
 
-	core.setOutput("diff_coverage", pdiffLcov.toString())
-	core.setOutput("result", (pdiffLcov < diff_threshold).toString())
+	// Set outputs
+	const result = pdiffLcov ? pdiffLcov < diff_threshold : null
+	const resultStr = result.toString()
+	core.setOutput("diff_coverage", pdiffLcov)
+	core.setOutput("result", resultStr)
 
+	// Action result
+	// Pass if no files changed i.e. pdiffLcov = null
+	if (result === null) {
+		core.info(`✅ No files changed.`)
+		return "100%"
+	}
 	// Fail if coverage less than threshold
-	if (pdiffLcov < diff_threshold) {
+	if (!result) {
 		throw new Error(
-			`Branch coverage (${pdiffLcov.toString()}%) does not meet Coverage threshold (${options.diffCoverageThreshold.toFixed(
+			`Branch coverage (${pdiffLcovStr}) does not meet Coverage threshold (${options.diffCoverageThreshold.toFixed(
 				2,
 			)}%)`,
 		)
+		return pdiffLcovStr
 	} else {
 		core.info(
-			`Branch coverage (${pdiffLcov.toString()}%) meets Coverage threshold (${options.diffCoverageThreshold.toFixed(
+			`Branch coverage (${pdiffLcovStr}) meets Coverage threshold (${options.diffCoverageThreshold.toFixed(
 				2,
 			)}%)`,
 		)
+		return pdiffLcovStr
 	}
 }
 

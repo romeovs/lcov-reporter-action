@@ -43,26 +43,25 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 		return comment(headLcov, options)
 	}
 
+	// Base branch calcs
 	const pbaseLcov = percentage(baseLcov)
+
+	// Head branch calcs
 	const pheadLcov = percentage(headLcov)
+
+	// Coverage Change calcs
 	const pCoverageChange = pheadLcov - pbaseLcov
 	const plus = pCoverageChange > 0 ? "+" : ""
 	const arrow = pCoverageChange === 0 ? "" : pCoverageChange < 0 ? "▾" : "▴"
-	const pdiffLcov = diffLcov ? percentage(diffLcov) : null
+
+	// Diff related calcs
+	const pdiffLcov = diffLcov.length > 0 ? percentage(diffLcov) : null
+	const pdiffLcovStr = pdiffLcov ? `${pdiffLcov.toFixed(2).toString()}%` : ""
 	const pdiffCoverageThresholdStr = `${options.diffCoverageThreshold.toFixed(
 		2,
 	)}%`
-	let title = "Error generating lcov for files changed"
-	if (diffLcov.length !== 0) {
-		if (pdiffLcov > options.diffCoverageThreshold) {
-			title = `✅ Branch coverage (${pdiffLcov.toFixed(
-				2,
-			)}%) meets coverage threshold (${pdiffCoverageThresholdStr})`
-		}
-		title = `❌ Branch coverage (${pdiffLcov.toFixed(
-			2,
-		)}%) does not meet coverage threshold (${pdiffCoverageThresholdStr})`
-	}
+
+	// Coverage directory artifact page link - Useful since Github has a limit on comment size
 	const coverage_dir_link = a(
 		{
 			href: `https://github.com/interviewstreet/frontend-core/actions/runs/${options.run_id}`,
@@ -70,6 +69,22 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 		"Coverage directory download page link (💡 Tip: Download coverage_dir_head from this link if comment is clipped)",
 	)
 
+	// Comment Title
+	let title = "Error generating lcov for files changed"
+	if (diffLcov.length !== 0) {
+		if (pdiffLcov > options.diffCoverageThreshold) {
+			title = `✅ Branch coverage (${pdiffLcovStr}) meets coverage threshold (${pdiffCoverageThresholdStr})`
+		} else {
+			title = `❌ Branch coverage (${pdiffLcovStr}) does not meet coverage threshold (${pdiffCoverageThresholdStr})`
+		}
+	} else {
+		if (options.files_changed.length === 0) {
+			title = `✅ No files changed.`
+		}
+		title = ""
+	}
+
+	const shouldShowFilesCoverage = options.files_changed.length === 0
 	return {
 		fragment: fragment(
 			options.title ? h4(options.title) : h4(title),
@@ -80,7 +95,7 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 					pdiffLcov
 						? tr(
 								th("Diff Coverage"),
-								th(pdiffLcov.toFixed(2), "%"),
+								th(pdiffLcovStr),
 								th("Threshold "),
 								th(pdiffCoverageThresholdStr),
 						  )
@@ -93,16 +108,17 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 					),
 				),
 			),
-			"\n\n",
-			details(
-				summary(
-					options.shouldFilterChangedFiles
-						? "Coverage Report for Changed Files"
-						: "Coverage Report",
+			shouldShowFilesCoverage && "\n\n",
+			shouldShowFilesCoverage &&
+				details(
+					summary(
+						options.shouldFilterChangedFiles
+							? "Coverage Report for Changed Files"
+							: "Coverage Report",
+					),
+					tabulate(headLcov, options),
 				),
-				tabulate(headLcov, options),
-			),
 		),
-		pdiffLcov: pdiffLcov.toFixed(2),
+		pdiffLcov: pdiffLcov?.toFixed(2),
 	}
 }
