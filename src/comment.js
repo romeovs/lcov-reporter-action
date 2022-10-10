@@ -75,7 +75,6 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 			options.title ? h4(options.title) : h4(title),
 			span(coverage_dir_link),
 			br(),
-			br(),
 			table(
 				tbody(
 					pdiffLcov
