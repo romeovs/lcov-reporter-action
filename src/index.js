@@ -47,6 +47,7 @@ async function main() {
 		workingDir,
 		shouldFilterChangedFiles,
 		title,
+		// Exists because API has paging which can be problematic for large PRs
 		files_changed,
 		diffCoverageThreshold: diff_threshold,
 		run_id,
