@@ -71,13 +71,13 @@ async function main() {
 		options.changedFiles = await getChangedFiles(githubClient, options, context)
 	}
 
-	const lcov = await parse(headRaw)
-	const baselcov = baseRaw && (await parse(baseRaw))
+	const headLcov = await parse(headRaw)
+	const baseLcov = baseRaw && (await parse(baseRaw))
 
-	// Extract diffLcov from headlcov
+	// Extract diffLcov from headLcov
 	let diffLcov = []
 	if (files_changed) {
-		diffLcov = headlcov.filter(lcov_json => {
+		diffLcov = headLcov.filter(lcov_json => {
 			return files_changed.includes(lcov_json.file)
 		})
 	} else {
@@ -86,7 +86,7 @@ async function main() {
 	console.log(diffLcov)
 
 	// Get message text and percentage_diffLcov
-	const message_pdiff = diff(lcov, baselcov, diffLcov, options)
+	const message_pdiff = diff(headLcov, baseLcov, diffLcov, options)
 	const body = message_pdiff.fragment.substring(0, MAX_COMMENT_CHARS)
 	const pdiffLcov = message_pdiff.pdiffLcov
 	const pdiffLcovStr = `${pdiffLcov.toString()}%`

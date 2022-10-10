@@ -34,6 +34,7 @@ inputs:
     description: The minimum coverage (%) the diff must have
     required: false
     default: "85"
+  # Exists because API has paging which can be problematic for large PRs
   files_changed:
     description: String of files that have changed from base branch
     required: false

@@ -23188,6 +23188,7 @@ async function main$1() {
 		workingDir,
 		shouldFilterChangedFiles,
 		title,
+		// Exists because API has paging which can be problematic for large PRs
 		files_changed,
 		diffCoverageThreshold: diff_threshold,
 		run_id,
@@ -23211,13 +23212,13 @@ async function main$1() {
 		options.changedFiles = await getChangedFiles(githubClient, options, github_1);
 	}
 
-	const lcov = await parse$2(headRaw);
-	const baselcov = baseRaw && (await parse$2(baseRaw));
+	const headLcov = await parse$2(headRaw);
+	const baseLcov = baseRaw && (await parse$2(baseRaw));
 
-	// Extract diffLcov from headlcov
+	// Extract diffLcov from headLcov
 	let diffLcov = [];
 	if (files_changed) {
-		diffLcov = headlcov.filter(lcov_json => {
+		diffLcov = headLcov.filter(lcov_json => {
 			return files_changed.includes(lcov_json.file)
 		});
 	} else {
@@ -23226,7 +23227,7 @@ async function main$1() {
 	console.log(diffLcov);
 
 	// Get message text and percentage_diffLcov
-	const message_pdiff = diff(lcov, baselcov, diffLcov, options);
+	const message_pdiff = diff(headLcov, baseLcov, diffLcov, options);
 	const body = message_pdiff.fragment.substring(0, MAX_COMMENT_CHARS);
 	const pdiffLcov = message_pdiff.pdiffLcov;
 	const pdiffLcovStr = `${pdiffLcov.toString()}%`;
