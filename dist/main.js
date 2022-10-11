@@ -23047,7 +23047,7 @@ function diff(headLcov, baseLcov, diffLcov, options) {
 	return {
 		fragment: fragment(
 			options.title ? h4(options.title) : h4(title),
-			showCoverageLink ? span(coverage_dir_link) : "",
+			span(coverage_dir_link),
 			br(),
 			table(
 				tbody(
