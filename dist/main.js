@@ -23023,7 +23023,12 @@ function diff(headLcov, baseLcov, diffLcov, options) {
 		{
 			href: `https://github.com/interviewstreet/frontend-core/actions/runs/${options.run_id}`,
 		},
-		"Coverage directory download page link (💡 Tip: Download coverage_dir_head from this link if comment is clipped)",
+
+		`Coverage directory download page link ${
+			options.files_changed.length > 0
+				? "(💡 Tip: Download coverage_dir_head from this link if comment is clipped)"
+				: ""
+		}`,
 	);
 
 	// Comment Title
@@ -23035,19 +23040,14 @@ function diff(headLcov, baseLcov, diffLcov, options) {
 			title = `❌ Branch coverage (${pdiffLcovStr}) does not meet coverage threshold (${pdiffCoverageThresholdStr})`;
 		}
 	} else {
-		if (diffLcov.length === 0) {
-			title = `✅ No files changed.`;
-		}
-
-		// Unknown error
-		title = "";
+		title = `✅ No files changed.`;
 	}
 
-	const shouldShowFilesCoverage = options.files_changed.length === 0;
+	const showFilesCoverage = options.files_changed.length === 0;
 	return {
 		fragment: fragment(
 			options.title ? h4(options.title) : h4(title),
-			span(coverage_dir_link),
+			showCoverageLink ? span(coverage_dir_link) : "",
 			br(),
 			table(
 				tbody(
@@ -23067,8 +23067,8 @@ function diff(headLcov, baseLcov, diffLcov, options) {
 					),
 				),
 			),
-			shouldShowFilesCoverage ? "\n\n" : "",
-			shouldShowFilesCoverage
+			showFilesCoverage ? "\n\n" : "",
+			showFilesCoverage
 				? details(
 						summary(
 							options.shouldFilterChangedFiles
