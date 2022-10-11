@@ -86,7 +86,7 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 		title = `✅ No files changed.`
 	}
 
-	const showFilesCoverage = options.files_changed.length === 0
+	const showFilesCoverage = diffLcov.length !== 0
 	return {
 		fragment: fragment(
 			options.title ? h4(options.title) : h4(title),
