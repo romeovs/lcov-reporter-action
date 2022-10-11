@@ -68,7 +68,7 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 		},
 
 		`Coverage directory download page link ${
-			options.files_changed.length > 0
+			diffLcov.length > 0
 				? "(💡 Tip: Download coverage_dir_head from this link if comment is clipped)"
 				: ""
 		}`,
