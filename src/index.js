@@ -123,6 +123,7 @@ async function main() {
 	core.setOutput("result", resultStr)
 
 	// Action result
+
 	// Pass if no files changed i.e. pdiffLcov = null
 	if (result === null) {
 		core.info(`✅ No files changed.`)

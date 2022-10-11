@@ -78,9 +78,11 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 			title = `❌ Branch coverage (${pdiffLcovStr}) does not meet coverage threshold (${pdiffCoverageThresholdStr})`
 		}
 	} else {
-		if (options.files_changed.length === 0) {
+		if (diffLcov.length === 0) {
 			title = `✅ No files changed.`
 		}
+
+		// Unknown error
 		title = ""
 	}
 
@@ -108,16 +110,17 @@ export function diff(headLcov, baseLcov, diffLcov, options) {
 					),
 				),
 			),
-			shouldShowFilesCoverage && "\n\n",
-			shouldShowFilesCoverage &&
-				details(
-					summary(
-						options.shouldFilterChangedFiles
-							? "Coverage Report for Changed Files"
-							: "Coverage Report",
-					),
-					tabulate(headLcov, options),
-				),
+			shouldShowFilesCoverage ? "\n\n" : "",
+			shouldShowFilesCoverage
+				? details(
+						summary(
+							options.shouldFilterChangedFiles
+								? "Coverage Report for Changed Files"
+								: "Coverage Report",
+						),
+						tabulate(headLcov, options),
+				  )
+				: "",
 		),
 		pdiffLcov: typeof pdiffLcov === "number" ? pdiffLcov.toFixed(2) : null,
 	}

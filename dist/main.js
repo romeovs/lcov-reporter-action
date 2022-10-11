@@ -23035,9 +23035,11 @@ function diff(headLcov, baseLcov, diffLcov, options) {
 			title = `❌ Branch coverage (${pdiffLcovStr}) does not meet coverage threshold (${pdiffCoverageThresholdStr})`;
 		}
 	} else {
-		if (options.files_changed.length === 0) {
+		if (diffLcov.length === 0) {
 			title = `✅ No files changed.`;
 		}
+
+		// Unknown error
 		title = "";
 	}
 
@@ -23065,16 +23067,17 @@ function diff(headLcov, baseLcov, diffLcov, options) {
 					),
 				),
 			),
-			shouldShowFilesCoverage && "\n\n",
-			shouldShowFilesCoverage &&
-				details(
-					summary(
-						options.shouldFilterChangedFiles
-							? "Coverage Report for Changed Files"
-							: "Coverage Report",
-					),
-					tabulate(headLcov, options),
-				),
+			shouldShowFilesCoverage ? "\n\n" : "",
+			shouldShowFilesCoverage
+				? details(
+						summary(
+							options.shouldFilterChangedFiles
+								? "Coverage Report for Changed Files"
+								: "Coverage Report",
+						),
+						tabulate(headLcov, options),
+				  )
+				: "",
 		),
 		pdiffLcov: typeof pdiffLcov === "number" ? pdiffLcov.toFixed(2) : null,
 	}
@@ -23264,6 +23267,7 @@ async function main$1() {
 	core$1.setOutput("result", resultStr);
 
 	// Action result
+
 	// Pass if no files changed i.e. pdiffLcov = null
 	if (result === null) {
 		core$1.info(`✅ No files changed.`);
