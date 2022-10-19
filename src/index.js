@@ -117,7 +117,7 @@ async function main() {
 	}
 
 	// Set outputs
-	const result = pdiffLcov ? pdiffLcov < diff_threshold : null
+	const result = pdiffLcov ? pdiffLcov >= diff_threshold : null
 	const resultStr = result ? result.toString() : ""
 	core.setOutput("diff_coverage", pdiffLcov)
 	core.setOutput("result", resultStr)
