@@ -37,5 +37,5 @@ inputs:
     description: If included, will fail if coverage drops more than the given percentage
     required: false
 runs:
-  using: node12
+  using: node16
   main: dist/main.js
