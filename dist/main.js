@@ -22794,6 +22794,17 @@ function normalisePath(file) {
 	return file.replace(/\\/g, "/")
 }
 
+function createHref(options, file) {
+	const relative = file.file.replace(options.prefix, "");
+	const parts = relative.split("/");
+	const filename = parts[parts.length - 1];
+	const url = path.join(options.repository, 'blob', options.commit, options.workingDir || './', relative);
+	return {
+		href: `https://github.com/${url}`,
+		filename
+	};
+}
+
 // Tabulate the lcov data in a HTML table.
 function tabulate(lcov, options) {
 	const head = tr(
@@ -22857,7 +22868,7 @@ function getStatement(file) {
 	const { branches, functions, lines } = file;
 
 	return [branches, functions, lines].reduce(
-		function(acc, curr) {
+		function (acc, curr) {
 			if (!curr) {
 				return acc
 			}
@@ -22883,12 +22894,9 @@ function toRow(file, indent, options) {
 }
 
 function filename(file, indent, options) {
-	const relative = file.file.replace(options.prefix, "");
-	const href = `https://github.com/${options.repository}/blob/${options.commit}/${relative}`;
-	const parts = relative.split("/");
-	const last = parts[parts.length - 1];
+	const {href, filename} = createHref(options, file);
 	const space = indent ? "&nbsp; &nbsp;" : "";
-	return fragment(space, a({ href }, last))
+	return fragment(space, a({ href }, filename))
 }
 
 function percentage$1(item) {
@@ -22927,14 +22935,13 @@ function uncovered(file, options) {
 				range.start === range.end
 					? `L${range.start}`
 					: `L${range.start}-L${range.end}`;
-			const relative = file.file.replace(options.prefix, "");
-			const href = `https://github.com/${options.repository}/blob/${options.commit}/${relative}#${fragment}`;
+			const { href } = createHref(options, file);
 			const text =
 				range.start === range.end
 					? range.start
 					: `${range.start}&ndash;${range.end}`;
 
-			return a({ href }, text)
+			return a({ href: `${href}#${fragment}` }, text)
 		})
 		.join(", ");
 
@@ -22950,7 +22957,7 @@ function ranges(linenos) {
 
 	let last = null;
 
-	linenos.sort().forEach(function(lineno) {
+	linenos.sort().forEach(function (lineno) {
 		if (last === null) {
 			last = { start: lineno, end: lineno };
 			return
@@ -23126,7 +23133,8 @@ const MAX_COMMENT_CHARS = 65536;
 async function main$1() {
 	const token = core$1.getInput("github-token");
 	const githubClient = new github_2(token);
-	const lcovFile = core$1.getInput("lcov-file") || "./coverage/lcov.info";
+	const workingDir = core$1.getInput('working-directory') || './';	
+	const lcovFile = path.join(workingDir, core$1.getInput("lcov-file") || "./coverage/lcov.info");
 	const baseFile = core$1.getInput("lcov-base");
 	const shouldFilterChangedFiles =
 		core$1.getInput("filter-changed-files").toLowerCase() === "true";
@@ -23167,6 +23175,7 @@ async function main$1() {
 	const options = {
 		repository: github_1.payload.repository.full_name,
 		prefix: normalisePath(`${process.env.GITHUB_WORKSPACE}/`),
+		workingDir,
 	};
 
 	if (github_1.eventName === "pull_request") {

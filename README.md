@@ -20,9 +20,12 @@ Github token used for posting the comment. Defaults to `${{ github.token }}`.
 
 For alternative `github-token` values see: [Creating Personal Access Tokens](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token)
 
+##### `working-directory` (**Default: ""**)
+Path to working directory the same as [default shell property](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun)
+
 ##### `lcov-file` (**Optional**)
 The location of the lcov file to read the coverage report from. Defaults to
-`./coverage/lcov.info`.
+`./coverage/lcov.info`. Path is relative to **working-directory** input
 
 ##### `lcov-base` (**Optional**)
 The location of the lcov file resulting from running the tests in the base
