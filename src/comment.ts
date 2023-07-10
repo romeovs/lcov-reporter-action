@@ -1,3 +1,5 @@
+import { LcovFile } from "lcov-parse"
+import { IOptions } from "./IOptions"
 import {
 	details,
 	summary,
@@ -14,7 +16,7 @@ import {
 import { percentage } from "./lcov"
 import { tabulate } from "./tabulate"
 
-export function comment(lcov, options) {
+export function comment(lcov: LcovFile[], options: IOptions) {
 	const reportTable = tabulate(lcov, options)
 	if (options.dontPostIfNoChangedFilesInReport && !reportTable) {
 		return
@@ -41,7 +43,7 @@ export function comment(lcov, options) {
 	)
 }
 
-export function diff(lcov, before, options) {
+export function diff(lcov: LcovFile[], before: LcovFile[] | false, options: IOptions) {
 	if (!before) {
 		return comment(lcov, options)
 	}

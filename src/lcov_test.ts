@@ -112,8 +112,20 @@ test("parse should fail on invalid lcov", async function() {
 test("percentage should calculate the correct percentage", function() {
 	expect(
 		percentage([
-			{ lines: { hit: 20, found: 25 } },
-			{ lines: { hit: 10, found: 15 } },
+			{ 
+				lines: { hit: 20, found: 25, details: [] },
+				title: '',
+				file: '',
+				functions: { hit: 0, found: 0, details: []},
+				branches: { hit: 0, found: 0, details: []},
+			},
+			{
+				lines: { hit: 10, found: 15, details: [] },
+				title: '',
+				file: '',
+				functions: { hit: 0, found: 0, details: []},
+				branches: { hit: 0, found: 0, details: []},
+			},
 		]),
 	).toBe(75)
 })

@@ -1,18 +1,32 @@
 import { tabulate } from "./tabulate"
 import { th, tr, td, table, tbody, a, b, span, fragment } from "./html"
+import { LcovFile } from "lcov-parse"
+import { IOptions } from "./IOptions"
 
 test("tabulate should generate a correct table", function() {
-	const data = [
+	const data: LcovFile[] = [
 		{
 			file: "/files/project/index.js",
+			title: "index.js",
 			functions: {
 				found: 0,
 				hit: 0,
 				details: [],
 			},
+			lines: {
+				found: 0,
+				hit: 0,
+				details: []
+			},
+			branches: {
+				found: 0,
+				hit: 0,
+				details: [],
+			}
 		},
 		{
 			file: "/files/project/src/foo.js",
+			title: "foo.js",
 			lines: {
 				found: 23,
 				hit: 21,
@@ -38,14 +52,17 @@ test("tabulate should generate a correct table", function() {
 					{
 						name: "foo",
 						line: 19,
+						hit: 1,
 					},
 					{
 						name: "bar",
 						line: 33,
+						hit: 1,
 					},
 					{
 						name: "baz",
 						line: 54,
+						hit: 1,
 					},
 				],
 			},
@@ -76,6 +93,7 @@ test("tabulate should generate a correct table", function() {
 		},
 		{
 			file: "/files/project/src/bar/baz.js",
+			title: "baz.js",
 			lines: {
 				found: 10,
 				hit: 5,
@@ -101,17 +119,25 @@ test("tabulate should generate a correct table", function() {
 					{
 						name: "foo",
 						line: 19,
+						hit: 1,
 					},
 					{
 						name: "bar",
 						line: 33,
+						hit: 1,
 					},
 					{
 						name: "baz",
 						line: 54,
+						hit: 1,
 					},
 				],
 			},
+			branches: {
+				hit: 0,
+				found: 0,
+				details: [],
+			}
 		},
 	]
 
@@ -142,9 +168,9 @@ test("tabulate should generate a correct table", function() {
 					),
 				),
 				td("100%"),
-				td("N/A"),
 				td("100%"),
-				td("N/A"),
+				td("100%"),
+				td("100%"),
 				td(),
 			),
 			tr(td({ colspan: 6 }, b("src"))),
@@ -183,7 +209,7 @@ test("tabulate should generate a correct table", function() {
 					),
 				),
 				td(b("53.85%")),
-				td("N/A"),
+				td("100%"),
 				td(b("66.67%")),
 				td(b("50%")),
 				td(
@@ -204,21 +230,33 @@ test("tabulate should generate a correct table", function() {
 			),
 		),
 	)
-	expect(tabulate(data, options)).toBe(html)
+	expect(tabulate(data, options as IOptions)).toBe(html)
 })
 
 test("filtered tabulate should generate a correct table with only changed files", function() {
-	const data = [
+	const data: LcovFile[] = [
 		{
 			file: "/files/project/index.js",
+			title: "index.js",
 			functions: {
 				found: 0,
 				hit: 0,
 				details: [],
 			},
+			branches: {
+				found: 0,
+				hit: 0,
+				details: [],
+			},
+			lines: {
+				found: 0,
+				hit: 0,
+				details: [],
+			}
 		},
 		{
 			file: "/files/project/src/foo.js",
+			title: "foo.js",
 			lines: {
 				found: 23,
 				hit: 21,
@@ -244,14 +282,17 @@ test("filtered tabulate should generate a correct table with only changed files"
 					{
 						name: "foo",
 						line: 19,
+						hit: 1,
 					},
 					{
 						name: "bar",
 						line: 33,
+						hit: 1,
 					},
 					{
 						name: "baz",
 						line: 54,
+						hit: 1,
 					},
 				],
 			},
@@ -282,6 +323,7 @@ test("filtered tabulate should generate a correct table with only changed files"
 		},
 		{
 			file: "/files/project/src/bar/baz.js",
+			title: "baz.js",
 			lines: {
 				found: 10,
 				hit: 5,
@@ -307,17 +349,25 @@ test("filtered tabulate should generate a correct table with only changed files"
 					{
 						name: "foo",
 						line: 19,
+						hit: 1,
 					},
 					{
 						name: "bar",
 						line: 33,
+						hit: 1,
 					},
 					{
 						name: "baz",
 						line: 54,
+						hit: 1,
 					},
 				],
 			},
+			branches: {
+				hit: 0,
+				found: 0,
+				details: [],
+			}
 		},
 	]
 
@@ -365,21 +415,33 @@ test("filtered tabulate should generate a correct table with only changed files"
 			),
 		),
 	)
-	expect(tabulate(data, options)).toBe(html)
+	expect(tabulate(data, options as IOptions)).toBe(html)
 })
 
 test("filtered tabulate should generate an empty result when no matching changed files and dontPostIfNoChangedFilesInReport set", function() {
-	const data = [
+	const data: LcovFile[] = [
 		{
 			file: "/files/project/index.js",
+			title: "index.js",
 			functions: {
 				found: 0,
 				hit: 0,
 				details: [],
 			},
+			branches: {
+				found: 0,
+				hit: 0,
+				details: [],
+			},
+			lines: {
+				found: 0,
+				hit: 0,
+				details: [],
+			}
 		},
 		{
 			file: "/files/project/src/foo.js",
+			title: "foo.js",
 			lines: {
 				found: 23,
 				hit: 21,
@@ -405,14 +467,17 @@ test("filtered tabulate should generate an empty result when no matching changed
 					{
 						name: "foo",
 						line: 19,
+						hit: 1,
 					},
 					{
 						name: "bar",
 						line: 33,
+						hit: 1,
 					},
 					{
 						name: "baz",
 						line: 54,
+						hit: 1,
 					},
 				],
 			},
@@ -443,6 +508,7 @@ test("filtered tabulate should generate an empty result when no matching changed
 		},
 		{
 			file: "/files/project/src/bar/baz.js",
+			title: "baz.js",
 			lines: {
 				found: 10,
 				hit: 5,
@@ -468,16 +534,24 @@ test("filtered tabulate should generate an empty result when no matching changed
 					{
 						name: "foo",
 						line: 19,
+						hit: 1,
 					},
 					{
 						name: "bar",
 						line: 33,
+						hit: 1,
 					},
 					{
 						name: "baz",
 						line: 54,
+						hit: 1,
 					},
 				],
+			},
+			branches: {
+				hit: 0,
+				found: 0,
+				details: [],
 			},
 		},
 	]
@@ -490,21 +564,33 @@ test("filtered tabulate should generate an empty result when no matching changed
 		changedFiles: ["src/not-in-this-report.js"],
 	}
 
-	expect(tabulate(data, options)).toBe("")
+	expect(tabulate(data, options as IOptions)).toBe("")
 })
 
 test("filtered tabulate should fix backwards slashes in filenames", function() {
-	const data = [
+	const data: LcovFile[] = [
 		{
 			file: "\\files\\project\\index.js",
+			title: "index.js",
 			functions: {
 				found: 0,
 				hit: 0,
 				details: [],
 			},
+			branches: {
+				found: 0,
+				hit: 0,
+				details: [],
+			},
+			lines: {
+				found: 0,
+				hit: 0,
+				details: [],
+			}
 		},
 		{
 			file: "\\files\\project\\src\\foo.js",
+			title: "foo.js",
 			lines: {
 				found: 23,
 				hit: 21,
@@ -530,14 +616,17 @@ test("filtered tabulate should fix backwards slashes in filenames", function() {
 					{
 						name: "foo",
 						line: 19,
+						hit: 1,
 					},
 					{
 						name: "bar",
 						line: 33,
+						hit: 1,
 					},
 					{
 						name: "baz",
 						line: 54,
+						hit: 1,
 					},
 				],
 			},
@@ -568,6 +657,7 @@ test("filtered tabulate should fix backwards slashes in filenames", function() {
 		},
 		{
 			file: "\\files\\project\\src\\bar\\baz.js",
+			title: "baz.js",
 			lines: {
 				found: 10,
 				hit: 5,
@@ -593,17 +683,25 @@ test("filtered tabulate should fix backwards slashes in filenames", function() {
 					{
 						name: "foo",
 						line: 19,
+						hit: 1,
 					},
 					{
 						name: "bar",
 						line: 33,
+						hit: 1,
 					},
 					{
 						name: "baz",
 						line: 54,
+						hit: 1,
 					},
 				],
 			},
+			branches: {
+				hit: 0,
+				found: 0,
+				details: [],
+			}
 		},
 	]
 
@@ -651,13 +749,14 @@ test("filtered tabulate should fix backwards slashes in filenames", function() {
 			),
 		),
 	)
-	expect(tabulate(data, options)).toBe(html)
+	expect(tabulate(data, options as IOptions)).toBe(html)
 })
 
 test("maxUncoveredLines should limit number of uncovered lines displayed", function() {
-	const data = [
+	const data: LcovFile[] = [
 		{
 			file: "/files/project/src/bar/baz.js",
+			title: "baz.js",
 			lines: {
 				found: 10,
 				hit: 5,
@@ -691,17 +790,25 @@ test("maxUncoveredLines should limit number of uncovered lines displayed", funct
 					{
 						name: "foo",
 						line: 19,
+						hit: 1,
 					},
 					{
 						name: "bar",
 						line: 33,
+						hit: 1,
 					},
 					{
 						name: "baz",
 						line: 54,
+						hit: 1,
 					},
 				],
 			},
+			branches: {
+				hit: 0,
+				found: 0,
+				details: [],
+			}
 		},
 	]
 
@@ -734,7 +841,7 @@ test("maxUncoveredLines should limit number of uncovered lines displayed", funct
 					),
 				),
 				td(b("53.85%")),
-				td("N/A"),
+				td("100%"),
 				td(b("66.67%")),
 				td(b("50%")),
 				td(
@@ -756,5 +863,5 @@ test("maxUncoveredLines should limit number of uncovered lines displayed", funct
 			),
 		),
 	)
-	expect(tabulate(data, options)).toBe(html)
+	expect(tabulate(data, options as IOptions)).toBe(html)
 })
