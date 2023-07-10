@@ -24,16 +24,15 @@ export async function deleteOldComments(github: GitHub, options: IOptions, conte
 
 async function getExistingComments(github: GitHub, options: IOptions, context: Context) {
 	let page = 0
-	let results: Octokit.PullsGetCommentsForReviewResponseItem[] = []
+    let results: Octokit.IssuesListCommentsResponseItem[] = [];
 	let response
 	do {
-		response = await github.pulls.getCommentsForReview({
-			pull_number: context.payload.pull_request!.number,
+        response = await github.issues.listComments({
+            issue_number: context.issue.number,
 			owner: context.repo.owner,
 			repo: context.repo.repo,
 			per_page: REQUESTED_COMMENTS_PER_PAGE,
 			page: page,
-			review_id: context.payload.pull_request!.number
 		})
 		results = results.concat(response.data)
 		page++
