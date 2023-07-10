@@ -4,6 +4,7 @@ import path from "path"
 
 import { parse } from "./lcov"
 import { diff } from "./comment"
+import { IOptions } from "./IOptions"
 
 async function main() {
 	const file = process.argv[2]
@@ -27,7 +28,7 @@ async function main() {
 		base: "master",
 	}
 
-	console.log(diff(lcov, before, options))
+	console.log(diff(lcov!, before!, options as IOptions))
 }
 
 main().catch(function(err) {

@@ -9,6 +9,7 @@ import { getChangedFiles } from "./get_changes"
 import { deleteOldComments } from "./delete_old_comments"
 import { normalisePath } from "./util"
 import { percentage } from "./lcov"
+import { IOptions } from "./IOptions"
 
 const MAX_COMMENT_CHARS = 65536
 
@@ -54,17 +55,22 @@ async function main() {
 		console.log(`No coverage report found at '${baseFile}', ignoring...`)
 	}
 
-	const options = {
+	if (!context.payload.repository || !context.payload.repository.full_name) {
+		console.log('Repository not found. Exiting.');
+		return;
+	}
+
+	const options: Partial<IOptions> = {
 		repository: context.payload.repository.full_name,
 		prefix: normalisePath(`${process.env.GITHUB_WORKSPACE}/`),
 		workingDir,
 	}
 
 	if (context.eventName === "pull_request") {
-		options.commit = context.payload.pull_request.head.sha
-		options.baseCommit = context.payload.pull_request.base.sha
-		options.head = context.payload.pull_request.head.ref
-		options.base = context.payload.pull_request.base.ref
+		options.commit = context.payload.pull_request!.head.sha
+		options.baseCommit = context.payload.pull_request!.base.sha
+		options.head = context.payload.pull_request!.head.ref
+		options.base = context.payload.pull_request!.base.ref
 	} else if (context.eventName === "push") {
 		options.commit = context.payload.after
 		options.baseCommit = context.payload.before
@@ -75,17 +81,26 @@ async function main() {
 	options.dontPostIfNoChangedFilesInReport = dontPostIfNoChangedFilesInReport
 	options.title = title
 	options.failDropThreshold = failDropThreshold
+
 	if (maxUncoveredLines) {
 		options.maxUncoveredLines = parseInt(maxUncoveredLines)
 	}
 
 	if (shouldFilterChangedFiles || dontPostIfNoChangedFilesInReport) {
-		options.changedFiles = await getChangedFiles(githubClient, options, context)
+		options.changedFiles = await getChangedFiles(githubClient, options as IOptions, context)
 	}
 
 	const lcov = await parse(raw)
-	const baselcov = baseRaw && (await parse(baseRaw))
-	let body = diff(lcov, baselcov, options)
+	if (typeof lcov === 'undefined') {
+		console.log("Failed to generate lcov report, exiting...");
+		return;
+	}
+	const baselcov = !!baseRaw && (await parse(baseRaw))
+	if (typeof baselcov === 'undefined') {
+		console.log("Failed to generate base lcov report, exiting...");
+		return;
+	}
+	let body = diff(lcov, baselcov, options as IOptions)
 	if (!body) {
 		console.log(`No changed files in report, exiting...`)
 		return
@@ -94,21 +109,21 @@ async function main() {
 	}
 
 	if (shouldDeleteOldComments) {
-		await deleteOldComments(githubClient, options, context)
+		await deleteOldComments(githubClient, options as IOptions, context)
 	}
 
 	if (context.eventName === "pull_request") {
 		await githubClient.issues.createComment({
 			repo: context.repo.repo,
 			owner: context.repo.owner,
-			issue_number: context.payload.pull_request.number,
+			issue_number: context.payload.pull_request!.number,
 			body: body,
 		})
 	} else if (context.eventName === "push") {
 		await githubClient.repos.createCommitComment({
 			repo: context.repo.repo,
 			owner: context.repo.owner,
-			commit_sha: options.commit,
+			commit_sha: options.commit!,
 			body: body,
 		})
 	}

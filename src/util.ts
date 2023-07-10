@@ -1,10 +1,12 @@
+import { LcovFile } from 'lcov-parse'
 import path from 'path'
+import { IOptions } from './IOptions'
 
-export function normalisePath(file) {
+export function normalisePath(file: string) {
 	return file.replace(/\\/g, "/")
 }
 
-export function createHref(options, file) {
+export function createHref(options: IOptions, file: LcovFile) {
 	const relative = file.file.replace(options.prefix, "")
 	const parts = relative.split("/")
 	const filename = parts[parts.length - 1]

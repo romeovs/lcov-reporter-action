@@ -1,7 +1,10 @@
 import * as core from "@actions/core"
+import { GitHub } from "@actions/github"
+import { IOptions } from "./IOptions"
+import { Context } from "@actions/github/lib/context"
 
 // Get list of changed files
-export async function getChangedFiles(githubClient, options, context) {
+export async function getChangedFiles(githubClient: GitHub, options: IOptions, context: Context) {
 	if (!options.commit || !options.baseCommit) {
 		core.setFailed(
 			`The base and head commits are missing from the payload for this ${context.eventName} event.`,

@@ -1,8 +1,12 @@
 import * as core from "@actions/core"
+import { GitHub } from "@actions/github"
+import { IOptions } from "./IOptions"
+import { Context } from "@actions/github/lib/context"
+import Octokit from '@octokit/rest';
 
 const REQUESTED_COMMENTS_PER_PAGE = 20
 
-export async function deleteOldComments(github, options, context) {
+export async function deleteOldComments(github: GitHub, options: IOptions, context: Context) {
 	const existingComments = await getExistingComments(github, options, context)
 	for (const comment of existingComments) {
 		core.debug(`Deleting comment: ${comment.id}`)
@@ -18,9 +22,9 @@ export async function deleteOldComments(github, options, context) {
 	}
 }
 
-async function getExistingComments(github, options, context) {
+async function getExistingComments(github: GitHub, options: IOptions, context: Context) {
 	let page = 0
-	let results = []
+	let results: Octokit.IssuesListCommentsResponseItem[] = []
 	let response
 	do {
 		response = await github.issues.listComments({

@@ -1,13 +1,14 @@
-function tag(name) {
-	return function(...children) {
+function tag(name: string) {
+	return function(...children: (string | number | { [key: string]: string | number})[]) {
+		const firstChild = children[0];
 		const props =
-			typeof children[0] === "object"
-				? Object.keys(children[0])
-						.map(key => ` ${key}='${children[0][key]}'`)
+			typeof firstChild === "object"
+				? Object.keys(firstChild)
+						.map(key => ` ${key}='${firstChild[key]}'`)
 						.join("")
 				: ""
 
-		const c = typeof children[0] === "string" ? children : children.slice(1)
+		const c = typeof firstChild === "string" ? children : children.slice(1)
 
 		return `<${name}${props}>${c.join("")}</${name}>`
 	}
@@ -25,6 +26,6 @@ export const a = tag("a")
 export const span = tag("span")
 export const h2 = tag("h2")
 
-export const fragment = function(...children) {
+export const fragment = function(...children: string[]) {
 	return children.join("")
 }

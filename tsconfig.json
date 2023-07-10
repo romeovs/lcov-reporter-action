@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "esnext",
+    "noEmit": true,
+    "pretty": true,
+
+    "lib": ["esnext"],
+
+    "strict": true,
+
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "removeComments": false,
+    "skipLibCheck": true,
+    "stripInternal": true,
+    "useDefineForClassFields": true
+  }
+}
