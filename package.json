@@ -14,7 +14,7 @@
 	"main": "index.js",
 	"scripts": {
 		"build": "rollup -c",
-		"test": "jest --passWithNoTests --coverage",
+		"test": "jest --coverage",
 		"local": "babel-node src/cli",
 		"format": "prettier --write src/*.js src/**/*.js"
 	},

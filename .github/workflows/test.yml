@@ -1,0 +1,23 @@
+name: Run tests
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+
+jobs:
+  run-tests:
+    name: "Run tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: mskelton/setup-yarn@v1
+        with:
+          node-version: 16.x
+
+      - name: Build and run tests
+        run: |
+          yarn
+          yarn test
