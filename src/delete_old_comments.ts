@@ -38,14 +38,10 @@ async function getExistingComments(github: GitHub, options: IOptions, context: C
 		page++
 	} while (response.data.length === REQUESTED_COMMENTS_PER_PAGE)
 
-	results
-		.filter(comment => !!comment.user)
-		.forEach(comment => console.log(comment.user.type, comment.user.login, comment.user));
-
 	return results.filter(
 		comment =>
 			!!comment.user &&
-			comment.user.type == "Bot" && comment.user.login == "github-actions" &&
+			comment.user.type == "Bot" && comment.user.login == "github-actions[bot]" &&
 			(!options.title || comment.body.includes(options.title)),
 	);
 }
