@@ -23062,8 +23062,9 @@ async function getExistingComments(github, options, context) {
         page++;
     } while (response.data.length === REQUESTED_COMMENTS_PER_PAGE);
     return results.filter(comment => !!comment.user &&
-        (!options.title || comment.body.includes(options.title)) &&
-        comment.body.includes("Coverage Report"));
+        comment.user.type == "Bot" &&
+        comment.user.login == "github-actions[bot]" &&
+        (!options.title || comment.body.includes(options.title)));
 }
 
 const MAX_COMMENT_CHARS = 65536;
@@ -23145,10 +23146,10 @@ async function main$1() {
     else {
         body = body.substring(0, MAX_COMMENT_CHARS);
     }
-    if (shouldDeleteOldComments) {
-        await deleteOldComments(githubClient, options, github_1);
-    }
     if (github_1.eventName === "pull_request") {
+        if (shouldDeleteOldComments) {
+            await deleteOldComments(githubClient, options, github_1);
+        }
         await githubClient.issues.createComment({
             repo: github_1.repo.repo,
             owner: github_1.repo.owner,
