@@ -23062,7 +23062,8 @@ async function getExistingComments(github, options, context) {
         page++;
     } while (response.data.length === REQUESTED_COMMENTS_PER_PAGE);
     return results.filter(comment => !!comment.user &&
-        comment.user.type == "Bot" && comment.user.login == "github-actions[bot]" &&
+        comment.user.type == "Bot" &&
+        comment.user.login == "github-actions[bot]" &&
         (!options.title || comment.body.includes(options.title)));
 }
 

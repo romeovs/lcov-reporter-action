@@ -2,11 +2,15 @@ import * as core from "@actions/core"
 import { GitHub } from "@actions/github"
 import { IOptions } from "./IOptions"
 import { Context } from "@actions/github/lib/context"
-import Octokit from '@octokit/rest';
+import Octokit from "@octokit/rest"
 
 const REQUESTED_COMMENTS_PER_PAGE = 20
 
-export async function deleteOldComments(github: GitHub, options: IOptions, context: Context) {
+export async function deleteOldComments(
+	github: GitHub,
+	options: IOptions,
+	context: Context,
+) {
 	const existingComments = await getExistingComments(github, options, context)
 	for (const comment of existingComments) {
 		core.debug(`Deleting comment: ${comment.id}`)
@@ -22,13 +26,17 @@ export async function deleteOldComments(github: GitHub, options: IOptions, conte
 	}
 }
 
-async function getExistingComments(github: GitHub, options: IOptions, context: Context) {
+async function getExistingComments(
+	github: GitHub,
+	options: IOptions,
+	context: Context,
+) {
 	let page = 0
-    let results: Octokit.IssuesListCommentsResponseItem[] = [];
+	let results: Octokit.IssuesListCommentsResponseItem[] = []
 	let response
 	do {
-        response = await github.issues.listComments({
-            issue_number: context.issue.number,
+		response = await github.issues.listComments({
+			issue_number: context.issue.number,
 			owner: context.repo.owner,
 			repo: context.repo.repo,
 			per_page: REQUESTED_COMMENTS_PER_PAGE,
@@ -41,7 +49,8 @@ async function getExistingComments(github: GitHub, options: IOptions, context: C
 	return results.filter(
 		comment =>
 			!!comment.user &&
-			comment.user.type == "Bot" && comment.user.login == "github-actions[bot]" &&
+			comment.user.type == "Bot" &&
+			comment.user.login == "github-actions[bot]" &&
 			(!options.title || comment.body.includes(options.title)),
-	);
+	)
 }
