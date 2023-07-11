@@ -30,6 +30,16 @@ inputs:
   title:
     description: Title to add to the comment
     required: false
+  max-uncovered-lines:
+    description: Max number of uncovered lines to display in uncovered lines column (integer)
+    required: false
+  dont-post-if-no-changed-files-in-report:
+    description: Set to true to prevent posting when no files in the report have been changed
+    required: false
+    default: false
+  fail-drop-percent-threshold:
+    description: If included, will fail if coverage drops more than the given percentage
+    required: false
 runs:
   using: node16
   main: dist/main.js

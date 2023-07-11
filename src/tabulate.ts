@@ -1,8 +1,10 @@
+import { LcovBranch, LcovFile, LcovLine, LcovPart } from "lcov-parse"
+import { IOptions } from "./IOptions"
 import { th, tr, td, table, tbody, a, b, span, fragment } from "./html"
 import { createHref, normalisePath } from "./util"
 
 // Tabulate the lcov data in a HTML table.
-export function tabulate(lcov, options) {
+export function tabulate(lcov: LcovFile[], options: IOptions) {
 	const head = tr(
 		th("File"),
 		th("Stmts"),
@@ -12,7 +14,7 @@ export function tabulate(lcov, options) {
 		th("Uncovered Lines"),
 	)
 
-	const folders = {}
+	const folders: {[key: string]: LcovFile[]} = {}
 	for (const file of filterAndNormaliseLcov(lcov, options)) {
 		const parts = file.file.replace(options.prefix, "").split("/")
 		const folder = parts.slice(0, -1).join("/")
@@ -25,16 +27,18 @@ export function tabulate(lcov, options) {
 		.reduce(
 			(acc, key) => [
 				...acc,
-				toFolder(key, options),
+				toFolder(key),
 				...folders[key].map(file => toRow(file, key !== "", options)),
 			],
-			[],
+			[] as string[],
 		)
-
+	if (rows.length === 0) {
+		return ""
+	}
 	return table(tbody(head, ...rows))
 }
 
-function filterAndNormaliseLcov(lcov, options) {
+function filterAndNormaliseLcov(lcov: LcovFile[], options: IOptions): LcovFile[] {
 	return lcov
 		.map(file => ({
 			...file,
@@ -43,14 +47,14 @@ function filterAndNormaliseLcov(lcov, options) {
 		.filter(file => shouldBeIncluded(file.file, options))
 }
 
-function shouldBeIncluded(fileName, options) {
+function shouldBeIncluded(fileName: string, options: IOptions) {
 	if (!options.shouldFilterChangedFiles) {
 		return true
 	}
 	return options.changedFiles.includes(fileName.replace(options.prefix, ""))
 }
 
-function toFolder(path) {
+function toFolder(path: string) {
 	if (path === "") {
 		return ""
 	}
@@ -58,7 +62,7 @@ function toFolder(path) {
 	return tr(td({ colspan: 6 }, b(path)))
 }
 
-function getStatement(file) {
+function getStatement(file: LcovFile): LcovPart<LcovBranch | LcovLine> {
 	const { branches, functions, lines } = file
 
 	return [branches, functions, lines].reduce(
@@ -70,30 +74,31 @@ function getStatement(file) {
 			return {
 				hit: acc.hit + curr.hit,
 				found: acc.found + curr.found,
+				details: [...acc.details, ...curr.details]
 			}
 		},
-		{ hit: 0, found: 0 },
+		{ hit: 0, found: 0 , details: [] as (LcovBranch | LcovLine)[] },
 	)
 }
 
-function toRow(file, indent, options) {
+function toRow(file: LcovFile, indent: boolean, options: IOptions) {
 	return tr(
 		td(filename(file, indent, options)),
-		td(percentage(getStatement(file), options)),
-		td(percentage(file.branches, options)),
-		td(percentage(file.functions, options)),
-		td(percentage(file.lines, options)),
+		td(percentage(getStatement(file))),
+		td(percentage(file.branches)),
+		td(percentage(file.functions)),
+		td(percentage(file.lines)),
 		td(uncovered(file, options)),
 	)
 }
 
-function filename(file, indent, options) {
+function filename(file: LcovFile, indent: boolean, options: IOptions) {
 	const {href, filename} = createHref(options, file);
 	const space = indent ? "&nbsp; &nbsp;" : ""
 	return fragment(space, a({ href }, filename))
 }
 
-function percentage(item) {
+function percentage<T>(item: LcovPart<T>) {
 	if (!item) {
 		return "N/A"
 	}
@@ -106,7 +111,7 @@ function percentage(item) {
 	return tag(`${rounded}%`)
 }
 
-function uncovered(file, options) {
+function uncovered(file: LcovFile, options: IOptions) {
 	const branches = (file.branches ? file.branches.details : [])
 		.filter(branch => branch.taken === 0)
 		.map(branch => branch.line)
@@ -117,8 +122,14 @@ function uncovered(file, options) {
 
 	const all = ranges([...branches, ...lines])
 
-	return all
-		.map(function (range) {
+	var numNotIncluded = 0
+	if (options.maxUncoveredLines) {
+		const notIncluded = all.splice(options.maxUncoveredLines)
+		numNotIncluded = notIncluded.length
+	}
+
+	const result = all
+		.map(function(range) {
 			const fragment =
 				range.start === range.end
 					? `L${range.start}`
@@ -132,12 +143,20 @@ function uncovered(file, options) {
 			return a({ href: `${href}#${fragment}` }, text)
 		})
 		.join(", ")
+
+	if (numNotIncluded > 0) {
+		return result + ` and ${numNotIncluded} more...`
+	} else {
+		return result
+	}
 }
 
-function ranges(linenos) {
-	const res = []
+interface Range { start: number; end: number; };
 
-	let last = null
+function ranges(linenos: number[]) {
+	const res: Range[] = []
+
+	let last: Range | null = null
 
 	linenos.sort().forEach(function (lineno) {
 		if (last === null) {

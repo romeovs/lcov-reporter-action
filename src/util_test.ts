@@ -1,3 +1,5 @@
+import { LcovFile } from "lcov-parse"
+import { IOptions } from "./IOptions"
 import { createHref } from "./util"
 
 test('create simple url to file', () => {
@@ -8,13 +10,24 @@ test('create simple url to file', () => {
   }
   const file = {
     file: "/files/project/index.js",
+    title: "index.js",
     functions: {
       found: 0,
       hit: 0,
       details: [],
     },
+    branches: {
+      found: 0,
+      hit: 0,
+      details: []
+    },
+    lines: {
+      found: 0,
+      hit: 0,
+      details: [],
+    }
   }
-  expect(createHref(options, file)).toEqual({
+  expect(createHref(options as IOptions, file)).toEqual({
     href: `https://github.com/${options.repository}/blob/${options.commit}/index.js`,
     filename: 'index.js'
   })
@@ -28,15 +41,26 @@ describe('has working directory', () => {
       prefix: "/files/project/",
       workingDir: 'frontend'
     }
-    const file = {
+    const file: LcovFile = {
       file: "/files/project/index.js",
+      title: "index.js",
       functions: {
         found: 0,
         hit: 0,
         details: [],
       },
+      branches: {
+        found: 0,
+        hit: 0,
+        details: []
+      },
+      lines: {
+        found: 0,
+        hit: 0,
+        details: [],
+      }
     }
-    expect(createHref(options, file)).toEqual({
+    expect(createHref(options as IOptions, file)).toEqual({
       href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/index.js`,
       filename: 'index.js'
     })
@@ -49,15 +73,26 @@ describe('has working directory', () => {
       prefix: "/files/project/",
       workingDir: './frontend/'
     }
-    const file = {
+    const file: LcovFile = {
       file: "/files/project/index.js",
+      title: "index.js",
       functions: {
         found: 0,
         hit: 0,
         details: [],
       },
-    }
-    expect(createHref(options, file)).toEqual({
+      branches: {
+        found: 0,
+        hit: 0,
+        details: []
+      },
+      lines: {
+        found: 0,
+        hit: 0,
+        details: [],
+      }
+    } 
+    expect(createHref(options as IOptions, file)).toEqual({
       href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/index.js`,
       filename: 'index.js'
     })
@@ -70,15 +105,26 @@ describe('has working directory', () => {
       prefix: "/files/project/",
       workingDir: '/frontend/'
     }
-    const file = {
+    const file: LcovFile = {
       file: "/files/project/src/foo.js",
+      title: "foo.js",
       functions: {
         found: 0,
         hit: 0,
         details: [],
       },
+      branches: {
+        found: 0,
+        hit: 0,
+        details: []
+      },
+      lines: {
+        found: 0,
+        hit: 0,
+        details: [],
+      }
     }
-    expect(createHref(options, file)).toEqual({
+    expect(createHref(options as IOptions, file)).toEqual({
       href: `https://github.com/${options.repository}/blob/${options.commit}/frontend/src/foo.js`,
       filename: 'foo.js'
     })

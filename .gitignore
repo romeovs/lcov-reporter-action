@@ -1,2 +1,6 @@
 node_modules/
 coverage/
+.rollup.cache/
+
+tsconfig.tsbuildinfo
+yarn-error.log

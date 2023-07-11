@@ -3079,166 +3079,213 @@ if (process.platform === 'linux') {
 }
 });
 
+var signalExit = createCommonjsModule(function (module) {
 // Note: since nyc uses this module to output coverage, any lines
 // that are in the direct sync flow of nyc's outputCoverage are
 // ignored, since we can never get coverage for them.
+// grab a reference to node's real process object right away
+var process = commonjsGlobal.process;
 
-var signals$1 = signals;
+const processOk = function (process) {
+  return process &&
+    typeof process === 'object' &&
+    typeof process.removeListener === 'function' &&
+    typeof process.emit === 'function' &&
+    typeof process.reallyExit === 'function' &&
+    typeof process.listeners === 'function' &&
+    typeof process.kill === 'function' &&
+    typeof process.pid === 'number' &&
+    typeof process.on === 'function'
+};
 
-var EE = events;
+// some kind of non-node environment, just no-op
 /* istanbul ignore if */
-if (typeof EE !== 'function') {
-  EE = EE.EventEmitter;
-}
-
-var emitter;
-if (process.__signal_exit_emitter__) {
-  emitter = process.__signal_exit_emitter__;
+if (!processOk(process)) {
+  module.exports = function () {
+    return function () {}
+  };
 } else {
-  emitter = process.__signal_exit_emitter__ = new EE();
-  emitter.count = 0;
-  emitter.emitted = {};
-}
+  var assert$1 = assert;
+  var signals$1 = signals;
+  var isWin = /^win/i.test(process.platform);
 
-// Because this emitter is a global, we have to check to see if a
-// previous version of this library failed to enable infinite listeners.
-// I know what you're about to say.  But literally everything about
-// signal-exit is a compromise with evil.  Get used to it.
-if (!emitter.infinite) {
-  emitter.setMaxListeners(Infinity);
-  emitter.infinite = true;
-}
-
-var signalExit = function (cb, opts) {
-  assert.equal(typeof cb, 'function', 'a callback must be provided for exit handler');
-
-  if (loaded === false) {
-    load();
+  var EE = events;
+  /* istanbul ignore if */
+  if (typeof EE !== 'function') {
+    EE = EE.EventEmitter;
   }
 
-  var ev = 'exit';
-  if (opts && opts.alwaysLast) {
-    ev = 'afterexit';
+  var emitter;
+  if (process.__signal_exit_emitter__) {
+    emitter = process.__signal_exit_emitter__;
+  } else {
+    emitter = process.__signal_exit_emitter__ = new EE();
+    emitter.count = 0;
+    emitter.emitted = {};
   }
 
-  var remove = function () {
-    emitter.removeListener(ev, cb);
-    if (emitter.listeners('exit').length === 0 &&
-        emitter.listeners('afterexit').length === 0) {
-      unload();
+  // Because this emitter is a global, we have to check to see if a
+  // previous version of this library failed to enable infinite listeners.
+  // I know what you're about to say.  But literally everything about
+  // signal-exit is a compromise with evil.  Get used to it.
+  if (!emitter.infinite) {
+    emitter.setMaxListeners(Infinity);
+    emitter.infinite = true;
+  }
+
+  module.exports = function (cb, opts) {
+    /* istanbul ignore if */
+    if (!processOk(commonjsGlobal.process)) {
+      return function () {}
     }
+    assert$1.equal(typeof cb, 'function', 'a callback must be provided for exit handler');
+
+    if (loaded === false) {
+      load();
+    }
+
+    var ev = 'exit';
+    if (opts && opts.alwaysLast) {
+      ev = 'afterexit';
+    }
+
+    var remove = function () {
+      emitter.removeListener(ev, cb);
+      if (emitter.listeners('exit').length === 0 &&
+          emitter.listeners('afterexit').length === 0) {
+        unload();
+      }
+    };
+    emitter.on(ev, cb);
+
+    return remove
   };
-  emitter.on(ev, cb);
 
-  return remove
-};
+  var unload = function unload () {
+    if (!loaded || !processOk(commonjsGlobal.process)) {
+      return
+    }
+    loaded = false;
 
-var unload_1 = unload;
-function unload () {
-  if (!loaded) {
-    return
-  }
-  loaded = false;
+    signals$1.forEach(function (sig) {
+      try {
+        process.removeListener(sig, sigListeners[sig]);
+      } catch (er) {}
+    });
+    process.emit = originalProcessEmit;
+    process.reallyExit = originalProcessReallyExit;
+    emitter.count -= 1;
+  };
+  module.exports.unload = unload;
 
+  var emit = function emit (event, code, signal) {
+    /* istanbul ignore if */
+    if (emitter.emitted[event]) {
+      return
+    }
+    emitter.emitted[event] = true;
+    emitter.emit(event, code, signal);
+  };
+
+  // { <signal>: <listener fn>, ... }
+  var sigListeners = {};
   signals$1.forEach(function (sig) {
-    try {
-      process.removeListener(sig, sigListeners[sig]);
-    } catch (er) {}
+    sigListeners[sig] = function listener () {
+      /* istanbul ignore if */
+      if (!processOk(commonjsGlobal.process)) {
+        return
+      }
+      // If there are no other listeners, an exit is coming!
+      // Simplest way: remove us and then re-send the signal.
+      // We know that this will kill the process, so we can
+      // safely emit now.
+      var listeners = process.listeners(sig);
+      if (listeners.length === emitter.count) {
+        unload();
+        emit('exit', null, sig);
+        /* istanbul ignore next */
+        emit('afterexit', null, sig);
+        /* istanbul ignore next */
+        if (isWin && sig === 'SIGHUP') {
+          // "SIGHUP" throws an `ENOSYS` error on Windows,
+          // so use a supported signal instead
+          sig = 'SIGINT';
+        }
+        /* istanbul ignore next */
+        process.kill(process.pid, sig);
+      }
+    };
   });
-  process.emit = originalProcessEmit;
-  process.reallyExit = originalProcessReallyExit;
-  emitter.count -= 1;
-}
 
-function emit (event, code, signal) {
-  if (emitter.emitted[event]) {
-    return
-  }
-  emitter.emitted[event] = true;
-  emitter.emit(event, code, signal);
-}
-
-// { <signal>: <listener fn>, ... }
-var sigListeners = {};
-signals$1.forEach(function (sig) {
-  sigListeners[sig] = function listener () {
-    // If there are no other listeners, an exit is coming!
-    // Simplest way: remove us and then re-send the signal.
-    // We know that this will kill the process, so we can
-    // safely emit now.
-    var listeners = process.listeners(sig);
-    if (listeners.length === emitter.count) {
-      unload();
-      emit('exit', null, sig);
-      /* istanbul ignore next */
-      emit('afterexit', null, sig);
-      /* istanbul ignore next */
-      process.kill(process.pid, sig);
-    }
+  module.exports.signals = function () {
+    return signals$1
   };
-});
 
-var signals_1 = function () {
-  return signals$1
-};
+  var loaded = false;
 
-var load_1 = load;
-
-var loaded = false;
-
-function load () {
-  if (loaded) {
-    return
-  }
-  loaded = true;
-
-  // This is the number of onSignalExit's that are in play.
-  // It's important so that we can count the correct number of
-  // listeners on signals, and don't wait for the other one to
-  // handle it instead of us.
-  emitter.count += 1;
-
-  signals$1 = signals$1.filter(function (sig) {
-    try {
-      process.on(sig, sigListeners[sig]);
-      return true
-    } catch (er) {
-      return false
+  var load = function load () {
+    if (loaded || !processOk(commonjsGlobal.process)) {
+      return
     }
-  });
+    loaded = true;
 
-  process.emit = processEmit;
-  process.reallyExit = processReallyExit;
-}
+    // This is the number of onSignalExit's that are in play.
+    // It's important so that we can count the correct number of
+    // listeners on signals, and don't wait for the other one to
+    // handle it instead of us.
+    emitter.count += 1;
 
-var originalProcessReallyExit = process.reallyExit;
-function processReallyExit (code) {
-  process.exitCode = code || 0;
-  emit('exit', process.exitCode, null);
-  /* istanbul ignore next */
-  emit('afterexit', process.exitCode, null);
-  /* istanbul ignore next */
-  originalProcessReallyExit.call(process, process.exitCode);
-}
+    signals$1 = signals$1.filter(function (sig) {
+      try {
+        process.on(sig, sigListeners[sig]);
+        return true
+      } catch (er) {
+        return false
+      }
+    });
 
-var originalProcessEmit = process.emit;
-function processEmit (ev, arg) {
-  if (ev === 'exit') {
-    if (arg !== undefined) {
-      process.exitCode = arg;
+    process.emit = processEmit;
+    process.reallyExit = processReallyExit;
+  };
+  module.exports.load = load;
+
+  var originalProcessReallyExit = process.reallyExit;
+  var processReallyExit = function processReallyExit (code) {
+    /* istanbul ignore if */
+    if (!processOk(commonjsGlobal.process)) {
+      return
     }
-    var ret = originalProcessEmit.apply(this, arguments);
+    process.exitCode = code || /* istanbul ignore next */ 0;
     emit('exit', process.exitCode, null);
     /* istanbul ignore next */
     emit('afterexit', process.exitCode, null);
-    return ret
-  } else {
-    return originalProcessEmit.apply(this, arguments)
-  }
+    /* istanbul ignore next */
+    originalProcessReallyExit.call(process, process.exitCode);
+  };
+
+  var originalProcessEmit = process.emit;
+  var processEmit = function processEmit (ev, arg) {
+    if (ev === 'exit' && processOk(commonjsGlobal.process)) {
+      /* istanbul ignore else */
+      if (arg !== undefined) {
+        process.exitCode = arg;
+      }
+      var ret = originalProcessEmit.apply(this, arguments);
+      /* istanbul ignore next */
+      emit('exit', process.exitCode, null);
+      /* istanbul ignore next */
+      emit('afterexit', process.exitCode, null);
+      /* istanbul ignore next */
+      return ret
+    } else {
+      return originalProcessEmit.apply(this, arguments)
+    }
+  };
 }
-signalExit.unload = unload_1;
-signalExit.signals = signals_1;
-signalExit.load = load_1;
+});
+var signalExit_1 = signalExit.unload;
+var signalExit_2 = signalExit.signals;
+var signalExit_3 = signalExit.load;
 
 var errname_1 = createCommonjsModule(function (module) {
 // Older verions of Node.js might not have `util.getSystemErrorName()`.
@@ -22737,44 +22784,39 @@ lib$1.source = source;
 
 // Parse lcov string into lcov data
 function parse$2(data) {
-	return new Promise(function(resolve, reject) {
-		lib$1(data, function(err, res) {
-			if (err) {
-				reject(err);
-				return
-			}
-			resolve(res);
-		});
-	})
+    return new Promise(function (resolve, reject) {
+        lib$1(data, function (err, res) {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(res);
+        });
+    });
 }
-
 // Get the total coverage percentage from the lcov data.
 function percentage(lcov) {
-	let hit = 0;
-	let found = 0;
-	for (const entry of lcov) {
-		hit += entry.lines.hit;
-		found += entry.lines.found;
-	}
-
-	return (hit / found) * 100
+    let hit = 0;
+    let found = 0;
+    for (const entry of lcov) {
+        hit += entry.lines.hit;
+        found += entry.lines.found;
+    }
+    return (hit / found) * 100;
 }
 
 function tag(name) {
-	return function(...children) {
-		const props =
-			typeof children[0] === "object"
-				? Object.keys(children[0])
-						.map(key => ` ${key}='${children[0][key]}'`)
-						.join("")
-				: "";
-
-		const c = typeof children[0] === "string" ? children : children.slice(1);
-
-		return `<${name}${props}>${c.join("")}</${name}>`
-	}
+    return function (...children) {
+        const firstChild = children[0];
+        const props = typeof firstChild === "object"
+            ? Object.keys(firstChild)
+                .map(key => ` ${key}='${firstChild[key]}'`)
+                .join("")
+            : "";
+        const c = typeof firstChild === "string" ? children : children.slice(1);
+        return `<${name}${props}>${c.join("")}</${name}>`;
+    };
 }
-
 const details = tag("details");
 const summary = tag("summary");
 const tr = tag("tr");
@@ -22785,391 +22827,359 @@ const table = tag("table");
 const tbody = tag("tbody");
 const a = tag("a");
 const h2 = tag("h2");
-
-const fragment = function(...children) {
-	return children.join("")
+const fragment = function (...children) {
+    return children.join("");
 };
 
 function normalisePath(file) {
-	return file.replace(/\\/g, "/")
+    return file.replace(/\\/g, "/");
 }
-
 function createHref(options, file) {
-	const relative = file.file.replace(options.prefix, "");
-	const parts = relative.split("/");
-	const filename = parts[parts.length - 1];
-	const url = path.join(options.repository, 'blob', options.commit, options.workingDir || './', relative);
-	return {
-		href: `https://github.com/${url}`,
-		filename
-	};
+    const relative = file.file.replace(options.prefix, "");
+    const parts = relative.split("/");
+    const filename = parts[parts.length - 1];
+    const url = path.join(options.repository, 'blob', options.commit, options.workingDir || './', relative);
+    return {
+        href: `https://github.com/${url}`,
+        filename
+    };
 }
 
 // Tabulate the lcov data in a HTML table.
 function tabulate(lcov, options) {
-	const head = tr(
-		th("File"),
-		th("Stmts"),
-		th("Branches"),
-		th("Funcs"),
-		th("Lines"),
-		th("Uncovered Lines"),
-	);
-
-	const folders = {};
-	for (const file of filterAndNormaliseLcov(lcov, options)) {
-		const parts = file.file.replace(options.prefix, "").split("/");
-		const folder = parts.slice(0, -1).join("/");
-		folders[folder] = folders[folder] || [];
-		folders[folder].push(file);
-	}
-
-	const rows = Object.keys(folders)
-		.sort()
-		.reduce(
-			(acc, key) => [
-				...acc,
-				toFolder(key),
-				...folders[key].map(file => toRow(file, key !== "", options)),
-			],
-			[],
-		);
-
-	return table(tbody(head, ...rows))
+    const head = tr(th("File"), th("Stmts"), th("Branches"), th("Funcs"), th("Lines"), th("Uncovered Lines"));
+    const folders = {};
+    for (const file of filterAndNormaliseLcov(lcov, options)) {
+        const parts = file.file.replace(options.prefix, "").split("/");
+        const folder = parts.slice(0, -1).join("/");
+        folders[folder] = folders[folder] || [];
+        folders[folder].push(file);
+    }
+    const rows = Object.keys(folders)
+        .sort()
+        .reduce((acc, key) => [
+        ...acc,
+        toFolder(key),
+        ...folders[key].map(file => toRow(file, key !== "", options)),
+    ], []);
+    if (rows.length === 0) {
+        return "";
+    }
+    return table(tbody(head, ...rows));
 }
-
 function filterAndNormaliseLcov(lcov, options) {
-	return lcov
-		.map(file => ({
-			...file,
-			file: normalisePath(file.file),
-		}))
-		.filter(file => shouldBeIncluded(file.file, options))
+    return lcov
+        .map(file => ({
+        ...file,
+        file: normalisePath(file.file),
+    }))
+        .filter(file => shouldBeIncluded(file.file, options));
 }
-
 function shouldBeIncluded(fileName, options) {
-	if (!options.shouldFilterChangedFiles) {
-		return true
-	}
-	return options.changedFiles.includes(fileName.replace(options.prefix, ""))
+    if (!options.shouldFilterChangedFiles) {
+        return true;
+    }
+    return options.changedFiles.includes(fileName.replace(options.prefix, ""));
 }
-
 function toFolder(path) {
-	if (path === "") {
-		return ""
-	}
-
-	return tr(td({ colspan: 6 }, b(path)))
+    if (path === "") {
+        return "";
+    }
+    return tr(td({ colspan: 6 }, b(path)));
 }
-
 function getStatement(file) {
-	const { branches, functions, lines } = file;
-
-	return [branches, functions, lines].reduce(
-		function (acc, curr) {
-			if (!curr) {
-				return acc
-			}
-
-			return {
-				hit: acc.hit + curr.hit,
-				found: acc.found + curr.found,
-			}
-		},
-		{ hit: 0, found: 0 },
-	)
+    const { branches, functions, lines } = file;
+    return [branches, functions, lines].reduce(function (acc, curr) {
+        if (!curr) {
+            return acc;
+        }
+        return {
+            hit: acc.hit + curr.hit,
+            found: acc.found + curr.found,
+            details: [...acc.details, ...curr.details]
+        };
+    }, { hit: 0, found: 0, details: [] });
 }
-
 function toRow(file, indent, options) {
-	return tr(
-		td(filename(file, indent, options)),
-		td(percentage$1(getStatement(file))),
-		td(percentage$1(file.branches)),
-		td(percentage$1(file.functions)),
-		td(percentage$1(file.lines)),
-		td(uncovered(file, options)),
-	)
+    return tr(td(filename(file, indent, options)), td(percentage$1(getStatement(file))), td(percentage$1(file.branches)), td(percentage$1(file.functions)), td(percentage$1(file.lines)), td(uncovered(file, options)));
 }
-
 function filename(file, indent, options) {
-	const {href, filename} = createHref(options, file);
-	const space = indent ? "&nbsp; &nbsp;" : "";
-	return fragment(space, a({ href }, filename))
+    const { href, filename } = createHref(options, file);
+    const space = indent ? "&nbsp; &nbsp;" : "";
+    return fragment(space, a({ href }, filename));
 }
-
 function percentage$1(item) {
-	if (!item) {
-		return "N/A"
-	}
-
-	const value = item.found === 0 ? 100 : (item.hit / item.found) * 100;
-	const rounded = value.toFixed(2).replace(/\.0*$/, "");
-
-	const tag = value === 100 ? fragment : b;
-
-	return tag(`${rounded}%`)
+    if (!item) {
+        return "N/A";
+    }
+    const value = item.found === 0 ? 100 : (item.hit / item.found) * 100;
+    const rounded = value.toFixed(2).replace(/\.0*$/, "");
+    const tag = value === 100 ? fragment : b;
+    return tag(`${rounded}%`);
 }
-
 function uncovered(file, options) {
-	const branches = (file.branches ? file.branches.details : [])
-		.filter(branch => branch.taken === 0)
-		.map(branch => branch.line);
-
-	const lines = (file.lines ? file.lines.details : [])
-		.filter(line => line.hit === 0)
-		.map(line => line.line);
-
-	const all = ranges([...branches, ...lines]);
-
-	return all
-		.map(function (range) {
-			const fragment =
-				range.start === range.end
-					? `L${range.start}`
-					: `L${range.start}-L${range.end}`;
-			const { href } = createHref(options, file);
-			const text =
-				range.start === range.end
-					? range.start
-					: `${range.start}&ndash;${range.end}`;
-
-			return a({ href: `${href}#${fragment}` }, text)
-		})
-		.join(", ")
+    const branches = (file.branches ? file.branches.details : [])
+        .filter(branch => branch.taken === 0)
+        .map(branch => branch.line);
+    const lines = (file.lines ? file.lines.details : [])
+        .filter(line => line.hit === 0)
+        .map(line => line.line);
+    const all = ranges([...branches, ...lines]);
+    var numNotIncluded = 0;
+    if (options.maxUncoveredLines) {
+        const notIncluded = all.splice(options.maxUncoveredLines);
+        numNotIncluded = notIncluded.length;
+    }
+    const result = all
+        .map(function (range) {
+        const fragment = range.start === range.end
+            ? `L${range.start}`
+            : `L${range.start}-L${range.end}`;
+        const { href } = createHref(options, file);
+        const text = range.start === range.end
+            ? range.start
+            : `${range.start}&ndash;${range.end}`;
+        return a({ href: `${href}#${fragment}` }, text);
+    })
+        .join(", ");
+    if (numNotIncluded > 0) {
+        return result + ` and ${numNotIncluded} more...`;
+    }
+    else {
+        return result;
+    }
 }
-
 function ranges(linenos) {
-	const res = [];
-
-	let last = null;
-
-	linenos.sort().forEach(function (lineno) {
-		if (last === null) {
-			last = { start: lineno, end: lineno };
-			return
-		}
-
-		if (last.end + 1 === lineno) {
-			last.end = lineno;
-			return
-		}
-
-		res.push(last);
-		last = { start: lineno, end: lineno };
-	});
-
-	if (last) {
-		res.push(last);
-	}
-
-	return res
+    const res = [];
+    let last = null;
+    linenos.sort().forEach(function (lineno) {
+        if (last === null) {
+            last = { start: lineno, end: lineno };
+            return;
+        }
+        if (last.end + 1 === lineno) {
+            last.end = lineno;
+            return;
+        }
+        res.push(last);
+        last = { start: lineno, end: lineno };
+    });
+    if (last) {
+        res.push(last);
+    }
+    return res;
 }
 
 function comment(lcov, options) {
-	return fragment(
-		options.title ? h2(options.title) : "",
-		options.base
-			? `Coverage after merging ${b(options.head)} into ${b(
-					options.base,
-			  )} will be`
-			: `Coverage for this commit`,
-		table(tbody(tr(th(percentage(lcov).toFixed(2), "%")))),
-		"\n\n",
-		details(
-			summary(
-				options.shouldFilterChangedFiles
-					? "Coverage Report for Changed Files"
-					: "Coverage Report",
-			),
-			tabulate(lcov, options),
-		),
-	)
+    const reportTable = tabulate(lcov, options);
+    if (options.dontPostIfNoChangedFilesInReport && !reportTable) {
+        return;
+    }
+    return fragment(options.title ? h2(options.title) : "", options.base
+        ? `Coverage after merging ${b(options.head)} into ${b(options.base)} will be`
+        : `Coverage for this commit`, table(tbody(tr(th(percentage(lcov).toFixed(2), "%")))), "\n\n", reportTable
+        ? details(summary(options.shouldFilterChangedFiles
+            ? "Coverage Report for Changed Files"
+            : "Coverage Report"), reportTable)
+        : "");
 }
-
 function diff(lcov, before, options) {
-	if (!before) {
-		return comment(lcov, options)
-	}
-
-	const pbefore = percentage(before);
-	const pafter = percentage(lcov);
-	const pdiff = pafter - pbefore;
-	const plus = pdiff > 0 ? "+" : "";
-	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴";
-
-	return fragment(
-		options.title ? h2(options.title) : "",
-		options.base
-			? `Coverage after merging ${b(options.head)} into ${b(
-					options.base,
-			  )} will be`
-			: `Coverage for this commit`,
-		table(
-			tbody(
-				tr(
-					th(pafter.toFixed(2), "%"),
-					th(arrow, " ", plus, pdiff.toFixed(2), "%"),
-				),
-			),
-		),
-		"\n\n",
-		details(
-			summary(
-				options.shouldFilterChangedFiles
-					? "Coverage Report for Changed Files"
-					: "Coverage Report",
-			),
-			tabulate(lcov, options),
-		),
-	)
+    if (!before) {
+        return comment(lcov, options);
+    }
+    const pbefore = percentage(before);
+    const pafter = percentage(lcov);
+    const pdiff = pafter - pbefore;
+    const plus = pdiff > 0 ? "+" : "";
+    const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴";
+    const thresholdWarning = options.failDropThreshold && pdiff < -options.failDropThreshold
+        ? `Failing due to coverage dropping more than ${options.failDropThreshold}%!`
+        : "";
+    const reportTable = tabulate(lcov, options);
+    if (options.dontPostIfNoChangedFilesInReport && !reportTable) {
+        return;
+    }
+    return fragment(options.title ? h2(options.title) : "", options.base
+        ? `Coverage after merging ${b(options.head)} into ${b(options.base)} will be`
+        : `Coverage for this commit`, table(tbody(tr(th("Coverage"), th("Diff")), tr(td(pafter.toFixed(2), "%"), td(arrow, " ", plus, pdiff.toFixed(2), "%")))), thresholdWarning ? b(thresholdWarning) : "", "\n\n", reportTable
+        ? details(summary(options.shouldFilterChangedFiles
+            ? "Coverage Report for Changed Files"
+            : "Coverage Report"), reportTable)
+        : "");
 }
 
 // Get list of changed files
 async function getChangedFiles(githubClient, options, context) {
-	if (!options.commit || !options.baseCommit) {
-		core_7(
-			`The base and head commits are missing from the payload for this ${context.eventName} event.`,
-		);
-	}
-
-	// Use GitHub's compare two commits API.
-	// https://developer.github.com/v3/repos/commits/#compare-two-commits
-	const response = await githubClient.repos.compareCommits({
-		base: options.baseCommit,
-		head: options.commit,
-		owner: context.repo.owner,
-		repo: context.repo.repo,
-	});
-
-	if (response.status !== 200) {
-		core_7(
-			`The GitHub API for comparing the base and head commits for this ${context.eventName} event returned ${response.status}, expected 200.`,
-		);
-	}
-
-	return response.data.files
-		.filter(file => file.status == "modified" || file.status == "added")
-		.map(file => file.filename)
+    if (!options.commit || !options.baseCommit) {
+        core_7(`The base and head commits are missing from the payload for this ${context.eventName} event.`);
+    }
+    // Use GitHub's compare two commits API.
+    // https://developer.github.com/v3/repos/commits/#compare-two-commits
+    const response = await githubClient.repos.compareCommits({
+        base: options.baseCommit,
+        head: options.commit,
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+    });
+    if (response.status !== 200) {
+        core_7(`The GitHub API for comparing the base and head commits for this ${context.eventName} event returned ${response.status}, expected 200.`);
+    }
+    return response.data.files
+        .filter(file => file.status == "modified" || file.status == "added")
+        .map(file => file.filename);
 }
 
 const REQUESTED_COMMENTS_PER_PAGE = 20;
-
 async function deleteOldComments(github, options, context) {
-	const existingComments = await getExistingComments(github, options, context);
-	for (const comment of existingComments) {
-		core_8(`Deleting comment: ${comment.id}`);
-		try {
-			await github.issues.deleteComment({
-				owner: context.repo.owner,
-				repo: context.repo.repo,
-				comment_id: comment.id,
-			});
-		} catch (error) {
-			console.error(error);
-		}
-	}
+    const existingComments = await getExistingComments(github, options, context);
+    for (const comment of existingComments) {
+        core_8(`Deleting comment: ${comment.id}`);
+        try {
+            await github.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: comment.id,
+            });
+        }
+        catch (error) {
+            console.error(error);
+        }
+    }
 }
-
 async function getExistingComments(github, options, context) {
-	let page = 0;
-	let results = [];
-	let response;
-	do {
-		response = await github.issues.listComments({
-			issue_number: context.issue.number,
-			owner: context.repo.owner,
-			repo: context.repo.repo,
-			per_page: REQUESTED_COMMENTS_PER_PAGE,
-			page: page,
-		});
-		results = results.concat(response.data);
-		page++;
-	} while (response.data.length === REQUESTED_COMMENTS_PER_PAGE)
-
-	return results.filter(
-		comment =>
-			!!comment.user &&
-			(!options.title || comment.body.includes(options.title)) &&
-			comment.body.includes("Coverage Report"),
-	)
+    let page = 0;
+    let results = [];
+    let response;
+    do {
+        response = await github.issues.listComments({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            per_page: REQUESTED_COMMENTS_PER_PAGE,
+            page: page,
+        });
+        results = results.concat(response.data);
+        page++;
+    } while (response.data.length === REQUESTED_COMMENTS_PER_PAGE);
+    return results.filter(comment => !!comment.user &&
+        comment.user.type == "Bot" &&
+        comment.user.login == "github-actions[bot]" &&
+        (!options.title || comment.body.includes(options.title)));
 }
 
 const MAX_COMMENT_CHARS = 65536;
-
 async function main$1() {
-	const token = core$1.getInput("github-token");
-	const githubClient = new github_2(token);
-	const workingDir = core$1.getInput('working-directory') || './';	
-	const lcovFile = path.join(workingDir, core$1.getInput("lcov-file") || "./coverage/lcov.info");
-	const baseFile = core$1.getInput("lcov-base");
-	const shouldFilterChangedFiles =
-		core$1.getInput("filter-changed-files").toLowerCase() === "true";
-	const shouldDeleteOldComments =
-		core$1.getInput("delete-old-comments").toLowerCase() === "true";
-	const title = core$1.getInput("title");
-
-	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
-	if (!raw) {
-		console.log(`No coverage report found at '${lcovFile}', exiting...`);
-		return
-	}
-
-	const baseRaw =
-		baseFile && (await fs.promises.readFile(baseFile, "utf-8").catch(err => null));
-	if (baseFile && !baseRaw) {
-		console.log(`No coverage report found at '${baseFile}', ignoring...`);
-	}
-
-	const options = {
-		repository: github_1.payload.repository.full_name,
-		prefix: normalisePath(`${process.env.GITHUB_WORKSPACE}/`),
-		workingDir,
-	};
-
-	if (github_1.eventName === "pull_request") {
-		options.commit = github_1.payload.pull_request.head.sha;
-		options.baseCommit = github_1.payload.pull_request.base.sha;
-		options.head = github_1.payload.pull_request.head.ref;
-		options.base = github_1.payload.pull_request.base.ref;
-	} else if (github_1.eventName === "push") {
-		options.commit = github_1.payload.after;
-		options.baseCommit = github_1.payload.before;
-		options.head = github_1.ref;
-	}
-
-	options.shouldFilterChangedFiles = shouldFilterChangedFiles;
-	options.title = title;
-
-	if (shouldFilterChangedFiles) {
-		options.changedFiles = await getChangedFiles(githubClient, options, github_1);
-	}
-
-	const lcov = await parse$2(raw);
-	const baselcov = baseRaw && (await parse$2(baseRaw));
-	const body = diff(lcov, baselcov, options).substring(0, MAX_COMMENT_CHARS);
-
-	if (shouldDeleteOldComments) {
-		await deleteOldComments(githubClient, options, github_1);
-	}
-
-	if (github_1.eventName === "pull_request") {
-		await githubClient.issues.createComment({
-			repo: github_1.repo.repo,
-			owner: github_1.repo.owner,
-			issue_number: github_1.payload.pull_request.number,
-			body: body,
-		});
-	} else if (github_1.eventName === "push") {
-		await githubClient.repos.createCommitComment({
-			repo: github_1.repo.repo,
-			owner: github_1.repo.owner,
-			commit_sha: options.commit,
-			body: body,
-		});
-	}
+    const token = core$1.getInput("github-token");
+    const githubClient = new github_2(token);
+    const workingDir = core$1.getInput('working-directory') || './';
+    const lcovFile = path.join(workingDir, core$1.getInput("lcov-file") || "./coverage/lcov.info");
+    const baseFile = core$1.getInput("lcov-base");
+    const shouldFilterChangedFiles = core$1.getInput("filter-changed-files").toLowerCase() === "true";
+    const shouldDeleteOldComments = core$1.getInput("delete-old-comments").toLowerCase() === "true";
+    const dontPostIfNoChangedFilesInReport = core$1.getInput("dont-post-if-no-changed-files-in-report").toLowerCase() ===
+        "true";
+    const title = core$1.getInput("title");
+    const maxUncoveredLines = core$1.getInput("max-uncovered-lines");
+    const failDropThreshold = core$1.getInput("fail-drop-percent-threshold");
+    if (maxUncoveredLines && isNaN(parseInt(maxUncoveredLines))) {
+        console.log(`Invalid parameter for max-uncovered-lines '${maxUncoveredLines}'. Must be an integer. Exiting...`);
+        return;
+    }
+    if (failDropThreshold && isNaN(parseFloat(failDropThreshold))) {
+        console.log(`Invalid parameter for fail-drop-threshold '${failDropThreshold}'. Must be a number. Exiting...`);
+        return;
+    }
+    const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
+    if (!raw) {
+        console.log(`No coverage report found at '${lcovFile}', exiting...`);
+        return;
+    }
+    const baseRaw = baseFile && (await fs.promises.readFile(baseFile, "utf-8").catch(err => null));
+    if (baseFile && !baseRaw) {
+        console.log(`No coverage report found at '${baseFile}', ignoring...`);
+    }
+    if (!github_1.payload.repository || !github_1.payload.repository.full_name) {
+        console.log('Repository not found. Exiting.');
+        return;
+    }
+    const options = {
+        repository: github_1.payload.repository.full_name,
+        prefix: normalisePath(`${process.env.GITHUB_WORKSPACE}/`),
+        workingDir,
+    };
+    if (github_1.eventName === "pull_request") {
+        options.commit = github_1.payload.pull_request.head.sha;
+        options.baseCommit = github_1.payload.pull_request.base.sha;
+        options.head = github_1.payload.pull_request.head.ref;
+        options.base = github_1.payload.pull_request.base.ref;
+    }
+    else if (github_1.eventName === "push") {
+        options.commit = github_1.payload.after;
+        options.baseCommit = github_1.payload.before;
+        options.head = github_1.ref;
+    }
+    options.shouldFilterChangedFiles = shouldFilterChangedFiles;
+    options.dontPostIfNoChangedFilesInReport = dontPostIfNoChangedFilesInReport;
+    options.title = title;
+    options.failDropThreshold = failDropThreshold;
+    if (maxUncoveredLines) {
+        options.maxUncoveredLines = parseInt(maxUncoveredLines);
+    }
+    if (shouldFilterChangedFiles || dontPostIfNoChangedFilesInReport) {
+        options.changedFiles = await getChangedFiles(githubClient, options, github_1);
+    }
+    const lcov = await parse$2(raw);
+    if (typeof lcov === 'undefined') {
+        console.log("Failed to generate lcov report, exiting...");
+        return;
+    }
+    const baselcov = !!baseRaw && (await parse$2(baseRaw));
+    if (typeof baselcov === 'undefined') {
+        console.log("Failed to generate base lcov report, exiting...");
+        return;
+    }
+    let body = diff(lcov, baselcov, options);
+    if (!body) {
+        console.log(`No changed files in report, exiting...`);
+        return;
+    }
+    else {
+        body = body.substring(0, MAX_COMMENT_CHARS);
+    }
+    if (github_1.eventName === "pull_request") {
+        if (shouldDeleteOldComments) {
+            await deleteOldComments(githubClient, options, github_1);
+        }
+        await githubClient.issues.createComment({
+            repo: github_1.repo.repo,
+            owner: github_1.repo.owner,
+            issue_number: github_1.payload.pull_request.number,
+            body: body,
+        });
+    }
+    else if (github_1.eventName === "push") {
+        await githubClient.repos.createCommitComment({
+            repo: github_1.repo.repo,
+            owner: github_1.repo.owner,
+            commit_sha: options.commit,
+            body: body,
+        });
+    }
+    if (failDropThreshold) {
+        if (!baselcov) {
+            console.warn("Cannot check coverage drop threshold with no base coverage file. Skipping this step.");
+        }
+        else {
+            const pbefore = percentage(baselcov);
+            const pafter = percentage(lcov);
+            const pdiff = pafter - pbefore;
+            if (pdiff < -failDropThreshold) {
+                core$1.setFailed(`Coverage dropped more than ${failDropThreshold}%. Failing coverage check.`);
+            }
+        }
+    }
 }
-
-main$1().catch(function(err) {
-	console.log(err);
-	core$1.setFailed(err.message);
+main$1().catch(function (err) {
+    console.log(err);
+    core$1.setFailed(err.message);
 });
