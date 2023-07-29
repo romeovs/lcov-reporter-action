@@ -22,6 +22,7 @@ async function main() {
 		core.getInput("filter-changed-files").toLowerCase() === "true"
 	const shouldDeleteOldComments =
 		core.getInput("delete-old-comments").toLowerCase() === "true"
+	const postTo = core.getInput("post-to").toLowerCase()
 	const title = core.getInput("title")
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
@@ -68,20 +69,33 @@ async function main() {
 		await deleteOldComments(githubClient, options, context)
 	}
 
-	if (context.eventName === "pull_request" || context.eventName === "pull_request_target") {
-		await githubClient.issues.createComment({
-			repo: context.repo.repo,
-			owner: context.repo.owner,
-			issue_number: context.payload.pull_request.number,
-			body: body,
-		})
-	} else if (context.eventName === "push") {
-		await githubClient.repos.createCommitComment({
-			repo: context.repo.repo,
-			owner: context.repo.owner,
-			commit_sha: options.commit,
-			body: body,
-		})
+	switch (postTo) {
+		case "comment":
+			if (
+				context.eventName === "pull_request" ||
+				context.eventName === "pull_request_target"
+			) {
+				await githubClient.issues.createComment({
+					repo: context.repo.repo,
+					owner: context.repo.owner,
+					issue_number: context.payload.pull_request.number,
+					body: body,
+				})
+			} else if (context.eventName === "push") {
+				await githubClient.repos.createCommitComment({
+					repo: context.repo.repo,
+					owner: context.repo.owner,
+					commit_sha: options.commit,
+					body: body,
+				})
+			}
+			break
+		case "job-summary":
+			core.summary.addRaw(body)
+			await core.summary.write()
+			break
+		default:
+			core.warning(`Unknown post-to value: '${postTo}'`)
 	}
 }
 
