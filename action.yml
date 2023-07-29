@@ -27,6 +27,10 @@ inputs:
     description: Set working directory if project is not in root folder  
     required: false
     default: "./"
+  post-to:
+    description: Post the coverage report to either "comment" or "job-summary"
+    required: false
+    default: "comment"
   title:
     description: Title to add to the comment
     required: false
