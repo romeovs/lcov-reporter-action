@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@master
+      - name: build
+        run: npm run build
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
