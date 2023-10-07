@@ -16,46 +16,53 @@ Total Coverage: <b>99.39%</b>
 ## Inputs
 
 ##### `github-token` (**Optional**)
+
 Github token used for posting the comment. Defaults to `${{ github.token }}`.
 
 For alternative `github-token` values see: [Creating Personal Access Tokens](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token)
 
 ##### `lcov-file` (**Optional**)
+
 The location of the lcov file to read the coverage report from. Defaults to
 `./coverage/lcov.info`.
 
 ##### `lcov-base` (**Optional**)
+
 The location of the lcov file resulting from running the tests in the base
 branch. When this is set a diff of the coverage percentages is shown.
 
 ##### `filter-changed-files` (**Default: false**)
+
 If set to true, only changed files will be included in the report. Total percentage will still include all files.
 
 ##### `delete-old-comments` (**Default: false**)
+
 If set to true, old comments will be deleted before a new comment is posted
 
 ##### `update-comment` (**Default: false**)
+
 If set to true, the most recently updated comment will be updated with the new report
 
 ##### `title` (**Optional**)
+
 If included, will be added as a title for the comment produced.
 
 ##### `comment_prepend` (**Optional**)
+
 If included, will be added at the beginning of the produced comment.
 
 ##### `comment_append` (**Optional**)
+
 If included, will be added at the end of the produced comment if comment is not too long
 
 ## Example usage
 
 ```yml
-uses: romeovs/lcov-reporter-action@v0.2.16
+uses: ShaMan123/lcov-reporter-action@latest
 with:
   lcov-file: ./coverage/lcov.info
 ```
 
 ## Acknowledgements
 
-The initial code is based on [ziishaned/jest-reporter-action](https://github.com/ziishaned/jest-reporter-action).
-
-Changed file retrieval based on [jitterbit/get-changed-files](https://github.com/jitterbit/get-changed-files).
+This is a fork of [romeovs/lcov-reporter-action](https://github.com/romeovs/lcov-reporter-action).
