@@ -9,23 +9,37 @@ jobs:
   build:
     name: Create Release
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Checkout code
-        uses: actions/checkout@master
+        uses: actions/checkout@v3
       - name: Install dependencies
         uses: ./.github/setup
         with:
           node-version: 18.x
-          install-system-deps: false
       - name: Build
-        run: npm run build
+        id: build
+        run: |
+          tag=$(echo ${{ github.ref }} | sed "s/refs\/tags\/v//")
+          git checkout -b  $tag
+          npm run build
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+          echo "node_modules/" > .gitignore
+          git add .gitignore
+          git add dist/main.js -f
+          git commit -m "build"
+          git push --set-upstream origin $tag
+          echo "tag=v$tag" >> $GITHUB_OUTPUT
+          echo "target_commitish=$tag" >> $GITHUB_OUTPUT
+        shell: bash
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@latest
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ steps.build.outputs.tag }}
+          target_commitish: ${{ steps.build.outputs.target_commitish }}
+          generate_release_notes: true
           draft: false
           prerelease: false
