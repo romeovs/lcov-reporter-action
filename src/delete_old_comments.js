@@ -3,7 +3,6 @@ import * as core from "@actions/core"
 const REQUESTED_COMMENTS_PER_PAGE = 20
 
 export async function deleteOldComments(github, options, context, keepLast) {
-	console.log({ keepLast })
 	const existingComments = await getExistingComments(github, options, context)
 	const commentToUpdate = keepLast ? existingComments.shift() : null
 	for (const comment of existingComments) {
@@ -40,7 +39,7 @@ export async function getExistingComments(github, options, context) {
 	} while (response.data.length === REQUESTED_COMMENTS_PER_PAGE)
 
 	return results.filter(
-		(comment) =>
+		comment =>
 			!!comment.user &&
 			(!options.title || comment.body.includes(options.title)) &&
 			comment.body.includes("Coverage Report"),
