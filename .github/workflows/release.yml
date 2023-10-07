@@ -1,6 +1,7 @@
 name: Create Release
 on:
   push:
+    branches: [master]
     tags:
       # Push events to matching v*, i.e. v1.0, v20.15.10
       - "v*"
@@ -16,7 +17,6 @@ jobs:
         uses: ./.github/setup
         with:
           node-version: 18.x
-          install-system-deps: false
       - name: Build
         run: npm run build
       - name: Create Release
