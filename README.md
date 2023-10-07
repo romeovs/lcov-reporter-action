@@ -22,6 +22,7 @@ Github token used for posting the comment. Defaults to `${{ github.token }}`.
 For alternative `github-token` values see: [Creating Personal Access Tokens](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token)
 
 ##### `working-directory` (**Default: ""**)
+
 Path to working directory the same as [default shell property](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun)
 
 ##### `lcov-file` (**Optional**)
@@ -64,6 +65,14 @@ If included, will be added at the end of the produced comment if comment is not 
 uses: ShaMan123/lcov-reporter-action@latest
 with:
   lcov-file: ./coverage/lcov.info
+```
+
+## Release
+
+```bash
+
+git tag <tag> && git push origin <tag>
+
 ```
 
 ## Acknowledgements

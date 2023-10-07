@@ -8,6 +8,7 @@ export default {
 	output: {
 		file: "dist/main.js",
 		format: "cjs",
+		sourcemap: true,
 	},
 	treeshake: true,
 	plugins: [
@@ -17,7 +18,7 @@ export default {
 		}),
 		resolve({
 			preferBuiltins: true,
-			mainFields: [ "main" ],
+			mainFields: ["main"],
 		}),
 		commonjs(),
 		json(),

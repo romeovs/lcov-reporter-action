@@ -12,7 +12,7 @@ const MAX_COMMENT_CHARS = 65536
 
 async function main() {
 	const token = core.getInput("github-token")
-	const githubClient = getOctokit(token)
+	const githubClient = getOctokit(token).rest
 	const workingDir = core.getInput("working-directory") || "./"
 	const lcovFile = path.join(
 		workingDir,

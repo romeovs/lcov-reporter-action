@@ -28,8 +28,8 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
           echo "node_modules/" > .gitignore
+          git add .gitignore
           git add dist/main.js -f
-          rm -r src
           git commit -a -m "build"
           git push --set-upstream origin $tag
         shell: bash
@@ -49,7 +49,7 @@ jobs:
               make_latest: 'true'
             });
             return url;
-      - name: Release url ${{ steps.release.outputs.result }}
+      - name: Release url
         run: echo ${{ steps.release.outputs.result }}
       - name: Delete branch ${{ steps.build.outputs.target_commitish }}
         run: |
