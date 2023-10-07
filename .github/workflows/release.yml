@@ -21,25 +21,36 @@ jobs:
         id: build
         run: |
           tag=$(echo ${{ github.ref }} | sed "s/refs\/tags\/v//")
-          git checkout -b  $tag
+          echo "tag=v$tag" >> $GITHUB_OUTPUT
+          echo "target_commitish=$tag" >> $GITHUB_OUTPUT
+          git checkout -b $tag
           npm run build
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
           echo "node_modules/" > .gitignore
-          git add .gitignore
           git add dist/main.js -f
-          git commit -m "build"
+          rm -r src
+          git commit -a -m "build"
           git push --set-upstream origin $tag
-          echo "tag=v$tag" >> $GITHUB_OUTPUT
-          echo "target_commitish=$tag" >> $GITHUB_OUTPUT
         shell: bash
       - name: Create Release
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: release
+        uses: actions/github-script@v6
         with:
-          tag_name: ${{ steps.build.outputs.tag }}
-          target_commitish: ${{ steps.build.outputs.target_commitish }}
-          generate_release_notes: true
-          draft: false
-          prerelease: false
+          result-encoding: string
+          script: |
+            const { data: { html_url: url } } = await github.rest.repos.createRelease({
+              ...context.repo,
+              tag_name: "${{ steps.build.outputs.tag }}",
+              target_commitish: "${{ steps.build.outputs.target_commitish }}",
+              generate_release_notes: true,
+              draft: false,
+              prerelease: false,
+              make_latest: 'true'
+            });
+            return url;
+      - name: Release url ${{ steps.release.outputs.result }}
+        run: echo ${{ steps.release.outputs.result }}
+      - name: Delete branch ${{ steps.build.outputs.target_commitish }}
+        run: |
+          git push origin --delete ${{ steps.build.outputs.target_commitish }}
