@@ -1,4 +1,4 @@
-name: Code Coverage Report
+name: Code Coverage Reporting
 description: Comments a pull request with the code coverage
 author: Romeo Van Snick
 branding:
