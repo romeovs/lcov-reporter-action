@@ -5,6 +5,7 @@
 	"license": "MIT",
 	"author": "Romeo Van Snick",
 	"repository": "https://github.com/romeovs/lcov-reporter-action",
+	"type": "module",
 	"keywords": [
 		"actions",
 		"pull-request",
