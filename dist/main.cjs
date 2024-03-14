@@ -55,7 +55,7 @@ function getAugmentedNamespace(n) {
 	return a;
 }
 
-var core$1 = {};
+var core = {};
 
 var command = {};
 
@@ -25504,7 +25504,7 @@ function requirePathUtils () {
 var hasRequiredCore;
 
 function requireCore () {
-	if (hasRequiredCore) return core$1;
+	if (hasRequiredCore) return core;
 	hasRequiredCore = 1;
 	(function (exports) {
 		var __createBinding = (commonjsGlobal && commonjsGlobal.__createBinding) || (Object.create ? (function(o, m, k, k2) {
@@ -25842,12 +25842,11 @@ function requireCore () {
 		Object.defineProperty(exports, "toWin32Path", { enumerable: true, get: function () { return path_utils_1.toWin32Path; } });
 		Object.defineProperty(exports, "toPlatformPath", { enumerable: true, get: function () { return path_utils_1.toPlatformPath; } });
 		
-	} (core$1));
-	return core$1;
+	} (core));
+	return core;
 }
 
 var coreExports = requireCore();
-var core = /*@__PURE__*/getDefaultExportFromCjs(coreExports);
 
 var github = {};
 
@@ -30464,25 +30463,28 @@ async function getExistingComments(github, options, context) {
 const MAX_COMMENT_CHARS = 65536;
 
 async function main() {
-	const token = core.getInput("github-token");
+	const token = coreExports.getInput("github-token");
 	const githubClient = new github.GitHub(token);
-	const workingDir = core.getInput('working-directory') || './';	
-	const lcovFile = path$1.join(workingDir, core.getInput("lcov-file") || "./coverage/lcov.info");
-	const baseFile = core.getInput("lcov-base");
+	const workingDir = coreExports.getInput("working-directory") || "./";
+	const lcovFile = path$1.join(
+		workingDir,
+		coreExports.getInput("lcov-file") || "./coverage/lcov.info",
+	);
+	const baseFile = coreExports.getInput("lcov-base");
 	const shouldFilterChangedFiles =
-		core.getInput("filter-changed-files").toLowerCase() === "true";
+		coreExports.getInput("filter-changed-files").toLowerCase() === "true";
 	const shouldDeleteOldComments =
-		core.getInput("delete-old-comments").toLowerCase() === "true";
-	const title = core.getInput("title");
+		coreExports.getInput("delete-old-comments").toLowerCase() === "true";
+	const title = coreExports.getInput("title");
 
-	const raw = await require$$0$1.promises.readFile(lcovFile, "utf-8").catch(err => null);
+	const raw = await require$$0$1.promises.readFile(lcovFile, "utf-8").catch((err) => null);
 	if (!raw) {
 		console.log(`No coverage report found at '${lcovFile}', exiting...`);
 		return
 	}
 
 	const baseRaw =
-		baseFile && (await require$$0$1.promises.readFile(baseFile, "utf-8").catch(err => null));
+		baseFile && (await require$$0$1.promises.readFile(baseFile, "utf-8").catch((err) => null));
 	if (baseFile && !baseRaw) {
 		console.log(`No coverage report found at '${baseFile}', ignoring...`);
 	}
@@ -30536,7 +30538,7 @@ async function main() {
 	}
 }
 
-main().catch(function(err) {
+main().catch(function (err) {
 	console.log(err);
-	core.setFailed(err.message);
+	coreExports.setFailed(err.message);
 });

@@ -1,5 +1,5 @@
 import { promises as fs } from "fs"
-import core from "@actions/core"
+import * as core from "@actions/core"
 import { GitHub, context } from "@actions/github"
 import path from "path"
 
@@ -14,8 +14,11 @@ const MAX_COMMENT_CHARS = 65536
 async function main() {
 	const token = core.getInput("github-token")
 	const githubClient = new GitHub(token)
-	const workingDir = core.getInput('working-directory') || './';	
-	const lcovFile = path.join(workingDir, core.getInput("lcov-file") || "./coverage/lcov.info")
+	const workingDir = core.getInput("working-directory") || "./"
+	const lcovFile = path.join(
+		workingDir,
+		core.getInput("lcov-file") || "./coverage/lcov.info",
+	)
 	const baseFile = core.getInput("lcov-base")
 	const shouldFilterChangedFiles =
 		core.getInput("filter-changed-files").toLowerCase() === "true"
@@ -23,14 +26,14 @@ async function main() {
 		core.getInput("delete-old-comments").toLowerCase() === "true"
 	const title = core.getInput("title")
 
-	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
+	const raw = await fs.readFile(lcovFile, "utf-8").catch((err) => null)
 	if (!raw) {
 		console.log(`No coverage report found at '${lcovFile}', exiting...`)
 		return
 	}
 
 	const baseRaw =
-		baseFile && (await fs.readFile(baseFile, "utf-8").catch(err => null))
+		baseFile && (await fs.readFile(baseFile, "utf-8").catch((err) => null))
 	if (baseFile && !baseRaw) {
 		console.log(`No coverage report found at '${baseFile}', ignoring...`)
 	}
@@ -84,7 +87,7 @@ async function main() {
 	}
 }
 
-main().catch(function(err) {
+main().catch(function (err) {
 	console.log(err)
 	core.setFailed(err.message)
 })
