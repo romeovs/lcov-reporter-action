@@ -1,5 +1,5 @@
-import { th, tr, td, table, tbody, a, b, span, fragment } from "./html"
-import { createHref, normalisePath } from "./util"
+import { th, tr, td, table, tbody, a, b, fragment } from "./html.js"
+import { createHref, normalisePath } from "./util.js"
 
 // Tabulate the lcov data in a HTML table.
 export function tabulate(lcov, options) {
@@ -62,7 +62,7 @@ function getStatement(file) {
 	const { branches, functions, lines } = file
 
 	return [branches, functions, lines].reduce(
-		function (acc, curr) {
+		function(acc, curr) {
 			if (!curr) {
 				return acc
 			}
@@ -88,7 +88,7 @@ function toRow(file, indent, options) {
 }
 
 function filename(file, indent, options) {
-	const {href, filename} = createHref(options, file);
+	const { href, filename } = createHref(options, file)
 	const space = indent ? "&nbsp; &nbsp;" : ""
 	return fragment(space, a({ href }, filename))
 }
@@ -118,7 +118,7 @@ function uncovered(file, options) {
 	const all = ranges([...branches, ...lines])
 
 	return all
-		.map(function (range) {
+		.map(function(range) {
 			const fragment =
 				range.start === range.end
 					? `L${range.start}`
@@ -139,7 +139,7 @@ function ranges(linenos) {
 
 	let last = null
 
-	linenos.sort().forEach(function (lineno) {
+	linenos.sort().forEach(function(lineno) {
 		if (last === null) {
 			last = { start: lineno, end: lineno }
 			return
