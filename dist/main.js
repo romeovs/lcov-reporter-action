@@ -22979,7 +22979,7 @@ function comment(lcov, options) {
 			? `Coverage after merging ${b(options.head)} into ${b(
 					options.base,
 			  )} will be`
-			: `Coverage for this commit`,
+			: "Coverage for this commit",
 		table(tbody(tr(th(percentage(lcov).toFixed(2), "%")))),
 		"\n\n",
 		details(
@@ -22997,20 +22997,18 @@ function diff(lcov, before, options) {
 	if (!before) {
 		return comment(lcov, options)
 	}
-
 	const pbefore = percentage(before);
 	const pafter = percentage(lcov);
 	const pdiff = pafter - pbefore;
 	const plus = pdiff > 0 ? "+" : "";
 	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴";
-
 	return fragment(
 		options.title ? h2(options.title) : "",
 		options.base
 			? `Coverage after merging ${b(options.head)} into ${b(
 					options.base,
 			  )} will be`
-			: `Coverage for this commit`,
+			: "Coverage for this commit",
 		table(
 			tbody(
 				tr(
