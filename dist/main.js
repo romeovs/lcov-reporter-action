@@ -2,11 +2,11 @@
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var fs = require('fs');
-var fs__default = _interopDefault(fs);
 var os = _interopDefault(require('os'));
 var path = _interopDefault(require('path'));
 var child_process = _interopDefault(require('child_process'));
+var fs = require('fs');
+var fs__default = _interopDefault(fs);
 var Stream = _interopDefault(require('stream'));
 var assert = _interopDefault(require('assert'));
 var events = _interopDefault(require('events'));
@@ -29,293 +29,6 @@ function createCommonjsModule(fn, module) {
 function getCjsExportFromNamespace (n) {
 	return n && n['default'] || n;
 }
-
-var command = createCommonjsModule(function (module, exports) {
-Object.defineProperty(exports, "__esModule", { value: true });
-
-/**
- * Commands
- *
- * Command Format:
- *   ##[name key=value;key=value]message
- *
- * Examples:
- *   ##[warning]This is the user warning message
- *   ##[set-secret name=mypassword]definitelyNotAPassword!
- */
-function issueCommand(command, properties, message) {
-    const cmd = new Command(command, properties, message);
-    process.stdout.write(cmd.toString() + os.EOL);
-}
-exports.issueCommand = issueCommand;
-function issue(name, message = '') {
-    issueCommand(name, {}, message);
-}
-exports.issue = issue;
-const CMD_STRING = '::';
-class Command {
-    constructor(command, properties, message) {
-        if (!command) {
-            command = 'missing.command';
-        }
-        this.command = command;
-        this.properties = properties;
-        this.message = message;
-    }
-    toString() {
-        let cmdStr = CMD_STRING + this.command;
-        if (this.properties && Object.keys(this.properties).length > 0) {
-            cmdStr += ' ';
-            for (const key in this.properties) {
-                if (this.properties.hasOwnProperty(key)) {
-                    const val = this.properties[key];
-                    if (val) {
-                        // safely append the val - avoid blowing up when attempting to
-                        // call .replace() if message is not a string for some reason
-                        cmdStr += `${key}=${escape(`${val || ''}`)},`;
-                    }
-                }
-            }
-        }
-        cmdStr += CMD_STRING;
-        // safely append the message - avoid blowing up when attempting to
-        // call .replace() if message is not a string for some reason
-        const message = `${this.message || ''}`;
-        cmdStr += escapeData(message);
-        return cmdStr;
-    }
-}
-function escapeData(s) {
-    return s.replace(/\r/g, '%0D').replace(/\n/g, '%0A');
-}
-function escape(s) {
-    return s
-        .replace(/\r/g, '%0D')
-        .replace(/\n/g, '%0A')
-        .replace(/]/g, '%5D')
-        .replace(/;/g, '%3B');
-}
-
-});
-
-unwrapExports(command);
-var command_1 = command.issueCommand;
-var command_2 = command.issue;
-
-var core = createCommonjsModule(function (module, exports) {
-var __awaiter = (commonjsGlobal && commonjsGlobal.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-
-
-
-/**
- * The code to exit an action
- */
-var ExitCode;
-(function (ExitCode) {
-    /**
-     * A code indicating that the action was successful
-     */
-    ExitCode[ExitCode["Success"] = 0] = "Success";
-    /**
-     * A code indicating that the action was a failure
-     */
-    ExitCode[ExitCode["Failure"] = 1] = "Failure";
-})(ExitCode = exports.ExitCode || (exports.ExitCode = {}));
-//-----------------------------------------------------------------------
-// Variables
-//-----------------------------------------------------------------------
-/**
- * Sets env variable for this action and future actions in the job
- * @param name the name of the variable to set
- * @param val the value of the variable
- */
-function exportVariable(name, val) {
-    process.env[name] = val;
-    command.issueCommand('set-env', { name }, val);
-}
-exports.exportVariable = exportVariable;
-/**
- * Registers a secret which will get masked from logs
- * @param secret value of the secret
- */
-function setSecret(secret) {
-    command.issueCommand('add-mask', {}, secret);
-}
-exports.setSecret = setSecret;
-/**
- * Prepends inputPath to the PATH (for this action and future actions)
- * @param inputPath
- */
-function addPath(inputPath) {
-    command.issueCommand('add-path', {}, inputPath);
-    process.env['PATH'] = `${inputPath}${path.delimiter}${process.env['PATH']}`;
-}
-exports.addPath = addPath;
-/**
- * Gets the value of an input.  The value is also trimmed.
- *
- * @param     name     name of the input to get
- * @param     options  optional. See InputOptions.
- * @returns   string
- */
-function getInput(name, options) {
-    const val = process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || '';
-    if (options && options.required && !val) {
-        throw new Error(`Input required and not supplied: ${name}`);
-    }
-    return val.trim();
-}
-exports.getInput = getInput;
-/**
- * Sets the value of an output.
- *
- * @param     name     name of the output to set
- * @param     value    value to store
- */
-function setOutput(name, value) {
-    command.issueCommand('set-output', { name }, value);
-}
-exports.setOutput = setOutput;
-//-----------------------------------------------------------------------
-// Results
-//-----------------------------------------------------------------------
-/**
- * Sets the action status to failed.
- * When the action exits it will be with an exit code of 1
- * @param message add error issue message
- */
-function setFailed(message) {
-    process.exitCode = ExitCode.Failure;
-    error(message);
-}
-exports.setFailed = setFailed;
-//-----------------------------------------------------------------------
-// Logging Commands
-//-----------------------------------------------------------------------
-/**
- * Writes debug message to user log
- * @param message debug message
- */
-function debug(message) {
-    command.issueCommand('debug', {}, message);
-}
-exports.debug = debug;
-/**
- * Adds an error issue
- * @param message error issue message
- */
-function error(message) {
-    command.issue('error', message);
-}
-exports.error = error;
-/**
- * Adds an warning issue
- * @param message warning issue message
- */
-function warning(message) {
-    command.issue('warning', message);
-}
-exports.warning = warning;
-/**
- * Writes info to log with console.log.
- * @param message info message
- */
-function info(message) {
-    process.stdout.write(message + os.EOL);
-}
-exports.info = info;
-/**
- * Begin an output group.
- *
- * Output until the next `groupEnd` will be foldable in this group
- *
- * @param name The name of the output group
- */
-function startGroup(name) {
-    command.issue('group', name);
-}
-exports.startGroup = startGroup;
-/**
- * End an output group.
- */
-function endGroup() {
-    command.issue('endgroup');
-}
-exports.endGroup = endGroup;
-/**
- * Wrap an asynchronous function call in a group.
- *
- * Returns the same type as the function itself.
- *
- * @param name The name of the group
- * @param fn The function to wrap in the group
- */
-function group(name, fn) {
-    return __awaiter(this, void 0, void 0, function* () {
-        startGroup(name);
-        let result;
-        try {
-            result = yield fn();
-        }
-        finally {
-            endGroup();
-        }
-        return result;
-    });
-}
-exports.group = group;
-//-----------------------------------------------------------------------
-// Wrapper action state
-//-----------------------------------------------------------------------
-/**
- * Saves state for current action, the state can only be retrieved by this action's post job execution.
- *
- * @param     name     name of the state to store
- * @param     value    value to store
- */
-function saveState(name, value) {
-    command.issueCommand('save-state', { name }, value);
-}
-exports.saveState = saveState;
-/**
- * Gets the value of an state set by this action's main execution.
- *
- * @param     name     name of the state to get
- * @returns   string
- */
-function getState(name) {
-    return process.env[`STATE_${name}`] || '';
-}
-exports.getState = getState;
-
-});
-
-var core$1 = unwrapExports(core);
-var core_1 = core.ExitCode;
-var core_2 = core.exportVariable;
-var core_3 = core.setSecret;
-var core_4 = core.addPath;
-var core_5 = core.getInput;
-var core_6 = core.setOutput;
-var core_7 = core.setFailed;
-var core_8 = core.debug;
-var core_9 = core.error;
-var core_10 = core.warning;
-var core_11 = core.info;
-var core_12 = core.startGroup;
-var core_13 = core.endGroup;
-var core_14 = core.group;
-var core_15 = core.saveState;
-var core_16 = core.getState;
 
 /*!
  * isobject <https://github.com/jonschlinkert/isobject>
@@ -491,11 +204,11 @@ function checkMode (stat, options) {
   return ret
 }
 
-var core$2;
+var core;
 if (process.platform === 'win32' || commonjsGlobal.TESTING_WINDOWS) {
-  core$2 = windows;
+  core = windows;
 } else {
-  core$2 = mode;
+  core = mode;
 }
 
 var isexe_1 = isexe$2;
@@ -523,7 +236,7 @@ function isexe$2 (path, options, cb) {
     })
   }
 
-  core$2(path, options || {}, function (er, is) {
+  core(path, options || {}, function (er, is) {
     // ignore EACCES because that just means we aren't allowed to run it
     if (er) {
       if (er.code === 'EACCES' || options && options.ignoreErrors) {
@@ -538,7 +251,7 @@ function isexe$2 (path, options, cb) {
 function sync$2 (path, options) {
   // my kingdom for a filtered catch
   try {
-    return core$2.sync(path, options || {})
+    return core.sync(path, options || {})
   } catch (er) {
     if (options && options.ignoreErrors || er.code === 'EACCES') {
       return false
@@ -782,11 +495,11 @@ function escapeArgument(arg, doubleEscapeMetaChars) {
     return arg;
 }
 
-var command$1 = escapeCommand;
+var command = escapeCommand;
 var argument = escapeArgument;
 
 var _escape = {
-	command: command$1,
+	command: command,
 	argument: argument
 };
 
@@ -6806,7 +6519,7 @@ function factory(plugins) {
   return Api;
 }
 
-var core$3 = factory_1();
+var core$1 = factory_1();
 
 var log = octokitDebug;
 
@@ -22521,7 +22234,7 @@ const CORE_PLUGINS = [
   octokitPaginationMethods // deprecated: remove in v17
 ];
 
-var rest = core$3.plugin(CORE_PLUGINS);
+var rest = core$1.plugin(CORE_PLUGINS);
 
 var context = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -22607,6 +22320,365 @@ exports.GitHub = GitHub;
 unwrapExports(github);
 var github_1 = github.context;
 var github_2 = github.GitHub;
+
+var command$1 = createCommonjsModule(function (module, exports) {
+Object.defineProperty(exports, "__esModule", { value: true });
+
+/**
+ * Commands
+ *
+ * Command Format:
+ *   ##[name key=value;key=value]message
+ *
+ * Examples:
+ *   ##[warning]This is the user warning message
+ *   ##[set-secret name=mypassword]definitelyNotAPassword!
+ */
+function issueCommand(command, properties, message) {
+    const cmd = new Command(command, properties, message);
+    process.stdout.write(cmd.toString() + os.EOL);
+}
+exports.issueCommand = issueCommand;
+function issue(name, message = '') {
+    issueCommand(name, {}, message);
+}
+exports.issue = issue;
+const CMD_STRING = '::';
+class Command {
+    constructor(command, properties, message) {
+        if (!command) {
+            command = 'missing.command';
+        }
+        this.command = command;
+        this.properties = properties;
+        this.message = message;
+    }
+    toString() {
+        let cmdStr = CMD_STRING + this.command;
+        if (this.properties && Object.keys(this.properties).length > 0) {
+            cmdStr += ' ';
+            for (const key in this.properties) {
+                if (this.properties.hasOwnProperty(key)) {
+                    const val = this.properties[key];
+                    if (val) {
+                        // safely append the val - avoid blowing up when attempting to
+                        // call .replace() if message is not a string for some reason
+                        cmdStr += `${key}=${escape(`${val || ''}`)},`;
+                    }
+                }
+            }
+        }
+        cmdStr += CMD_STRING;
+        // safely append the message - avoid blowing up when attempting to
+        // call .replace() if message is not a string for some reason
+        const message = `${this.message || ''}`;
+        cmdStr += escapeData(message);
+        return cmdStr;
+    }
+}
+function escapeData(s) {
+    return s.replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+}
+function escape(s) {
+    return s
+        .replace(/\r/g, '%0D')
+        .replace(/\n/g, '%0A')
+        .replace(/]/g, '%5D')
+        .replace(/;/g, '%3B');
+}
+
+});
+
+unwrapExports(command$1);
+var command_1 = command$1.issueCommand;
+var command_2 = command$1.issue;
+
+var core$2 = createCommonjsModule(function (module, exports) {
+var __awaiter = (commonjsGlobal && commonjsGlobal.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+
+
+
+/**
+ * The code to exit an action
+ */
+var ExitCode;
+(function (ExitCode) {
+    /**
+     * A code indicating that the action was successful
+     */
+    ExitCode[ExitCode["Success"] = 0] = "Success";
+    /**
+     * A code indicating that the action was a failure
+     */
+    ExitCode[ExitCode["Failure"] = 1] = "Failure";
+})(ExitCode = exports.ExitCode || (exports.ExitCode = {}));
+//-----------------------------------------------------------------------
+// Variables
+//-----------------------------------------------------------------------
+/**
+ * Sets env variable for this action and future actions in the job
+ * @param name the name of the variable to set
+ * @param val the value of the variable
+ */
+function exportVariable(name, val) {
+    process.env[name] = val;
+    command$1.issueCommand('set-env', { name }, val);
+}
+exports.exportVariable = exportVariable;
+/**
+ * Registers a secret which will get masked from logs
+ * @param secret value of the secret
+ */
+function setSecret(secret) {
+    command$1.issueCommand('add-mask', {}, secret);
+}
+exports.setSecret = setSecret;
+/**
+ * Prepends inputPath to the PATH (for this action and future actions)
+ * @param inputPath
+ */
+function addPath(inputPath) {
+    command$1.issueCommand('add-path', {}, inputPath);
+    process.env['PATH'] = `${inputPath}${path.delimiter}${process.env['PATH']}`;
+}
+exports.addPath = addPath;
+/**
+ * Gets the value of an input.  The value is also trimmed.
+ *
+ * @param     name     name of the input to get
+ * @param     options  optional. See InputOptions.
+ * @returns   string
+ */
+function getInput(name, options) {
+    const val = process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || '';
+    if (options && options.required && !val) {
+        throw new Error(`Input required and not supplied: ${name}`);
+    }
+    return val.trim();
+}
+exports.getInput = getInput;
+/**
+ * Sets the value of an output.
+ *
+ * @param     name     name of the output to set
+ * @param     value    value to store
+ */
+function setOutput(name, value) {
+    command$1.issueCommand('set-output', { name }, value);
+}
+exports.setOutput = setOutput;
+//-----------------------------------------------------------------------
+// Results
+//-----------------------------------------------------------------------
+/**
+ * Sets the action status to failed.
+ * When the action exits it will be with an exit code of 1
+ * @param message add error issue message
+ */
+function setFailed(message) {
+    process.exitCode = ExitCode.Failure;
+    error(message);
+}
+exports.setFailed = setFailed;
+//-----------------------------------------------------------------------
+// Logging Commands
+//-----------------------------------------------------------------------
+/**
+ * Writes debug message to user log
+ * @param message debug message
+ */
+function debug(message) {
+    command$1.issueCommand('debug', {}, message);
+}
+exports.debug = debug;
+/**
+ * Adds an error issue
+ * @param message error issue message
+ */
+function error(message) {
+    command$1.issue('error', message);
+}
+exports.error = error;
+/**
+ * Adds an warning issue
+ * @param message warning issue message
+ */
+function warning(message) {
+    command$1.issue('warning', message);
+}
+exports.warning = warning;
+/**
+ * Writes info to log with console.log.
+ * @param message info message
+ */
+function info(message) {
+    process.stdout.write(message + os.EOL);
+}
+exports.info = info;
+/**
+ * Begin an output group.
+ *
+ * Output until the next `groupEnd` will be foldable in this group
+ *
+ * @param name The name of the output group
+ */
+function startGroup(name) {
+    command$1.issue('group', name);
+}
+exports.startGroup = startGroup;
+/**
+ * End an output group.
+ */
+function endGroup() {
+    command$1.issue('endgroup');
+}
+exports.endGroup = endGroup;
+/**
+ * Wrap an asynchronous function call in a group.
+ *
+ * Returns the same type as the function itself.
+ *
+ * @param name The name of the group
+ * @param fn The function to wrap in the group
+ */
+function group(name, fn) {
+    return __awaiter(this, void 0, void 0, function* () {
+        startGroup(name);
+        let result;
+        try {
+            result = yield fn();
+        }
+        finally {
+            endGroup();
+        }
+        return result;
+    });
+}
+exports.group = group;
+//-----------------------------------------------------------------------
+// Wrapper action state
+//-----------------------------------------------------------------------
+/**
+ * Saves state for current action, the state can only be retrieved by this action's post job execution.
+ *
+ * @param     name     name of the state to store
+ * @param     value    value to store
+ */
+function saveState(name, value) {
+    command$1.issueCommand('save-state', { name }, value);
+}
+exports.saveState = saveState;
+/**
+ * Gets the value of an state set by this action's main execution.
+ *
+ * @param     name     name of the state to get
+ * @returns   string
+ */
+function getState(name) {
+    return process.env[`STATE_${name}`] || '';
+}
+exports.getState = getState;
+
+});
+
+var core$3 = unwrapExports(core$2);
+var core_1 = core$2.ExitCode;
+var core_2 = core$2.exportVariable;
+var core_3 = core$2.setSecret;
+var core_4 = core$2.addPath;
+var core_5 = core$2.getInput;
+var core_6 = core$2.setOutput;
+var core_7 = core$2.setFailed;
+var core_8 = core$2.debug;
+var core_9 = core$2.error;
+var core_10 = core$2.warning;
+var core_11 = core$2.info;
+var core_12 = core$2.startGroup;
+var core_13 = core$2.endGroup;
+var core_14 = core$2.group;
+var core_15 = core$2.saveState;
+var core_16 = core$2.getState;
+
+const REQUESTED_COMMENTS_PER_PAGE = 20;
+
+async function deleteOldComments(github, options, context) {
+	const existingComments = await getExistingComments(github, options, context);
+	for (const comment of existingComments) {
+		core_8(`Deleting comment: ${comment.id}`);
+		try {
+			await github.issues.deleteComment({
+				owner: context.repo.owner,
+				repo: context.repo.repo,
+				comment_id: comment.id,
+			});
+		} catch (error) {
+			console.error(error);
+		}
+	}
+}
+
+async function getExistingComments(github, options, context) {
+	let page = 0;
+	let results = [];
+	let response;
+	do {
+		response = await github.issues.listComments({
+			issue_number: context.issue.number,
+			owner: context.repo.owner,
+			repo: context.repo.repo,
+			per_page: REQUESTED_COMMENTS_PER_PAGE,
+			page: page,
+		});
+		results = results.concat(response.data);
+		page++;
+	} while (response.data.length === REQUESTED_COMMENTS_PER_PAGE)
+
+	return results.filter(
+		comment =>
+			!!comment.user &&
+			(!options.title || comment.body.includes(options.title)) &&
+			comment.body.includes("Coverage Report"),
+	)
+}
+
+function tag(name) {
+	return function(...children) {
+		const props =
+			typeof children[0] === "object"
+				? Object.keys(children[0])
+						.map(key => ` ${key}='${children[0][key]}'`)
+						.join("")
+				: "";
+
+		const c = typeof children[0] === "string" ? children : children.slice(1);
+
+		return `<${name}${props}>${c.join("")}</${name}>`
+	}
+}
+
+const details = tag("details");
+const summary = tag("summary");
+const tr = tag("tr");
+const td = tag("td");
+const th = tag("th");
+const b = tag("b");
+const table = tag("table");
+const tbody = tag("tbody");
+const a = tag("a");
+const h2 = tag("h2");
+
+const fragment = function(...children) {
+	return children.join("")
+};
 
 /*
 Copyright (c) 2012, Yahoo! Inc. All rights reserved.
@@ -22759,36 +22831,6 @@ function percentage(lcov) {
 
 	return (hit / found) * 100
 }
-
-function tag(name) {
-	return function(...children) {
-		const props =
-			typeof children[0] === "object"
-				? Object.keys(children[0])
-						.map(key => ` ${key}='${children[0][key]}'`)
-						.join("")
-				: "";
-
-		const c = typeof children[0] === "string" ? children : children.slice(1);
-
-		return `<${name}${props}>${c.join("")}</${name}>`
-	}
-}
-
-const details = tag("details");
-const summary = tag("summary");
-const tr = tag("tr");
-const td = tag("td");
-const th = tag("th");
-const b = tag("b");
-const table = tag("table");
-const tbody = tag("tbody");
-const a = tag("a");
-const h2 = tag("h2");
-
-const fragment = function(...children) {
-	return children.join("")
-};
 
 function normalisePath(file) {
 	return file.replace(/\\/g, "/")
@@ -22993,11 +23035,10 @@ function diff(lcov, before, options) {
 
 	const pbefore = percentage(before);
 	const pafter = percentage(lcov);
-	const pdiff = pafter - pbefore;
-	const plus = pdiff > 0 ? "+" : "";
-	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴";
-
-	return fragment(
+	const coverageDiff = pafter - pbefore;
+	const plus = coverageDiff > 0 ? "+" : "";
+	const arrow = coverageDiff === 0 ? "" : coverageDiff < 0 ? "▾" : "▴";
+	const body = fragment(
 		options.title ? h2(options.title) : "",
 		options.base
 			? `Coverage after merging ${b(options.head)} into ${b(
@@ -23008,7 +23049,7 @@ function diff(lcov, before, options) {
 			tbody(
 				tr(
 					th(pafter.toFixed(2), "%"),
-					th(arrow, " ", plus, pdiff.toFixed(2), "%"),
+					th(arrow, " ", plus, coverageDiff.toFixed(2), "%"),
 				),
 			),
 		),
@@ -23021,7 +23062,8 @@ function diff(lcov, before, options) {
 			),
 			tabulate(lcov, options),
 		),
-	)
+	);
+	return { body, coverageDiff }
 }
 
 // Get list of changed files
@@ -23052,61 +23094,25 @@ async function getChangedFiles(githubClient, options, context) {
 		.map(file => file.filename)
 }
 
-const REQUESTED_COMMENTS_PER_PAGE = 20;
-
-async function deleteOldComments(github, options, context) {
-	const existingComments = await getExistingComments(github, options, context);
-	for (const comment of existingComments) {
-		core_8(`Deleting comment: ${comment.id}`);
-		try {
-			await github.issues.deleteComment({
-				owner: context.repo.owner,
-				repo: context.repo.repo,
-				comment_id: comment.id,
-			});
-		} catch (error) {
-			console.error(error);
-		}
-	}
-}
-
-async function getExistingComments(github, options, context) {
-	let page = 0;
-	let results = [];
-	let response;
-	do {
-		response = await github.issues.listComments({
-			issue_number: context.issue.number,
-			owner: context.repo.owner,
-			repo: context.repo.repo,
-			per_page: REQUESTED_COMMENTS_PER_PAGE,
-			page: page,
-		});
-		results = results.concat(response.data);
-		page++;
-	} while (response.data.length === REQUESTED_COMMENTS_PER_PAGE)
-
-	return results.filter(
-		comment =>
-			!!comment.user &&
-			(!options.title || comment.body.includes(options.title)) &&
-			comment.body.includes("Coverage Report"),
-	)
-}
-
 const MAX_COMMENT_CHARS = 65536;
 
 async function main$1() {
-	const token = core$1.getInput("github-token");
+	const token = core$3.getInput("github-token");
 	const githubClient = new github_2(token);
-	const workingDir = core$1.getInput('working-directory') || './';	
-	const lcovFile = path.join(workingDir, core$1.getInput("lcov-file") || "./coverage/lcov.info");
-	const baseFile = core$1.getInput("lcov-base");
+	const workingDir = core$3.getInput("working-directory") || "./";
+	const lcovFile = path.join(
+		workingDir,
+		core$3.getInput("lcov-file") || "./coverage/lcov.info",
+	);
+	const baseFile = core$3.getInput("lcov-base");
 	const shouldFilterChangedFiles =
-		core$1.getInput("filter-changed-files").toLowerCase() === "true";
+		core$3.getInput("filter-changed-files").toLowerCase() === "true";
 	const shouldDeleteOldComments =
-		core$1.getInput("delete-old-comments").toLowerCase() === "true";
-	const title = core$1.getInput("title");
+		core$3.getInput("delete-old-comments").toLowerCase() === "true";
+	const title = core$3.getInput("title");
+
+	const shouldFailOnCoverageDecrease =
+		core$3.getInput("fail-on-coverage-decrease").toLowerCase() === "true";
 
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
 	if (!raw) {
@@ -23146,7 +23152,10 @@ async function main$1() {
 
 	const lcov = await parse$2(raw);
 	const baselcov = baseRaw && (await parse$2(baseRaw));
-	const body = diff(lcov, baselcov, options).substring(0, MAX_COMMENT_CHARS);
+
+	const { body, coverageDiff } = diff(lcov, baselcov, options);
+
+	const comment = body.substring(0, MAX_COMMENT_CHARS);
 
 	if (shouldDeleteOldComments) {
 		await deleteOldComments(githubClient, options, github_1);
@@ -23157,19 +23166,22 @@ async function main$1() {
 			repo: github_1.repo.repo,
 			owner: github_1.repo.owner,
 			issue_number: github_1.payload.pull_request.number,
-			body: body,
+			body: comment,
 		});
 	} else if (github_1.eventName === "push") {
 		await githubClient.repos.createCommitComment({
 			repo: github_1.repo.repo,
 			owner: github_1.repo.owner,
 			commit_sha: options.commit,
-			body: body,
+			body: comment,
 		});
+	}
+	if (shouldFailOnCoverageDecrease && coverageDiff < 0) {
+		core$3.setFailed(`Coverage decreased by ${-coverageDiff.toFixed(2)}%`);
 	}
 }
 
 main$1().catch(function(err) {
 	console.log(err);
-	core$1.setFailed(err.message);
+	core$3.setFailed(err.message);
 });

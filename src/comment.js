@@ -1,4 +1,4 @@
-import { details, summary, b, fragment, table, tbody, tr, th, h2 } from "./html"
+import { b, details, fragment, h2, summary, table, tbody, th, tr } from "./html"
 
 import { percentage } from "./lcov"
 import { tabulate } from "./tabulate"
@@ -45,7 +45,7 @@ export function diff(lcov, before, options) {
 			tbody(
 				tr(
 					th(pafter.toFixed(2), "%"),
-					th(arrow, " ", plus, pdiff.toFixed(2), "%"),
+					th(arrow, " ", plus, coverageDiff.toFixed(2), "%"),
 				),
 			),
 		),

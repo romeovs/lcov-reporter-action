@@ -1,13 +1,13 @@
-import { promises as fs } from "fs"
-import core from "@actions/core"
 import { GitHub, context } from "@actions/github"
-import path from "path"
 
-import { parse } from "./lcov"
-import { diff } from "./comment"
-import { getChangedFiles } from "./get_changes"
+import core from "@actions/core"
 import { deleteOldComments } from "./delete_old_comments"
+import { diff } from "./comment"
+import { promises as fs } from "fs"
+import { getChangedFiles } from "./get_changes"
 import { normalisePath } from "./util"
+import { parse } from "./lcov"
+import path from "path"
 
 const MAX_COMMENT_CHARS = 65536
 
@@ -25,6 +25,9 @@ async function main() {
 	const shouldDeleteOldComments =
 		core.getInput("delete-old-comments").toLowerCase() === "true"
 	const title = core.getInput("title")
+
+	const shouldFailOnCoverageDecrease =
+		core.getInput("fail-on-coverage-decrease").toLowerCase() === "true"
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
@@ -65,10 +68,9 @@ async function main() {
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && (await parse(baseRaw))
 
-	const { body, coverageDiff } = diff(lcov, baselcov, options).substring(
-		0,
-		MAX_COMMENT_CHARS,
-	)
+	const { body, coverageDiff } = diff(lcov, baselcov, options)
+
+	const comment = body.substring(0, MAX_COMMENT_CHARS)
 
 	if (shouldDeleteOldComments) {
 		await deleteOldComments(githubClient, options, context)
@@ -79,18 +81,18 @@ async function main() {
 			repo: context.repo.repo,
 			owner: context.repo.owner,
 			issue_number: context.payload.pull_request.number,
-			body: body,
+			body: comment,
 		})
 	} else if (context.eventName === "push") {
 		await githubClient.repos.createCommitComment({
 			repo: context.repo.repo,
 			owner: context.repo.owner,
 			commit_sha: options.commit,
-			body: body,
+			body: comment,
 		})
 	}
-	if (coverageDiff < 0) {
-		throw new Error(`Coverage decreased by ${-coverageDiff.toFixed(2)}%`)
+	if (shouldFailOnCoverageDecrease && coverageDiff < 0) {
+		core.setFailed(`Coverage decreased by ${-coverageDiff.toFixed(2)}%`)
 	}
 }
 

@@ -23,8 +23,12 @@ inputs:
     description: Set to true to delete old Coverage Report comments
     required: false
     default: false
+  fail-on-coverage-decrease:
+    description: Set to true to fail gracefully when the coverage decreases
+    required: false
+    default: false
   working-directory:
-    description: Set working directory if project is not in root folder  
+    description: Set working directory if project is not in root folder
     required: false
     default: "./"
   title:
