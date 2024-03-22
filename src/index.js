@@ -29,6 +29,8 @@ async function main() {
 	const shouldFailOnCoverageDecrease =
 		core.getInput("fail-on-coverage-decrease").toLowerCase() === "true"
 
+	console.log(`Started Coverage Diff Action with:`)
+
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
 		console.log(`No coverage report found at '${lcovFile}', exiting...`)
@@ -91,6 +93,14 @@ async function main() {
 			body: comment,
 		})
 	}
+	console.log(`shouldFailOnCoverageDecrease`, shouldFailOnCoverageDecrease)
+	console.log(`coverageDiff`, coverageDiff)
+
+	console.log(
+		"Coverage Diff Action completed.",
+		shouldFailOnCoverageDecrease && coverageDiff < 0,
+	)
+
 	if (shouldFailOnCoverageDecrease && coverageDiff < 0) {
 		core.setFailed(`Coverage decreased by ${-coverageDiff.toFixed(2)}%`)
 	}
