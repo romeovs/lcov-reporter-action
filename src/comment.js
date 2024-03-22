@@ -31,11 +31,10 @@ export function diff(lcov, before, options) {
 
 	const pbefore = percentage(before)
 	const pafter = percentage(lcov)
-	const pdiff = pafter - pbefore
-	const plus = pdiff > 0 ? "+" : ""
-	const arrow = pdiff === 0 ? "" : pdiff < 0 ? "▾" : "▴"
-
-	return fragment(
+	const coverageDiff = pafter - pbefore
+	const plus = coverageDiff > 0 ? "+" : ""
+	const arrow = coverageDiff === 0 ? "" : coverageDiff < 0 ? "▾" : "▴"
+	const body = fragment(
 		options.title ? h2(options.title) : "",
 		options.base
 			? `Coverage after merging ${b(options.head)} into ${b(
@@ -60,4 +59,5 @@ export function diff(lcov, before, options) {
 			tabulate(lcov, options),
 		),
 	)
+	return { body, coverageDiff }
 }

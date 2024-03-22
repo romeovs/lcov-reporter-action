@@ -14,8 +14,11 @@ const MAX_COMMENT_CHARS = 65536
 async function main() {
 	const token = core.getInput("github-token")
 	const githubClient = new GitHub(token)
-	const workingDir = core.getInput('working-directory') || './';	
-	const lcovFile = path.join(workingDir, core.getInput("lcov-file") || "./coverage/lcov.info")
+	const workingDir = core.getInput("working-directory") || "./"
+	const lcovFile = path.join(
+		workingDir,
+		core.getInput("lcov-file") || "./coverage/lcov.info",
+	)
 	const baseFile = core.getInput("lcov-base")
 	const shouldFilterChangedFiles =
 		core.getInput("filter-changed-files").toLowerCase() === "true"
@@ -61,7 +64,11 @@ async function main() {
 
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && (await parse(baseRaw))
-	const body = diff(lcov, baselcov, options).substring(0, MAX_COMMENT_CHARS)
+
+	const { body, coverageDiff } = diff(lcov, baselcov, options).substring(
+		0,
+		MAX_COMMENT_CHARS,
+	)
 
 	if (shouldDeleteOldComments) {
 		await deleteOldComments(githubClient, options, context)
@@ -81,6 +88,9 @@ async function main() {
 			commit_sha: options.commit,
 			body: body,
 		})
+	}
+	if (coverageDiff < 0) {
+		throw new Error(`Coverage decreased by ${-coverageDiff.toFixed(2)}%`)
 	}
 }
 
