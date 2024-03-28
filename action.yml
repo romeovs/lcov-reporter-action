@@ -49,5 +49,5 @@ outputs:
   result:
     description: (String - Boolean) Branch coverage is above coverage threshold (diff_threshold input) or not
 runs:
-  using: node12
+  using: node16
   main: dist/main.js
