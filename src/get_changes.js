@@ -10,7 +10,7 @@ export async function getChangedFiles(githubClient, options, context) {
 
 	// Use GitHub's compare two commits API.
 	// https://developer.github.com/v3/repos/commits/#compare-two-commits
-	const response = await githubClient.repos.compareCommits({
+	const response = await githubClient.rest.repos.compareCommits({
 		base: options.baseCommit,
 		head: options.commit,
 		owner: context.repo.owner,

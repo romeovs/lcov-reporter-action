@@ -7,7 +7,7 @@ export async function deleteOldComments(github, options, context) {
 	for (const comment of existingComments) {
 		core.debug(`Deleting comment: ${comment.id}`)
 		try {
-			await github.issues.deleteComment({
+			await github.rest.issues.deleteComment({
 				owner: context.repo.owner,
 				repo: context.repo.repo,
 				comment_id: comment.id,
@@ -23,7 +23,7 @@ async function getExistingComments(github, options, context) {
 	let results = []
 	let response
 	do {
-		response = await github.issues.listComments({
+		response = await github.rest.issues.listComments({
 			issue_number: context.issue.number,
 			owner: context.repo.owner,
 			repo: context.repo.repo,

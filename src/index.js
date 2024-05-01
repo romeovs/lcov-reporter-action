@@ -68,14 +68,14 @@ async function main() {
 	}
 
 	if (context.eventName === "pull_request") {
-		await githubClient.issues.createComment({
+		await githubClient.rest.issues.createComment({
 			repo: context.repo.repo,
 			owner: context.repo.owner,
 			issue_number: context.payload.pull_request.number,
 			body: body,
 		})
 	} else if (context.eventName === "push") {
-		await githubClient.repos.createCommitComment({
+		await githubClient.rest.repos.createCommitComment({
 			repo: context.repo.repo,
 			owner: context.repo.owner,
 			commit_sha: options.commit,

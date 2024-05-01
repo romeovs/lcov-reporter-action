@@ -30372,8 +30372,8 @@ function createHref(options, file) {
 	const parts = relative.split("/");
 	const filename = parts[parts.length - 1];
 	const repository = options.repository || 'default_repository';
- 	const commit = options.commit || 'default_commit';
- 	const workingDir = options.workingDir || './';
+	const commit = options.commit || 'default_commit';
+	const workingDir = options.workingDir || './';
 	const url = path$1.join(repository, 'blob', commit, workingDir, relative);
 	return {
 		href: `https://github.com/${url}`,
@@ -30610,7 +30610,7 @@ async function getChangedFiles(githubClient, options, context) {
 
 	// Use GitHub's compare two commits API.
 	// https://developer.github.com/v3/repos/commits/#compare-two-commits
-	const response = await githubClient.repos.compareCommits({
+	const response = await githubClient.rest.repos.compareCommits({
 		base: options.baseCommit,
 		head: options.commit,
 		owner: context.repo.owner,
@@ -30635,7 +30635,7 @@ async function deleteOldComments(github, options, context) {
 	for (const comment of existingComments) {
 		coreExports.debug(`Deleting comment: ${comment.id}`);
 		try {
-			await github.issues.deleteComment({
+			await github.rest.issues.deleteComment({
 				owner: context.repo.owner,
 				repo: context.repo.repo,
 				comment_id: comment.id,
@@ -30651,7 +30651,7 @@ async function getExistingComments(github, options, context) {
 	let results = [];
 	let response;
 	do {
-		response = await github.issues.listComments({
+		response = await github.rest.issues.listComments({
 			issue_number: context.issue.number,
 			owner: context.repo.owner,
 			repo: context.repo.repo,
@@ -30729,14 +30729,14 @@ async function main() {
 	}
 
 	if (context.eventName === "pull_request") {
-		await githubClient.issues.createComment({
+		await githubClient.rest.issues.createComment({
 			repo: context.repo.repo,
 			owner: context.repo.owner,
 			issue_number: context.payload.pull_request.number,
 			body: body,
 		});
 	} else if (context.eventName === "push") {
-		await githubClient.repos.createCommitComment({
+		await githubClient.rest.repos.createCommitComment({
 			repo: context.repo.repo,
 			owner: context.repo.owner,
 			commit_sha: options.commit,
