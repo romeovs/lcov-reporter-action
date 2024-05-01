@@ -11,6 +11,7 @@
 		"comment",
 		"message"
 	],
+	"type": "module", 
 	"main": "index.js",
 	"scripts": {
 		"build": "rollup -c",
