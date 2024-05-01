@@ -1,7 +1,7 @@
-import { details, summary, b, fragment, table, tbody, tr, th, h2 } from "./html"
+import { details, summary, b, fragment, table, tbody, tr, th, h2 } from "./html.js"
 
-import { percentage } from "./lcov"
-import { tabulate } from "./tabulate"
+import { percentage } from "./lcov.js"
+import { tabulate } from "./tabulate.js"
 
 export function comment(lcov, options) {
 	return fragment(
@@ -10,7 +10,7 @@ export function comment(lcov, options) {
 			? `Coverage after merging ${b(options.head)} into ${b(
 					options.base,
 			  )} will be`
-			: `Coverage for this commit`,
+			: "Coverage for this commit",
 		table(tbody(tr(th(percentage(lcov).toFixed(2), "%")))),
 		"\n\n",
 		details(
@@ -41,7 +41,7 @@ export function diff(lcov, before, options) {
 			? `Coverage after merging ${b(options.head)} into ${b(
 					options.base,
 			  )} will be`
-			: `Coverage for this commit`,
+			: "Coverage for this commit",
 		table(
 			tbody(
 				tr(

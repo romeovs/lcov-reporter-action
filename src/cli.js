@@ -2,8 +2,8 @@ import process from "process"
 import { promises as fs } from "fs"
 import path from "path"
 
-import { parse } from "./lcov"
-import { diff } from "./comment"
+import { parse } from "./lcov.js"
+import { diff } from "./comment.js"
 
 async function main() {
 	const file = process.argv[2]

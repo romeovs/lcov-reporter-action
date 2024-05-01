@@ -1,5 +1,5 @@
-import { th, tr, td, table, tbody, a, b, span, fragment } from "./html"
-import { createHref, normalisePath } from "./util"
+import { th, tr, td, table, tbody, a, b, fragment } from "./html.js"
+import { createHref, normalisePath } from "./util.js"
 
 // Tabulate the lcov data in a HTML table.
 export function tabulate(lcov, options) {
@@ -88,7 +88,7 @@ function toRow(file, indent, options) {
 }
 
 function filename(file, indent, options) {
-	const {href, filename} = createHref(options, file);
+	const {href, filename} = createHref(options, file)
 	const space = indent ? "&nbsp; &nbsp;" : ""
 	return fragment(space, a({ href }, filename))
 }

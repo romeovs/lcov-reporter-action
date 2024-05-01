@@ -1,19 +1,19 @@
 import { promises as fs } from "fs"
-import core from "@actions/core"
-import { GitHub, context } from "@actions/github"
+import * as core from "@actions/core"
+import { getOctokit, context } from "@actions/github"
 import path from "path"
 
-import { parse } from "./lcov"
-import { diff } from "./comment"
-import { getChangedFiles } from "./get_changes"
-import { deleteOldComments } from "./delete_old_comments"
-import { normalisePath } from "./util"
+import { parse } from "./lcov.js"
+import { diff } from "./comment.js"
+import { getChangedFiles } from "./get_changes.js"
+import { deleteOldComments } from "./delete_old_comments.js"
+import { normalisePath } from "./util.js"
 
 const MAX_COMMENT_CHARS = 65536
 
 async function main() {
 	const token = core.getInput("github-token")
-	const githubClient = new GitHub(token)
+	const githubClient = getOctokit(token)
 	const workingDir = core.getInput('working-directory') || './';	
 	const lcovFile = path.join(workingDir, core.getInput("lcov-file") || "./coverage/lcov.info")
 	const baseFile = core.getInput("lcov-base")
@@ -23,14 +23,14 @@ async function main() {
 		core.getInput("delete-old-comments").toLowerCase() === "true"
 	const title = core.getInput("title")
 
-	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
+	const raw = await fs.readFile(lcovFile, "utf-8").catch((err) => null)
 	if (!raw) {
 		console.log(`No coverage report found at '${lcovFile}', exiting...`)
 		return
 	}
 
 	const baseRaw =
-		baseFile && (await fs.readFile(baseFile, "utf-8").catch(err => null))
+		baseFile && (await fs.readFile(baseFile, "utf-8").catch((err) => null))
 	if (baseFile && !baseRaw) {
 		console.log(`No coverage report found at '${baseFile}', ignoring...`)
 	}
