@@ -23,12 +23,22 @@ inputs:
     description: Set to true to delete old Coverage Report comments
     required: false
     default: false
+  update-comment:
+    description: Set to true to update the last Coverage Report comment
+    required: false
+    default: false
   working-directory:
-    description: Set working directory if project is not in root folder  
+    description: Set working directory if project is not in root folder
     required: false
     default: "./"
   title:
     description: Title to add to the comment
+    required: false
+  comment_prepend:
+    description: Content to add at the beginning of the comment
+    required: false
+  comment_append:
+    description: Content to add at the end of the comment, may not appear if comment is too long
     required: false
 runs:
   using: node20

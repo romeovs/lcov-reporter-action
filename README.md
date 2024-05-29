@@ -35,10 +35,19 @@ branch. When this is set a diff of the coverage percentages is shown.
 If set to true, only changed files will be included in the report. Total percentage will still include all files.
 
 ##### `delete-old-comments` (**Default: false**)
-If set to true, old comments will be deleted before a new comment is posted
+If set to true, old comments will be deleted before a new comment is posted.
+
+##### `update-comment` (**Default: false**)
+If set to true, the most recently updated comment will be updated with the new report.
 
 ##### `title` (**Optional**)
 If included, will be added as a title for the comment produced.
+
+##### `comment_prepend` (**Optional**)
+If included, will be added at the beginning of the produced comment.
+
+##### `comment_append` (**Optional**)
+If included, will be added at the end of the produced comment if comment is not too long.
 
 ## Example usage
 
