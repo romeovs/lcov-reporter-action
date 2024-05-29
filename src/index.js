@@ -21,6 +21,7 @@ async function main() {
 		core.getInput("filter-changed-files").toLowerCase() === "true"
 	const shouldDeleteOldComments =
 		core.getInput("delete-old-comments").toLowerCase() === "true"
+	const defaultBranch = core.getInput("default-branch") || "main"
 	const title = core.getInput("title")
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
@@ -39,6 +40,7 @@ async function main() {
 		repository: context.payload.repository.full_name,
 		prefix: normalisePath(`${process.env.GITHUB_WORKSPACE}/`),
 		workingDir,
+		defaultBranch,
 	}
 
 	if (context.eventName === "pull_request") {
