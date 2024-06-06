@@ -22798,7 +22798,13 @@ function createHref(options, file) {
 	const relative = file.file.replace(options.prefix, "");
 	const parts = relative.split("/");
 	const filename = parts[parts.length - 1];
-	const url = path.join(options.repository, 'blob', options.commit, options.workingDir || './', relative);
+	const url = path.join(
+		options.repository,
+		"blob",
+		options.commit || options.defaultBranch,
+		options.workingDir || "./",
+		relative,
+	);
 	return {
 		href: `https://github.com/${url}`,
 		filename
@@ -23110,6 +23116,7 @@ async function main$1() {
 		core$1.getInput("filter-changed-files").toLowerCase() === "true";
 	const shouldDeleteOldComments =
 		core$1.getInput("delete-old-comments").toLowerCase() === "true";
+	const defaultBranch = core$1.getInput("default-branch") || "main";
 	const title = core$1.getInput("title");
 
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
@@ -23128,6 +23135,7 @@ async function main$1() {
 		repository: github_1.payload.repository.full_name,
 		prefix: normalisePath(`${process.env.GITHUB_WORKSPACE}/`),
 		workingDir,
+		defaultBranch,
 	};
 
 	if (github_1.eventName === "pull_request") {
