@@ -110675,11 +110675,17 @@ function createHref(options, file) {
 	const relative = file.file.replace(options.prefix, "");
 	const parts = relative.split("/");
 	const filename = parts[parts.length - 1];
-	const url = path$1.join(options.repository, 'blob', options.commit, options.workingDir || './', relative);
+	const url = path$1.join(
+		options.repository,
+		"blob",
+		options.commit,
+		options.workingDir || "./",
+		relative,
+	);
 	return {
 		href: `https://github.com/${url}`,
-		filename
-	};
+		filename,
+	}
 }
 
 // Tabulate the lcov data in a HTML table.
@@ -110743,7 +110749,7 @@ function getStatement(file) {
 	const { branches, functions, lines } = file;
 
 	return [branches, functions, lines].reduce(
-		function (acc, curr) {
+		function(acc, curr) {
 			if (!curr) {
 				return acc
 			}
@@ -110769,7 +110775,7 @@ function toRow(file, indent, options) {
 }
 
 function filename(file, indent, options) {
-	const {href, filename} = createHref(options, file);
+	const { href, filename } = createHref(options, file);
 	const space = indent ? "&nbsp; &nbsp;" : "";
 	return fragment(space, a({ href }, filename))
 }
@@ -110799,7 +110805,7 @@ function uncovered(file, options) {
 	const all = ranges([...branches, ...lines]);
 
 	return all
-		.map(function (range) {
+		.map(function(range) {
 			const fragment =
 				range.start === range.end
 					? `L${range.start}`
@@ -110820,7 +110826,7 @@ function ranges(linenos) {
 
 	let last = null;
 
-	linenos.sort().forEach(function (lineno) {
+	linenos.sort().forEach(function(lineno) {
 		if (last === null) {
 			last = { start: lineno, end: lineno };
 			return
@@ -110977,8 +110983,11 @@ async function main() {
 	const token = core.getInput("github-token");
 	const octokit = getOctokit_1(token);
 	const githubClient = octokit.rest;
-	const workingDir = core.getInput('working-directory') || './';	
-	const lcovFile = path$1.join(workingDir, core.getInput("lcov-file") || "./coverage/lcov.info");
+	const workingDir = core.getInput("working-directory") || "./";
+	const lcovFile = path$1.join(
+		workingDir,
+		core.getInput("lcov-file") || "./coverage/lcov.info",
+	);
 	const baseFile = core.getInput("lcov-base");
 	const shouldFilterChangedFiles =
 		core.getInput("filter-changed-files").toLowerCase() === "true";
@@ -111005,7 +111014,10 @@ async function main() {
 		workingDir,
 	};
 
-	if (context.eventName === "pull_request" || context.eventName === "pull_request_target") {
+	if (
+		context.eventName === "pull_request" ||
+		context.eventName === "pull_request_target"
+	) {
 		options.commit = context.payload.pull_request.head.sha;
 		options.baseCommit = context.payload.pull_request.base.sha;
 		options.head = context.payload.pull_request.head.ref;
