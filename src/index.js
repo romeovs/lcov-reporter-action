@@ -1,6 +1,6 @@
 import { promises as fs } from "fs"
 import core from "@actions/core"
-import { GitHub, context } from "@actions/github"
+import { getOctokit, context } from "@actions/github"
 import path from "path"
 
 import { parse } from "./lcov"
@@ -13,14 +13,19 @@ const MAX_COMMENT_CHARS = 65536
 
 async function main() {
 	const token = core.getInput("github-token")
-	const githubClient = new GitHub(token)
-	const workingDir = core.getInput('working-directory') || './';	
-	const lcovFile = path.join(workingDir, core.getInput("lcov-file") || "./coverage/lcov.info")
+	const octokit = getOctokit(token)
+	const githubClient = octokit.rest
+	const workingDir = core.getInput("working-directory") || "./"
+	const lcovFile = path.join(
+		workingDir,
+		core.getInput("lcov-file") || "./coverage/lcov.info",
+	)
 	const baseFile = core.getInput("lcov-base")
 	const shouldFilterChangedFiles =
 		core.getInput("filter-changed-files").toLowerCase() === "true"
 	const shouldDeleteOldComments =
 		core.getInput("delete-old-comments").toLowerCase() === "true"
+	const postTo = core.getInput("post-to").toLowerCase()
 	const title = core.getInput("title")
 
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
@@ -41,7 +46,10 @@ async function main() {
 		workingDir,
 	}
 
-	if (context.eventName === "pull_request" || context.eventName === "pull_request_target") {
+	if (
+		context.eventName === "pull_request" ||
+		context.eventName === "pull_request_target"
+	) {
 		options.commit = context.payload.pull_request.head.sha
 		options.baseCommit = context.payload.pull_request.base.sha
 		options.head = context.payload.pull_request.head.ref
@@ -67,20 +75,33 @@ async function main() {
 		await deleteOldComments(githubClient, options, context)
 	}
 
-	if (context.eventName === "pull_request" || context.eventName === "pull_request_target") {
-		await githubClient.issues.createComment({
-			repo: context.repo.repo,
-			owner: context.repo.owner,
-			issue_number: context.payload.pull_request.number,
-			body: body,
-		})
-	} else if (context.eventName === "push") {
-		await githubClient.repos.createCommitComment({
-			repo: context.repo.repo,
-			owner: context.repo.owner,
-			commit_sha: options.commit,
-			body: body,
-		})
+	switch (postTo) {
+		case "comment":
+			if (
+				context.eventName === "pull_request" ||
+				context.eventName === "pull_request_target"
+			) {
+				await githubClient.issues.createComment({
+					repo: context.repo.repo,
+					owner: context.repo.owner,
+					issue_number: context.payload.pull_request.number,
+					body: body,
+				})
+			} else if (context.eventName === "push") {
+				await githubClient.repos.createCommitComment({
+					repo: context.repo.repo,
+					owner: context.repo.owner,
+					commit_sha: options.commit,
+					body: body,
+				})
+			}
+			break
+		case "job-summary":
+			core.summary.addRaw(body)
+			await core.summary.write()
+			break
+		default:
+			core.warning(`Unknown post-to value: '${postTo}'`)
 	}
 }
 
