@@ -35,5 +35,5 @@ inputs:
     description: Title to add to the comment
     required: false
 runs:
-  using: node16
+  using: node20
   main: dist/main.js

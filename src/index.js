@@ -47,7 +47,7 @@ async function main() {
 		workingDir,
 	}
 
-	if (context.eventName === "pull_request") {
+	if (context.eventName === "pull_request" || context.eventName === "pull_request_target") {
 		options.commit = context.payload.pull_request.head.sha
 		options.baseCommit = context.payload.pull_request.base.sha
 		options.head = context.payload.pull_request.head.ref
@@ -76,7 +76,7 @@ async function main() {
 		await deleteOldComments(githubClient, options, context)
 	}
 
-	if (context.eventName === "pull_request") {
+	if (context.eventName === "pull_request" || context.eventName === "pull_request_target") {
 		await githubClient.issues.createComment({
 			repo: context.repo.repo,
 			owner: context.repo.owner,
