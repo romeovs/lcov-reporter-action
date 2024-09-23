@@ -29,8 +29,6 @@ async function main() {
 	const shouldFailOnCoverageDecrease =
 		core.getInput("fail-on-coverage-decrease").toLowerCase() === "true"
 
-	console.log(`Started Coverage Diff Action with:`)
-
 	const raw = await fs.readFile(lcovFile, "utf-8").catch(err => null)
 	if (!raw) {
 		console.log(`No coverage report found at '${lcovFile}', exiting...`)
