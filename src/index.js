@@ -49,7 +49,10 @@ async function main() {
 		workingDir,
 	}
 
-	if (context.eventName === "pull_request" || context.eventName === "pull_request_target") {
+	if (
+		context.eventName === "pull_request" ||
+		context.eventName === "pull_request_target"
+	) {
 		options.commit = context.payload.pull_request.head.sha
 		options.baseCommit = context.payload.pull_request.base.sha
 		options.head = context.payload.pull_request.head.ref
@@ -70,39 +73,65 @@ async function main() {
 	const lcov = await parse(raw)
 	const baselcov = baseRaw && (await parse(baseRaw))
 
-	const { body, coverageDiff } = diff(lcov, baselcov, options)
+	if (baselcov) {
+		const { body, coverageDiff } = diff(lcov, baselcov, options).substring(
+			0,
+			MAX_COMMENT_CHARS,
+		)
 
-	const comment = body.substring(0, MAX_COMMENT_CHARS)
+		if (shouldDeleteOldComments) {
+			await deleteOldComments(githubClient, options, context)
+		}
 
-	if (shouldDeleteOldComments) {
-		await deleteOldComments(githubClient, options, context)
-	}
+		if (context.eventName === "pull_request") {
+			await githubClient.issues.createComment({
+				repo: context.repo.repo,
+				owner: context.repo.owner,
+				issue_number: context.payload.pull_request.number,
+				body: body,
+			})
+		} else if (context.eventName === "push") {
+			await githubClient.repos.createCommitComment({
+				repo: context.repo.repo,
+				owner: context.repo.owner,
+				commit_sha: options.commit,
+				body: body,
+			})
+		}
+		console.log(`shouldFailOnCoverageDecrease`, shouldFailOnCoverageDecrease)
+		console.log(`coverageDiff`, coverageDiff)
 
-	if (context.eventName === "pull_request" || context.eventName === "pull_request_target") {
-		await githubClient.issues.createComment({
-			repo: context.repo.repo,
-			owner: context.repo.owner,
-			issue_number: context.payload.pull_request.number,
-			body: comment,
-		})
-	} else if (context.eventName === "push") {
-		await githubClient.repos.createCommitComment({
-			repo: context.repo.repo,
-			owner: context.repo.owner,
-			commit_sha: options.commit,
-			body: comment,
-		})
-	}
-	console.log(`shouldFailOnCoverageDecrease`, shouldFailOnCoverageDecrease)
-	console.log(`coverageDiff`, coverageDiff)
+		if (
+			context.eventName === "pull_request" ||
+			context.eventName === "pull_request_target"
+		) {
+			await githubClient.issues.createComment({
+				repo: context.repo.repo,
+				owner: context.repo.owner,
+				issue_number: context.payload.pull_request.number,
+				body: comment,
+			})
+		} else if (context.eventName === "push") {
+			await githubClient.repos.createCommitComment({
+				repo: context.repo.repo,
+				owner: context.repo.owner,
+				commit_sha: options.commit,
+				body: comment,
+			})
+		}
+		console.log(`shouldFailOnCoverageDecrease`, shouldFailOnCoverageDecrease)
+		console.log(`coverageDiff`, coverageDiff)
 
-	console.log(
-		"Coverage Diff Action completed.",
-		shouldFailOnCoverageDecrease && coverageDiff < 0,
-	)
+		console.log(
+			"Coverage Diff Action completed.",
+			shouldFailOnCoverageDecrease && coverageDiff < 0,
+		)
 
-	if (shouldFailOnCoverageDecrease && coverageDiff < 0) {
-		core.setFailed(`Coverage decreased by ${-coverageDiff.toFixed(2)}%`)
+		if (shouldFailOnCoverageDecrease && coverageDiff < 0) {
+			core.setFailed(`Coverage decreased by ${-coverageDiff.toFixed(2)}%`)
+		}
+	} else {
+		console.warn("No base coverage found, skipping diff")
 	}
 }
 
