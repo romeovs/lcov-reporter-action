@@ -1,6 +1,6 @@
 {
 	"name": "lcov-reporter-action",
-	"version": "0.2.20",
+	"version": "0.2.21",
 	"private": true,
 	"description": "Comments a pull request with the lcov code coverage",
 	"license": "MIT",
