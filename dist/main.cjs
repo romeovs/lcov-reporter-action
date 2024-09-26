@@ -30424,10 +30424,7 @@ function filterAndNormaliseLcov(lcov, options) {
 }
 
 function shouldBeIncluded(fileName, options) {
-	if (!options.shouldFilterChangedFiles) {
-		return true
-	}
-	return options.changedFiles.includes(fileName.replace(options.prefix, ""))
+	return !options.shouldFilterChangedFiles
 }
 
 function toFolder(path) {
