@@ -23,7 +23,11 @@ export async function getChangedFiles(githubClient, options, context) {
 		)
 	}
 
+	// Normalize the working directory path from './' to '' or './src' to 'src'
+	const workingDir = options.workingDir.replace(/^.\//, "")
+
+	// Return the list of changed files, removing the working directory prefix and starting slash.
 	return response.data.files
 		.filter(file => file.status == "modified" || file.status == "added")
-		.map(file => file.filename)
+		.map(file => file.filename.replace(workingDir, "").replace(/^\//, ""))
 }

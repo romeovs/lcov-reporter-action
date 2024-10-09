@@ -22798,7 +22798,13 @@ function createHref(options, file) {
 	const relative = file.file.replace(options.prefix, "");
 	const parts = relative.split("/");
 	const filename = parts[parts.length - 1];
-	const url = path.join(options.repository, 'blob', options.commit, options.workingDir || './', relative);
+	const url = path.join(
+		options.repository,
+		"blob",
+		options.commit || options.defaultBranch,
+		options.workingDir || "./",
+		relative,
+	);
 	return {
 		href: `https://github.com/${url}`,
 		filename
@@ -23047,9 +23053,13 @@ async function getChangedFiles(githubClient, options, context) {
 		);
 	}
 
+	// Normalize the working directory path from './' to '' or './src' to 'src'
+	const workingDir = options.workingDir.replace(/^.\//, "");
+
+	// Return the list of changed files, removing the working directory prefix and starting slash.
 	return response.data.files
 		.filter(file => file.status == "modified" || file.status == "added")
-		.map(file => file.filename)
+		.map(file => file.filename.replace(workingDir, "").replace(/^\//, ""))
 }
 
 const REQUESTED_COMMENTS_PER_PAGE = 20;
@@ -23106,6 +23116,7 @@ async function main$1() {
 		core$1.getInput("filter-changed-files").toLowerCase() === "true";
 	const shouldDeleteOldComments =
 		core$1.getInput("delete-old-comments").toLowerCase() === "true";
+	const defaultBranch = core$1.getInput("default-branch") || "main";
 	const title = core$1.getInput("title");
 
 	const raw = await fs.promises.readFile(lcovFile, "utf-8").catch(err => null);
@@ -23124,6 +23135,7 @@ async function main$1() {
 		repository: github_1.payload.repository.full_name,
 		prefix: normalisePath(`${process.env.GITHUB_WORKSPACE}/`),
 		workingDir,
+		defaultBranch,
 	};
 
 	if (github_1.eventName === "pull_request") {
